@@ -11,3 +11,431 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// -------------------- ENUMS --------------------
+enum Role {
+  customer
+  admin
+}
+
+enum OrderStatus {
+  pending
+  processing
+  shipping
+  completed
+  cancelled
+}
+
+enum PaymentStatus {
+  unpaid
+  paid
+  refunded
+}
+
+enum PaymentMethod {
+  cod
+  vnpay
+  momo
+  banking
+}
+
+enum ServiceType {
+  paid
+  warranty_extension
+  support
+}
+
+enum RequestStatus {
+  pending
+  processing
+  completed
+  cancelled
+}
+
+enum ChatRole {
+  user
+  assistant
+  system
+}
+
+// -------------------- MODULE 1: USER & AUTH --------------------
+model User {
+  id              String           @id @default(uuid())
+  firstName       String
+  lastName        String
+  email           String           @unique
+  passwordHash    String
+  phone           String?
+  role            Role             @default(customer)
+  addresses       Address[]
+  cart            Cart?
+  wishlist        Wishlist?
+  orders          Order[]
+  warranties      Warranty[]
+  serviceRequests ServiceRequest[]
+  reviews         Review[]
+  chatSessions    ChatSession[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?        // Xóa mềm tài khoản, giữ lịch sử đơn hàng
+
+  @@index([email])
+}
+
+model Address {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipientName String
+  phone         String
+  addressLine   String
+  city          String
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+}
+
+// -------------------- MODULE 2: PRODUCT CATALOG (KÈM SKU) --------------------
+model Category {
+  id        String     @id @default(uuid())
+  parentId  String?
+  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+  name      String
+  slug      String     @unique
+  iconUrl   String?
+  order     Int        @default(0)
+  products  Product[]
+  deletedAt DateTime?  // Xóa mềm danh mục
+
+  @@index([parentId])
+}
+
+model Brand {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  logoUrl  String?
+  products Product[]
+}
+
+model Product {
+  id                  String           @id @default(uuid())
+  categoryId          String
+  category            Category         @relation(fields: [categoryId], references: [id])
+  brandId             String?
+  brand               Brand?           @relation(fields: [brandId], references: [id])
+  name                String
+  slug                String           @unique
+  description         String?
+  specifications      Json?            // VD: { "dungTich": "450L", "congSuat": "150W" }
+  isFeatured          Boolean          @default(false)
+  isActive            Boolean          @default(true)
+  freeShipping        Boolean          @default(true)
+  freeInstallation    Boolean          @default(false)
+  installment0Percent Boolean          @default(false)
+  variants            ProductVariant[]
+  images              ProductImage[]
+  wishlistItems       WishlistItem[]
+  reviews             Review[]
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  deletedAt           DateTime?        // Ẩn khỏi storefront, giữ cho kế toán
+
+  @@index([categoryId])
+}
+
+model ProductVariant {
+  id                 String       @id @default(uuid())
+  productId          String
+  product            Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku                String       @unique
+  variantName        String       // VD: "Màu Đen - 256GB"
+  price              Decimal      @db.Decimal(15, 2)
+  discountPercentage Int          @default(0)
+  stockQuantity      Int          @default(0)
+  attributes         Json?        // VD: { "color": "Red", "storage": "256GB" }
+  isActive           Boolean      @default(true)
+  cartItems          CartItem[]
+  orderItems         OrderItem[]
+
+  @@index([productId])
+}
+
+model ProductImage {
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  order     Int     @default(0)
+
+  @@index([productId])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  rating    Int      // 1-5
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+}
+
+// -------------------- MODULE 3: CART & WISHLIST --------------------
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String?    @unique
+  user      User?      @relation(fields: [userId], references: [id])
+  sessionId String?    @unique // Dành cho khách chưa đăng nhập (guest cart)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String         @id @default(uuid())
+  cartId    String
+  cart      Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  quantity  Int            @default(1)
+
+  @@unique([cartId, variantId])
+}
+
+model Wishlist {
+  id     String         @id @default(uuid())
+  userId String         @unique
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items  WishlistItem[]
+}
+
+model WishlistItem {
+  id         String   @id @default(uuid())
+  wishlistId String
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  addedAt    DateTime @default(now())
+
+  @@unique([wishlistId, productId])
+}
+
+// -------------------- MODULE 4: ORDER, PAYMENT & COUPON --------------------
+model Coupon {
+  id                String    @id @default(uuid())
+  code              String    @unique // VD: "SALE50K", "FREESHIP"
+  discountType      String    // "percentage" | "fixed_amount" | "free_shipping"
+  discountValue     Decimal   @db.Decimal(15, 2)
+  minOrderAmount    Decimal?  @db.Decimal(15, 2)
+  maxDiscountAmount Decimal?  @db.Decimal(15, 2)
+  usageLimit        Int?
+  usageLimitPerUser Int?      @default(1)
+  usedCount         Int       @default(0)
+  startDate         DateTime
+  endDate           DateTime
+  isActive          Boolean   @default(true)
+  orders            Order[]
+  createdAt         DateTime  @default(now())
+}
+
+model Order {
+  id              String               @id @default(uuid())
+  userId          String
+  user            User                 @relation(fields: [userId], references: [id])
+  couponId        String?
+  coupon          Coupon?              @relation(fields: [couponId], references: [id])
+  discountAmount  Decimal?             @db.Decimal(15, 2)
+  totalAmount     Decimal              @db.Decimal(15, 2)
+  shippingAddress String
+  phone           String
+  status          OrderStatus          @default(pending)
+  paymentStatus   PaymentStatus        @default(unpaid)
+  trackingNumber  String?
+  items           OrderItem[]
+  payment         Payment?
+  statusHistory   OrderStatusHistory[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  deletedAt       DateTime?            // Chỉ admin cấp cao mới được xóa mềm đơn lỗi
+
+  @@index([userId])
+  @@index([couponId])
+}
+
+model OrderItem {
+  id        String         @id @default(uuid())
+  orderId   String
+  order     Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  quantity  Int
+  price     Decimal        @db.Decimal(15, 2) // Giá chốt tại thời điểm mua
+  warranty  Warranty?
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  orderId         String        @unique
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method          PaymentMethod
+  amount          Decimal       @db.Decimal(15, 2)
+  transactionId   String?       // Mã giao dịch từ cổng thanh toán
+  gatewayResponse Json?         // Lưu response thô để đối soát
+  status          PaymentStatus @default(unpaid)
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+
+  @@index([orderId])
+}
+
+model OrderStatusHistory {
+  id        String      @id @default(uuid())
+  orderId   String
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    OrderStatus
+  note      String?     // VD: "Đơn hàng đã được giao cho đơn vị vận chuyển"
+  changedBy String?     // userId admin thực hiện thay đổi
+  createdAt DateTime    @default(now())
+
+  @@index([orderId])
+}
+
+// -------------------- MODULE 5: SERVICE & WARRANTY --------------------
+model Warranty {
+  id          String   @id @default(uuid())
+  orderItemId String   @unique
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  serialNumber String  @unique
+  startDate   DateTime
+  endDate     DateTime
+}
+
+model Service {
+  id       String           @id @default(uuid())
+  name     String
+  type     ServiceType
+  requests ServiceRequest[]
+}
+
+model ServiceRequest {
+  id        String        @id @default(uuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+  serviceId String
+  service   Service       @relation(fields: [serviceId], references: [id])
+  status    RequestStatus @default(pending)
+  notes     String?
+  createdAt DateTime      @default(now())
+}
+
+// -------------------- MODULE 6: BLOG & MARKETING --------------------
+model BlogCategory {
+  id    String     @id @default(uuid())
+  name  String
+  slug  String     @unique
+  posts BlogPost[]
+}
+
+model BlogPost {
+  id           String       @id @default(uuid())
+  categoryId   String
+  category     BlogCategory @relation(fields: [categoryId], references: [id])
+  title        String
+  slug         String       @unique
+  content      String
+  thumbnailUrl String?
+  publishedAt  DateTime?
+  createdAt    DateTime     @default(now())
+
+  @@index([categoryId])
+}
+
+model Newsletter {
+  id                String   @id @default(uuid())
+  firstName         String
+  lastName          String
+  email             String   @unique
+  isAgreedToPrivacy Boolean  @default(false)
+  subscribedAt      DateTime @default(now())
+}
+
+model Promotion {
+  id                 String   @id @default(uuid())
+  title              String
+  discountPercentage Int
+  startDate          DateTime
+  endDate            DateTime
+  bannerImageUrl     String?
+}
+
+// -------------------- MODULE 7: BANNER & FAQ (MỚI) --------------------
+enum BannerPosition {
+  homepage_hero
+  homepage_middle
+  category_top
+  sidebar
+}
+
+model Banner {
+  id         String         @id @default(uuid())
+  title      String
+  imageUrl   String
+  linkUrl    String?        // Điều hướng khi click (VD: /san-pham/tu-lanh)
+  position   BannerPosition @default(homepage_hero)
+  order      Int            @default(0)
+  isActive   Boolean        @default(true)
+  startDate  DateTime?
+  endDate    DateTime?
+  createdAt  DateTime       @default(now())
+}
+
+model FaqCategory {
+  id    String @id @default(uuid())
+  name  String // VD: "Đặt hàng", "Bảo hành", "Thanh toán"
+  slug  String @unique
+  order Int    @default(0)
+  faqs  Faq[]
+}
+
+model Faq {
+  id         String      @id @default(uuid())
+  categoryId String
+  category   FaqCategory @relation(fields: [categoryId], references: [id])
+  question   String
+  answer     String
+  order      Int         @default(0)
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+
+  @@index([categoryId])
+}
+
+// -------------------- MODULE 8: AI CHATBOT --------------------
+model ChatSession {
+  id        String        @id @default(uuid())
+  userId    String?       // Nullable: hỗ trợ khách chưa đăng nhập
+  user      User?         @relation(fields: [userId], references: [id])
+  messages  ChatMessage[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([userId])
+}
+
+model ChatMessage {
+  id        String      @id @default(uuid())
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      ChatRole
+  content   String
+  createdAt DateTime    @default(now())
+
+  @@index([sessionId])
+}
