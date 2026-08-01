@@ -1,26 +1,543 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --elx-navy: #011e41;
+  --elx-navy-light: #1a3a5c;
+  --elx-blue-tint: #dfe7ea;
+  --elx-gray-light: #f5f5f5;
+  --elx-gray: #7a8a9c;
+  --elx-gray-dark: #415464;
+  --elx-red: #ed0d01;
+  --elx-white: #ffffff;
+  --elx-border: #dbdfe1;
+  --elx-text: #011e41;
+  --elx-text-secondary: #353536;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--elx-white);
+  --color-foreground: var(--elx-text);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--elx-white);
+  color: var(--elx-text);
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.2s;
+}
+
+a:hover {
+  opacity: 0.8;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ============================================================
+   HERO SLIDER
+   ============================================================ */
+.hero-slider {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.hero-slider__track {
+  display: flex;
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.hero-slider__slide {
+  min-width: 100%;
+  position: relative;
+  cursor: pointer;
+}
+
+.hero-slider__slide img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+}
+
+@media (min-width: 768px) {
+  .hero-slider__slide img {
+    height: 500px;
+  }
+}
+
+.hero-slider__content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 30px 20px;
+  color: #fff;
+  z-index: 2;
+}
+
+@media (min-width: 768px) {
+  .hero-slider__content {
+    padding: 60px 80px;
+    max-width: 60%;
+  }
+}
+
+.hero-slider__content h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+@media (min-width: 768px) {
+  .hero-slider__content h1 {
+    font-size: 2.5rem;
+  }
+}
+
+.hero-slider__content p {
+  font-size: 1rem;
+  margin-bottom: 20px;
+  text-shadow: 0 1px 5px rgba(0,0,0,0.3);
+}
+
+.hero-slider__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(1,30,65,0.65) 0%, rgba(1,30,65,0.2) 50%, transparent 100%);
+  z-index: 1;
+}
+
+.hero-slider__dots {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 3;
+}
+
+.hero-slider__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 0;
+}
+
+.hero-slider__dot--active {
+  background: #fff;
+  transform: scale(1.2);
+}
+
+.hero-slider__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(4px);
+  border: 2px solid rgba(255,255,255,0.5);
+  color: #fff;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.hero-slider__arrow:hover {
+  background: rgba(255,255,255,0.4);
+  opacity: 1;
+}
+
+.hero-slider__arrow--prev {
+  left: 15px;
+}
+
+.hero-slider__arrow--next {
+  right: 15px;
+}
+
+/* ============================================================
+   CTA BUTTON
+   ============================================================ */
+.cta-btn {
+  display: inline-block;
+  padding: 12px 28px;
+  background: var(--elx-navy);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.cta-btn:hover {
+  background: #0a3567;
+  opacity: 1;
+}
+
+.cta-btn--white {
+  background: #fff;
+  color: var(--elx-navy);
+  border-color: transparent;
+}
+
+.cta-btn--white:hover {
+  background: #f0f0f0;
+}
+
+.cta-btn--outline {
+  background: transparent;
+  color: var(--elx-navy);
+  border-color: var(--elx-navy);
+}
+
+.cta-btn--outline:hover {
+  background: var(--elx-navy);
+  color: #fff;
+}
+
+/* ============================================================
+   BROWSE PRODUCTS CATEGORY TILES
+   ============================================================ */
+.category-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 10px 5px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.category-tile:hover {
+  transform: translateY(-4px);
+  opacity: 1;
+}
+
+.category-tile__icon {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 8px;
+  object-fit: contain;
+}
+
+@media (min-width: 768px) {
+  .category-tile__icon {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+.category-tile__name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--elx-navy);
+  line-height: 1.3;
+}
+
+@media (min-width: 768px) {
+  .category-tile__name {
+    font-size: 0.875rem;
+  }
+}
+
+/* ============================================================
+   PRODUCT CARD
+   ============================================================ */
+.product-card {
+  background: #fff;
+  border: 1px solid var(--elx-border);
+  border-radius: 4px;
+  padding: 20px 15px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: box-shadow 0.3s, transform 0.3s;
+  position: relative;
+}
+
+.product-card:hover {
+  box-shadow: 0 8px 30px rgba(1,30,65,0.1);
+  transform: translateY(-2px);
+}
+
+.product-card__badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: var(--elx-red);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+.product-card__img {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+  margin-bottom: 15px;
+}
+
+.product-card__name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--elx-navy);
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+.product-card__sku {
+  font-size: 0.8rem;
+  color: var(--elx-gray);
+  margin-bottom: 10px;
+}
+
+.product-card__price {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--elx-navy);
+  margin-bottom: 5px;
+}
+
+.product-card__price-old {
+  font-size: 0.875rem;
+  color: var(--elx-gray);
+  text-decoration: line-through;
+  margin-bottom: 10px;
+}
+
+.product-card__actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ============================================================
+   SECTION HEADINGS
+   ============================================================ */
+.section-heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--elx-navy);
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+@media (min-width: 768px) {
+  .section-heading {
+    font-size: 2rem;
+  }
+}
+
+/* ============================================================
+   PROMO BANNER (full-width image sections)
+   ============================================================ */
+.promo-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.promo-banner img {
+  width: 100%;
+  height: 350px;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.promo-banner:hover img {
+  transform: scale(1.03);
+}
+
+.promo-banner__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(1,30,65,0.7) 0%, transparent 60%);
+}
+
+.promo-banner__content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 30px;
+  color: #fff;
+  z-index: 2;
+  max-width: 500px;
+}
+
+.promo-banner__content h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.promo-banner__content p {
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+  opacity: 0.9;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  background: var(--elx-navy);
+  color: #fff;
+}
+
+.footer a {
+  color: rgba(255,255,255,0.7);
+  transition: color 0.2s;
+}
+
+.footer a:hover {
+  color: #fff;
+  opacity: 1;
+}
+
+.footer__heading {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #fff;
+}
+
+.footer__link {
+  display: block;
+  font-size: 0.875rem;
+  padding: 4px 0;
+  color: rgba(255,255,255,0.65);
+}
+
+.footer__bottom {
+  border-top: 1px solid rgba(255,255,255,0.15);
+  padding: 20px 0;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+}
+
+/* ============================================================
+   NEWSLETTER
+   ============================================================ */
+.newsletter {
+  background: var(--elx-blue-tint);
+}
+
+.newsletter__input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid var(--elx-border);
+  border-radius: 2px 0 0 2px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.newsletter__input:focus {
+  border-color: var(--elx-navy);
+}
+
+.newsletter__btn {
+  padding: 12px 24px;
+  background: var(--elx-navy);
+  color: #fff;
+  border: none;
+  border-radius: 0 2px 2px 0;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+  white-space: nowrap;
+}
+
+.newsletter__btn:hover {
+  background: #0a3567;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--elx-gray);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--elx-navy);
 }
