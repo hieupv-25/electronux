@@ -46,7 +46,7 @@ const products = [
   { img: `${STORAGE_URL}/items/product-4.jpg`, name: "Máy sấy cửa trước 8kg UltimateCare 300", sku: "EDV804H3WC", price: "8.990.000₫", oldPrice: "11.490.000₫", badge: "GIẢM 22%" },
 ];
 
-const navItems = ["Sản phẩm", "Dịch vụ", "Khuyến mại", "Blog"];
+const navItems = ["Sản phẩm", "Dịch vụ", "Hỗ trợ", "Khuyến mại", "Blog"];
 
 const footerSections = [
   { title: "Sản phẩm", links: ["Máy giặt", "Máy sấy quần áo", "Tủ lạnh", "Bếp nấu", "Máy lọc không khí", "Máy hút bụi"] },
@@ -96,67 +96,131 @@ function HeroSlider() {
 /* ── Main Page ── */
 export default function Home() {
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Đóng search khi nhấn Escape
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSearchOpen(false);
+    };
+    if (searchOpen) document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [searchOpen]);
 
   return (
     <>
       {/* ====== TOP BAR ====== */}
       <div style={{ background: "var(--elx-navy)", color: "#fff", fontSize: "0.875rem" }}>
-        <div style={{ maxWidth: 1180, margin: "0 auto", padding: "0 15px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 40 }}>
+        <div style={{ maxWidth: "100%", padding: "0 40px", display: "flex", alignItems: "center", justifyContent: "flex-end", height: 40 }}>
           <a href="#" style={{ display: "flex", alignItems: "center", gap: 6, color: "#fff" }}>
-            <svg width="10" height="14" viewBox="0 0 10 14" fill="none"><path d="M5 0C2.24 0 0 2.24 0 5c0 3.75 5 9 5 9s5-5.25 5-9c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 115 3.5a1.5 1.5 0 010 3z" fill="#fff"/></svg>
+            <svg width="10" height="14" viewBox="0 0 10 14" fill="none"><path d="M5 0C2.24 0 0 2.24 0 5c0 3.75 5 9 5 9s5-5.25 5-9c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 115 3.5a1.5 1.5 0 010 3z" fill="#fff" /></svg>
             Chọn vị trí của bạn
           </a>
-          <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
-            <a href="#" style={{ color: "#fff" }}>Hỗ trợ</a>
-            <a href="#" style={{ color: "#fff" }}>Đặt lịch sửa chữa</a>
-            <a href="#" style={{ display: "flex", alignItems: "center", gap: 5, color: "#fff" }}>
-              <Image src="/flag-vn.png" alt="VN" width={20} height={14} /> Tiếng Việt
-            </a>
-          </div>
         </div>
       </div>
 
       {/* ====== HEADER / NAV ====== */}
       <header style={{ background: "#fff", borderBottom: "1px solid var(--elx-border)", position: "sticky", top: 0, zIndex: 40 }}>
-        <div style={{ maxWidth: 1180, margin: "0 auto", padding: "0 15px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 75 }}>
-          {/* Hamburger */}
-          <button onClick={() => setMobileMenu(!mobileMenu)} aria-label="Menu" style={{ display: "none", background: "none", border: "none", cursor: "pointer" }} className="md-hide-hamburger">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--elx-navy)"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
-          </button>
-          {/* Logo */}
-          <a href="/" style={{ display: "flex", alignItems: "center" }}>
-            <Image src="/electrolux_logo.svg" alt="Electrolux Vietnam" width={144} height={35} priority />
-          </a>
-          {/* Nav Items */}
-          <nav style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            {navItems.map((item) => (
-              <a key={item} href="#" style={{ padding: "28px 17px", fontWeight: 600, fontSize: "1rem", color: "var(--elx-navy)", position: "relative" }}>
-                {item}
-              </a>
-            ))}
-          </nav>
-          {/* Right icons */}
-          <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-            {/* Search */}
-            <button aria-label="Tìm kiếm" style={{ background: "none", border: "none", cursor: "pointer" }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <div style={{ maxWidth: "100%", padding: "0 40px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 95 }}>
+
+          {/* ── LEFT: Logo (always visible) ── */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+            {/* Hamburger (mobile) */}
+            <button onClick={() => setMobileMenu(!mobileMenu)} aria-label="Menu" style={{ display: "none", background: "none", border: "none", cursor: "pointer" }} className="md-hide-hamburger">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--elx-navy)"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z" /></svg>
+            </button>
+            <a href="/" style={{ display: "flex", alignItems: "center", marginRight: searchOpen ? 16 : 20 }}>
+              <Image src="/electrolux_logo.svg" alt="Electrolux Vietnam" width={144} height={35} priority />
+            </a>
+          </div>
+
+          {/* ── CENTER: Nav OR Search Input ── */}
+          {searchOpen ? (
+            /* Inline Search Input — slides in from right */
+            <div className="search-bar-enter" style={{ flex: 1, display: "flex", alignItems: "center", background: "#f4f6f8", borderRadius: 8, padding: "0 16px", height: 46, gap: 10, margin: "0 20px" }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+              <input
+                autoFocus
+                type="text"
+                placeholder="Tìm kiếm"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ flex: 1, border: "none", outline: "none", fontSize: "1rem", color: "var(--elx-navy)", background: "transparent" }}
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")} style={{ background: "none", border: "none", cursor: "pointer", color: "#aaa", fontSize: "1.1rem", lineHeight: 1 }}>✕</button>
+              )}
+            </div>
+          ) : (
+            /* Normal Nav */
+            <nav style={{ display: "flex", gap: 0, alignItems: "center" }}>
+              {navItems.map((item) => (
+                <a key={item} href="#" style={{ padding: "28px 14px", fontWeight: 600, fontSize: "1.2rem", color: "var(--elx-navy)", position: "relative", whiteSpace: "nowrap" }}>
+                  {item}
+                </a>
+              ))}
+            </nav>
+          )}
+
+          {/* ── RIGHT: Icons + Language ── */}
+          <div style={{ display: "flex", gap: 22, alignItems: "center", flexShrink: 0 }}>
+            {/* Search toggle */}
+            <button aria-label="Tìm kiếm" onClick={() => { setSearchOpen(!searchOpen); if (searchOpen) setSearchQuery(""); }} style={{ background: "none", border: "none", cursor: "pointer" }}>
+              {searchOpen
+                ? <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                : <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+              }
             </button>
             {/* Wishlist */}
             <button aria-label="Yêu thích" style={{ background: "none", border: "none", cursor: "pointer" }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+              <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" /></svg>
             </button>
             {/* Profile */}
             <button aria-label="Tài khoản" style={{ background: "none", border: "none", cursor: "pointer" }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
             </button>
             {/* Cart */}
             <button aria-label="Giỏ hàng" style={{ background: "none", border: "none", cursor: "pointer", position: "relative" }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+              <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" /></svg>
               <span style={{ position: "absolute", top: -6, right: -6, background: "#ff3a30", color: "#fff", fontSize: "0.65rem", fontWeight: 700, width: 16, height: 16, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>0</span>
             </button>
+            {/* Language */}
+            <a href="#" style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--elx-navy)", fontWeight: 600, fontSize: "1rem", borderLeft: "1px solid var(--elx-border)", paddingLeft: 18 }}>
+              <Image src="/flag-vn.png" alt="VN" width={23} height={16} /> Tiếng Việt ›
+            </a>
           </div>
+
         </div>
+
+        {/* ── Popular Searches Dropdown ── */}
+        {searchOpen && (
+          <div className="search-dropdown-enter" style={{ borderTop: "1px solid var(--elx-border)", background: "#fff", padding: "18px 40px", boxShadow: "0 6px 20px rgba(0,0,0,0.08)" }}>
+            <p style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--elx-navy)", marginBottom: 12 }}>Tìm kiếm phổ biến</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {["tủ lạnh", "máy giặt", "máy lọc không khí", "nồi chiên không dầu", "bếp từ", "lò vi sóng", "máy sấy quần áo"].map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => setSearchQuery(tag)}
+                  style={{ background: "#f4f6f8", border: "1px solid #e0e4ea", borderRadius: 20, padding: "5px 14px", fontSize: "0.875rem", color: "var(--elx-navy)", cursor: "pointer", fontWeight: 500 }}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </header>
+
+      {/* Backdrop to close search on outside click */}
+      {searchOpen && (
+        <div
+          className="search-dim"
+          style={{ position: "fixed", inset: 0, zIndex: 39, background: "rgba(0,0,0,0.4)", marginTop: 135 }}
+          onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
+        />
+      )}
+
 
       {/* ====== SERVICE BANNER ====== */}
       <div style={{ background: "var(--elx-navy)", color: "#fff" }}>
