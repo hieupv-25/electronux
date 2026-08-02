@@ -2,13 +2,16 @@
 import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 
+/* ── Supabase Storage base URL ── */
+const STORAGE_URL = "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products";
+
 /* ── data ── */
 const heroSlides = [
-  { img: "/hero-banner-1.jpg", title: "SALE LỚN GIỮA NĂM\nNÂNG TẦM TỔ ẤM", desc: "Số lượng ưu đãi có hạn", cta: "Mua Ngay", href: "#" },
-  { img: "/hero-banner-2.jpg", title: "Wash life balance", desc: "Máy giặt Electrolux mới giúp bạn giặt sạch cả tủ quần áo nhanh hơn", cta: "Khám phá ngay", href: "#" },
-  { img: "/hero-banner-3.jpg", title: "Tủ lạnh AI AutoSense", desc: "Tiết kiệm điện đến 10%", cta: "KHÁM PHÁ NGAY", href: "#" },
-  { img: "/hero-banner-4.png", title: "SẤY KHÔ HIỆU QUẢ\nGẤP 3 LẦN", desc: "Bộ sưu tập Máy rửa bát UltimateCare 300", cta: "Khám phá ngay", href: "#" },
-  { img: "/hero-banner-5.png", title: "Thu cũ đổi mới dễ dàng\nGiảm thêm 5%", desc: "Khi sắm thiết bị mới", cta: "Khám phá ngay!", href: "#" },
+  { img: `${STORAGE_URL}/heroes/hero-banner-1.jpg`, title: "SALE LỚN GIỮA NĂM\nNÂNG TẦM TỔ ẤM", desc: "Số lượng ưu đãi có hạn", cta: "Mua Ngay", href: "#" },
+  { img: `${STORAGE_URL}/heroes/hero-banner-2.jpg`, title: "Wash life balance", desc: "Máy giặt Electrolux mới giúp bạn giặt sạch cả tủ quần áo nhanh hơn", cta: "Khám phá ngay", href: "#" },
+  { img: `${STORAGE_URL}/heroes/hero-banner-3.jpg`, title: "Tủ lạnh AI AutoSense", desc: "Tiết kiệm điện đến 10%", cta: "KHÁM PHÁ NGAY", href: "#" },
+  { img: `${STORAGE_URL}/heroes/hero-banner-4.png`, title: "SẤY KHÔ HIỆU QUẢ\nGẤP 3 LẦN", desc: "Bộ sưu tập Máy rửa bát UltimateCare 300", cta: "Khám phá ngay", href: "#" },
+  { img: `${STORAGE_URL}/heroes/hero-banner-5.png`, title: "Thu cũ đổi mới dễ dàng\nGiảm thêm 5%", desc: "Khi sắm thiết bị mới", cta: "Khám phá ngay!", href: "#" },
 ];
 
 const services = [
@@ -37,10 +40,10 @@ const categories = [
 ];
 
 const products = [
-  { img: "/product-1.jpg", name: "Máy giặt cửa trước 10kg UltimateCare 300", sku: "EWF1023P5WC", price: "9.990.000₫", oldPrice: "12.990.000₫", badge: "GIẢM 23%" },
-  { img: "/product-2.jpg", name: "Máy giặt cửa trước 9kg UltimateCare 500", sku: "EWF9023P5WC", price: "11.490.000₫", oldPrice: "14.490.000₫", badge: "GIẢM 21%" },
-  { img: "/product-3.jpg", name: "Máy giặt cửa trước 9kg UltimateCare 500", sku: "EWF9023P5SC", price: "12.990.000₫", oldPrice: "15.990.000₫", badge: "GIẢM 19%" },
-  { img: "/product-4.jpg", name: "Máy sấy cửa trước 8kg UltimateCare 300", sku: "EDV804H3WC", price: "8.990.000₫", oldPrice: "11.490.000₫", badge: "GIẢM 22%" },
+  { img: `${STORAGE_URL}/items/product-1.jpg`, name: "Máy giặt cửa trước 10kg UltimateCare 300", sku: "EWF1023P5WC", price: "9.990.000₫", oldPrice: "12.990.000₫", badge: "GIẢM 23%" },
+  { img: `${STORAGE_URL}/items/product-2.jpg`, name: "Máy giặt cửa trước 9kg UltimateCare 500", sku: "EWF9023P5WC", price: "11.490.000₫", oldPrice: "14.490.000₫", badge: "GIẢM 21%" },
+  { img: `${STORAGE_URL}/items/product-3.jpg`, name: "Máy giặt cửa trước 9kg UltimateCare 500", sku: "EWF9023P5SC", price: "12.990.000₫", oldPrice: "15.990.000₫", badge: "GIẢM 19%" },
+  { img: `${STORAGE_URL}/items/product-4.jpg`, name: "Máy sấy cửa trước 8kg UltimateCare 300", sku: "EDV804H3WC", price: "8.990.000₫", oldPrice: "11.490.000₫", badge: "GIẢM 22%" },
 ];
 
 const navItems = ["Sản phẩm", "Dịch vụ", "Khuyến mại", "Blog"];
@@ -209,7 +212,7 @@ export default function Home() {
       <section style={{ padding: "60px 15px", maxWidth: 1180, margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))", gap: 20 }}>
           <a href="#" className="promo-banner">
-            <Image src="/ultimatecare.png" alt="UltimateCare" width={900} height={600} style={{ width: "100%", height: 350, objectFit: "cover" }} />
+            <Image src={`${STORAGE_URL}/banners/ultimatecare.png`} alt="UltimateCare" width={900} height={600} style={{ width: "100%", height: 350, objectFit: "cover" }} />
             <div className="promo-banner__overlay" />
             <div className="promo-banner__content">
               <h3>Máy giặt UltimateCare</h3>
@@ -218,7 +221,7 @@ export default function Home() {
             </div>
           </a>
           <a href="#" className="promo-banner">
-            <Image src="/refrigerators.jpg" alt="Tủ lạnh" width={900} height={600} style={{ width: "100%", height: 350, objectFit: "cover" }} />
+            <Image src={`${STORAGE_URL}/banners/refrigerators.jpg`} alt="Tủ lạnh" width={900} height={600} style={{ width: "100%", height: 350, objectFit: "cover" }} />
             <div className="promo-banner__overlay" />
             <div className="promo-banner__content">
               <h3>Tủ lạnh NutriFresh®</h3>
@@ -231,7 +234,7 @@ export default function Home() {
 
       {/* ====== WARRANTY BANNER ====== */}
       <section style={{ position: "relative", overflow: "hidden" }}>
-        <Image src="/warranty.jpg" alt="Bảo hành" width={1920} height={600} style={{ width: "100%", height: 350, objectFit: "cover" }} />
+        <Image src={`${STORAGE_URL}/banners/warranty.jpg`} alt="Bảo hành" width={1920} height={600} style={{ width: "100%", height: 350, objectFit: "cover" }} />
         <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: "linear-gradient(90deg, rgba(1,30,65,0.75) 0%, rgba(1,30,65,0.3) 60%, transparent 100%)" }} />
         <div style={{ position: "absolute", top: "50%", left: 40, transform: "translateY(-50%)", color: "#fff", maxWidth: 500, padding: 20 }}>
           <h2 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: 10 }}>Gia hạn bảo hành</h2>
@@ -242,7 +245,7 @@ export default function Home() {
 
       {/* ====== BLOG BANNER ====== */}
       <section style={{ position: "relative", overflow: "hidden" }}>
-        <Image src="/blog-banner.jpg" alt="Blog" width={1920} height={760} style={{ width: "100%", height: 350, objectFit: "cover" }} />
+        <Image src={`${STORAGE_URL}/banners/blog-banner.jpg`} alt="Blog" width={1920} height={760} style={{ width: "100%", height: 350, objectFit: "cover" }} />
         <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: "linear-gradient(0deg, rgba(1,30,65,0.7) 0%, transparent 50%)" }} />
         <div style={{ position: "absolute", bottom: 30, left: 40, color: "#fff", maxWidth: 500, padding: 20 }}>
           <h2 style={{ fontSize: "1.75rem", fontWeight: 700, marginBottom: 10 }}>Blog & Mẹo hay</h2>
