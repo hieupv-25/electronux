@@ -1,25 +1,64 @@
 "use client";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSession, signOut } from "next-auth/react";
 import { popularSearchTags } from "@/data/siteData";
+import AuthModal from "./AuthModal";
 
 type HeaderProps = {
   navItems: string[];
 };
 
 export default function Header({ navItems }: HeaderProps) {
+  const { data: session } = useSession();
   const [mobileMenu, setMobileMenu] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [authOpen, setAuthOpen] = useState(false);
+  const [userDropdown, setUserDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Đóng search khi nhấn Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSearchOpen(false);
+      if (e.key === "Escape") {
+        setSearchOpen(false);
+        setAuthOpen(false);
+        setUserDropdown(false);
+      }
     };
-    if (searchOpen) document.addEventListener("keydown", handleKey);
+    document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, [searchOpen]);
+  }, []);
+
+  // Đóng user dropdown khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setUserDropdown(false);
+      }
+    };
+    if (userDropdown) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [userDropdown]);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (authOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [authOpen]);
+
+  const handleLogout = async () => {
+    setUserDropdown(false);
+    await signOut({ redirect: false });
+    window.location.reload();
+  };
 
   return (
     <>
@@ -186,13 +225,58 @@ export default function Header({ navItems }: HeaderProps) {
                 <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
               </svg>
             </button>
-            {/* Profile */}
-            <button aria-label="Tài khoản" style={{ background: "none", border: "none", cursor: "pointer" }}>
-              <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2">
-                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </button>
+            {/* Profile / Auth */}
+            {session?.user ? (
+              /* Logged in — show user dropdown */
+              <div className="user-dropdown" ref={dropdownRef}>
+                <button
+                  aria-label="Tài khoản"
+                  onClick={() => setUserDropdown(!userDropdown)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  <svg width="27" height="27" viewBox="0 0 24 24" fill="var(--elx-navy)" stroke="var(--elx-navy)" strokeWidth="0">
+                    <circle cx="12" cy="7" r="4" fill="var(--elx-navy)" />
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" fill="var(--elx-navy)" />
+                  </svg>
+                </button>
+
+                {userDropdown && (
+                  <div className="user-dropdown__menu">
+                    <div className="user-dropdown__header">
+                      <div className="user-dropdown__name">
+                        {session.user.firstName} {session.user.lastName}
+                      </div>
+                      <div className="user-dropdown__email">{session.user.email}</div>
+                    </div>
+                    <button
+                      className="user-dropdown__item user-dropdown__item--danger"
+                      onClick={handleLogout}
+                    >
+                      Đăng xuất
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Not logged in — open auth modal */
+              <button
+                aria-label="Tài khoản"
+                onClick={() => setAuthOpen(true)}
+                style={{ background: "none", border: "none", cursor: "pointer" }}
+              >
+                <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </button>
+            )}
             {/* Cart */}
             <button aria-label="Giỏ hàng" style={{ background: "none", border: "none", cursor: "pointer", position: "relative" }}>
               <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2">
@@ -298,6 +382,9 @@ export default function Header({ navItems }: HeaderProps) {
           }}
         />
       )}
+
+      {/* Auth Modal */}
+      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
     </>
   );
 }
