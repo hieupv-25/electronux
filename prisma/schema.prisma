@@ -96,6 +96,18 @@ model Address {
   @@index([userId])
 }
 
+// -------------------- PASSWORD RESET TOKEN --------------------
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([token])
+}
+
 // -------------------- MODULE 2: PRODUCT CATALOG (KÈM SKU) --------------------
 model Category {
   id        String     @id @default(uuid())
