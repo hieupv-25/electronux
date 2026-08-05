@@ -1,9 +1,11 @@
 "use client";
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { popularSearchTags } from "@/data/siteData";
 import AuthModal from "./AuthModal";
+import { useToast } from "./Toast";
 
 type HeaderProps = {
   navItems: string[];
@@ -11,12 +13,30 @@ type HeaderProps = {
 
 export default function Header({ navItems }: HeaderProps) {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { showToast } = useToast();
+
   const [mobileMenu, setMobileMenu] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [authOpen, setAuthOpen] = useState(false);
+  const [authView, setAuthView] = useState<"login" | "register">("login");
   const [userDropdown, setUserDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Handle authRequired query param (redirect from middleware)
+  useEffect(() => {
+    const authRequired = searchParams.get("authRequired");
+    if (authRequired === "true" && !session?.user) {
+      setAuthOpen(true);
+      showToast("Vui lòng đăng nhập để tiếp tục.", "info");
+      // Clean up the URL without refreshing
+      const url = new URL(window.location.href);
+      url.searchParams.delete("authRequired");
+      router.replace(url.pathname + url.search, { scroll: false });
+    }
+  }, [searchParams, session, showToast, router]);
 
   // Đóng search khi nhấn Escape
   useEffect(() => {
@@ -54,10 +74,24 @@ export default function Header({ navItems }: HeaderProps) {
     };
   }, [authOpen]);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     setUserDropdown(false);
     await signOut({ redirect: false });
-    window.location.reload();
+    showToast("Đã đăng xuất thành công.", "info");
+    setTimeout(() => window.location.reload(), 600);
+  }, [showToast]);
+
+  const openAuth = (view: "login" | "register") => {
+    setAuthView(view);
+    setAuthOpen(true);
+  };
+
+  // User initials for avatar
+  const getUserInitials = () => {
+    if (!session?.user) return "";
+    const first = session.user.firstName?.[0] || "";
+    const last = session.user.lastName?.[0] || "";
+    return (first + last).toUpperCase();
   };
 
   return (
@@ -232,19 +266,9 @@ export default function Header({ navItems }: HeaderProps) {
                 <button
                   aria-label="Tài khoản"
                   onClick={() => setUserDropdown(!userDropdown)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
+                  className="user-avatar-btn"
                 >
-                  <svg width="27" height="27" viewBox="0 0 24 24" fill="var(--elx-navy)" stroke="var(--elx-navy)" strokeWidth="0">
-                    <circle cx="12" cy="7" r="4" fill="var(--elx-navy)" />
-                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" fill="var(--elx-navy)" />
-                  </svg>
+                  <span className="user-avatar">{getUserInitials()}</span>
                 </button>
 
                 {userDropdown && (
@@ -255,10 +279,36 @@ export default function Header({ navItems }: HeaderProps) {
                       </div>
                       <div className="user-dropdown__email">{session.user.email}</div>
                     </div>
+                    <a href="/account" className="user-dropdown__item">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                      Tài khoản của tôi
+                    </a>
+                    <a href="/account/orders" className="user-dropdown__item">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" />
+                        <path d="M8 21h8M12 17v4" />
+                      </svg>
+                      Đơn hàng của tôi
+                    </a>
+                    <a href="/account/wishlist" className="user-dropdown__item">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                      </svg>
+                      Yêu thích
+                    </a>
+                    <div className="user-dropdown__divider" />
                     <button
                       className="user-dropdown__item user-dropdown__item--danger"
                       onClick={handleLogout}
                     >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
                       Đăng xuất
                     </button>
                   </div>
@@ -268,7 +318,7 @@ export default function Header({ navItems }: HeaderProps) {
               /* Not logged in — open auth modal */
               <button
                 aria-label="Tài khoản"
-                onClick={() => setAuthOpen(true)}
+                onClick={() => openAuth("login")}
                 style={{ background: "none", border: "none", cursor: "pointer" }}
               >
                 <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2">
@@ -331,6 +381,17 @@ export default function Header({ navItems }: HeaderProps) {
               {item}
             </a>
           ))}
+          {/* Mobile: Auth buttons when not logged in */}
+          {!session?.user && (
+            <div className="mobile-nav__auth">
+              <button onClick={() => { setMobileMenu(false); openAuth("login"); }} className="mobile-nav__auth-btn">
+                Đăng nhập
+              </button>
+              <button onClick={() => { setMobileMenu(false); openAuth("register"); }} className="mobile-nav__auth-btn mobile-nav__auth-btn--outline">
+                Đăng ký
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ── Popular Searches Dropdown ── */}
@@ -384,7 +445,7 @@ export default function Header({ navItems }: HeaderProps) {
       )}
 
       {/* Auth Modal */}
-      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} initialView={authView} />
     </>
   );
 }
