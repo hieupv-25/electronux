@@ -215,7 +215,7 @@ export default function Header({ navItems }: HeaderProps) {
               {navItems.map((item) => (
                 <a
                   key={item}
-                  href="#"
+                  href={item === "Hỗ trợ" ? "/support" : "#"}
                   style={{
                     padding: "24px 25px",
                     fontWeight: 600,
