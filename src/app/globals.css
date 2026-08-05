@@ -73,13 +73,13 @@ img {
 
 .hero-slider__slide img {
   width: 100%;
-  height: 260px;
+  height: 360px;
   object-fit: cover;
 }
 
 @media (min-width: 768px) {
   .hero-slider__slide img {
-    height: 380px;
+    height: 480px;
   }
 }
 

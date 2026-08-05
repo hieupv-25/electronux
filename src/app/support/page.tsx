@@ -19,12 +19,12 @@ const deviceCategories = [
 
 /* ─── Quick links ─── */
 const quickLinks = [
-    { icon: "❓", label: "Xử lý sự cố và câu hỏi thường gặp" },
-    { icon: "🛒", label: "Câu hỏi thường gặp về đơn hàng trực tuyến" },
-    { icon: "📋", label: "Đăng kí bảo hành điện tử" },
-    { icon: "🛡️", label: "Điều khoản và điều kiện bảo hành sản phẩm" },
-    { icon: "🔧", label: "Đặt hẹn dịch vụ" },
-    { icon: "♻️", label: "Điểm tiếp nhận sản phẩm thải bỏ" },
+    { icon: "❓", label: "Xử lý sự cố và câu hỏi thường gặp", href: "/support/troubleshooting" },
+    { icon: "🛒", label: "Câu hỏi thường gặp về đơn hàng trực tuyến", href: "/support/online-order-faq" },
+    { icon: "📋", label: "Đăng kí bảo hành điện tử", href: "/support/warranty-registration" },
+    { icon: "🛡️", label: "Điều khoản và điều kiện bảo hành sản phẩm", href: "/support/warranty-policy" },
+    { icon: "🔧", label: "Đặt hẹn dịch vụ", href: "/support/book-service" },
+    { icon: "♻️", label: "Điểm tiếp nhận sản phẩm thải bỏ", href: "/support/recycling-points" },
 ];
 
 /* ─── FAQ data (answer as JSX node) ─── */
@@ -285,7 +285,7 @@ export default function SupportPage() {
                     </h2>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 48px" }}>
                         {quickLinks.map((link, i) => (
-                            <a key={i} href="#"
+                            <a key={i} href={link.href}
                                 style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 0", borderBottom: "1px solid var(--elx-border)", color: "var(--elx-navy)", textDecoration: "none", fontWeight: 500, fontSize: "1rem", gap: 12 }}
                             >
                                 <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -335,40 +335,45 @@ export default function SupportPage() {
                         </div>
                     ))}
 
-                    <div style={{ textAlign: "center", marginTop: 36 }}>
-                        <a href="#" style={{ color: "var(--elx-navy)", fontWeight: 600, fontSize: "1rem", textDecoration: "underline" }}>
-                            Xem thêm
-                        </a>
-                    </div>
+
                 </div>
             </section>
 
             {/* ── Chúng tôi sẵn sàng hỗ trợ bạn ── */}
-            <section style={{ background: "#eef2f7", padding: "0 0 0" }}>
+            <section style={{ background: "#eef2f7", padding: "0 30px" }}>
                 {/* Header band */}
-                <div style={{ textAlign: "center", padding: "40px 20px 32px" }}>
+                <div style={{ textAlign: "center", padding: "40px 0 32px" }}>
                     <h2 style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--elx-navy)", margin: "0 0 8px" }}>
                         Chúng tôi sẵn sàng hỗ trợ bạn
                     </h2>
                     <p style={{ fontSize: "1rem", color: "var(--elx-navy)", margin: 0 }}>Liên hệ với chúng tôi</p>
                 </div>
                 {/* Divider */}
-                <div style={{ height: 1, background: "var(--elx-border)", maxWidth: 1100, margin: "0 auto" }} />
-                {/* Cards */}
-                <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 0 }}>
+                <div style={{ height: 1, background: "var(--elx-border)" }} />
+                {/* Cards row */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 0 }}>
                     {supportChannels.map((ch, i) => (
                         <div
                             key={i}
                             style={{
-                                padding: "36px 28px",
+                                background: "#fff",
+                                padding: "36px 24px",
                                 borderRight: i < supportChannels.length - 1 ? "1px solid var(--elx-border)" : "none",
+                                borderTop: "1px solid var(--elx-border)",
+                                borderBottom: "1px solid var(--elx-border)",
+                                borderLeft: i === 0 ? "1px solid var(--elx-border)" : "none",
                                 display: "flex", flexDirection: "column", gap: 12,
                             }}
                         >
                             <div style={{ marginBottom: 4 }}>{ch.icon}</div>
                             <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--elx-navy)", margin: 0 }}>{ch.title}</h3>
-                            <p style={{ fontSize: "0.88rem", color: "#4a5a72", lineHeight: 1.6, margin: 0, whiteSpace: "pre-line", flex: 1 }}>{ch.desc}</p>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+                            <p style={{ fontSize: "1.03rem", color: "#4a5a72", lineHeight: 1.6, margin: 0, whiteSpace: "pre-line", flex: 1 }}>{ch.desc}</p>
+                            <div style={{
+                                display: "grid",
+                                gridTemplateColumns: ch.links.length > 2 ? "1fr 1fr" : "1fr",
+                                gap: "8px 12px",
+                                marginTop: 4
+                            }}>
                                 {ch.links.map((lk, j) => (
                                     <a
                                         key={j}
@@ -389,6 +394,8 @@ export default function SupportPage() {
                         </div>
                     ))}
                 </div>
+                {/* bottom spacing */}
+                <div style={{ height: 40 }} />
             </section>
 
             {/* ── Floating Help Button ── */}
@@ -399,13 +406,6 @@ export default function SupportPage() {
                     </svg>
                     Cần trợ giúp?
                 </button>
-            </div>
-
-            {/* ── Feedback Tab ── */}
-            <div style={{ position: "fixed", right: 0, top: "50%", transform: "translateY(-50%) rotate(180deg)", zIndex: 100 }}>
-                <a href="#" style={{ display: "block", background: "var(--elx-navy)", color: "#fff", padding: "10px 14px", fontSize: "0.82rem", fontWeight: 600, writingMode: "vertical-rl", textDecoration: "none", letterSpacing: 1 }}>
-                    Góp ý cho chúng tôi
-                </a>
             </div>
 
             <Footer footerSections={footerSections} />
