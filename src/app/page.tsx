@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import Header from "@/components/Header";
 import HeroSlider from "@/components/HeroSlider";
@@ -18,7 +19,9 @@ import {
 export default function Home() {
   return (
     <>
-      <Header navItems={navItems} />
+      <Suspense fallback={null}>
+        <Header navItems={navItems} />
+      </Suspense>
 
       {/* ====== SERVICE BANNER ====== */}
       <ServiceBanner services={services} />
