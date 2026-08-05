@@ -50,22 +50,22 @@ export const services = [
 
 /* ── Product categories ── */
 export const categories = [
-  { icon: "/icon-washing-machine.svg", name: "Máy giặt" },
-  { icon: "/icon-dryer.svg", name: "Máy sấy quần áo" },
-  { icon: "/icon-fridge.svg", name: "Tủ lạnh" },
-  { icon: "/icon-hob.svg", name: "Bếp nấu" },
-  { icon: "/icon-air-purifier.svg", name: "Máy lọc không khí" },
-  { icon: "/icon-dehumidifier.svg", name: "Máy hút ẩm" },
-  { icon: "/icon-vacuum.svg", name: "Máy hút bụi" },
-  { icon: "/icon-dishwasher.svg", name: "Máy rửa bát" },
-  { icon: "/icon-oven.svg", name: "Lò nướng" },
-  { icon: "/icon-hood.svg", name: "Máy hút mùi" },
-  { icon: "/icon-rice-cooker.svg", name: "Nồi cơm điện" },
-  { icon: "/icon-kettle.svg", name: "Bình đun siêu tốc" },
-  { icon: "/icon-blender.svg", name: "Máy xay sinh tố" },
-  { icon: "/icon-water-dispenser.svg", name: "Cây nước nóng lạnh" },
-  { icon: "/icon-iron.svg", name: "Bàn ủi" },
-  { icon: "/icon-water-heater.svg", name: "Máy nước nóng" },
+  { icon: "/icon-washing-machine.svg", name: "Máy giặt", href: "/thiet-bi/may-giat" },
+  { icon: "/icon-dryer.svg", name: "Máy sấy quần áo", href: "/thiet-bi/may-say" },
+  { icon: "/icon-fridge.svg", name: "Tủ lạnh", href: "/thiet-bi/tu-lanh" },
+  { icon: "/icon-hob.svg", name: "Bếp nấu", href: "/thiet-bi/bep-nau" },
+  { icon: "/icon-air-purifier.svg", name: "Máy lọc không khí", href: "/thiet-bi/may-loc-khong-khi" },
+  { icon: "/icon-dehumidifier.svg", name: "Máy hút ẩm", href: "#" },
+  { icon: "/icon-vacuum.svg", name: "Máy hút bụi", href: "/thiet-bi/may-hut-bui" },
+  { icon: "/icon-dishwasher.svg", name: "Máy rửa bát", href: "#" },
+  { icon: "/icon-oven.svg", name: "Lò nướng", href: "#" },
+  { icon: "/icon-hood.svg", name: "Máy hút mùi", href: "#" },
+  { icon: "/icon-rice-cooker.svg", name: "Nồi cơm điện", href: "#" },
+  { icon: "/icon-kettle.svg", name: "Bình đun siêu tốc", href: "#" },
+  { icon: "/icon-blender.svg", name: "Máy xay sinh tố", href: "#" },
+  { icon: "/icon-water-dispenser.svg", name: "Cây nước nóng lạnh", href: "#" },
+  { icon: "/icon-iron.svg", name: "Bàn ủi", href: "#" },
+  { icon: "/icon-water-heater.svg", name: "Máy nước nóng", href: "#" },
 ];
 
 /* ── Best-seller products ── */
@@ -106,6 +106,99 @@ export const products = [
 
 /* ── Header navigation items ── */
 export const navItems = ["Sản phẩm", "Dịch vụ", "Hỗ trợ", "Khuyến mại", "Blog"];
+
+/* ── Mega menu data ── */
+export type MegaCategory = {
+  icon: string; // key maps to SVG icon in MenuIcons.tsx
+  title: string;
+  items: string[];
+};
+
+export type MegaCircularItem = {
+  icon: string;
+  label: string;
+};
+
+export type MegaMenuSection =
+  | { layout: "default"; categories: MegaCategory[] }
+  | { layout: "circular"; items: MegaCircularItem[] };
+
+export type MegaMenuData = {
+  [navItem: string]: MegaMenuSection;
+};
+
+export const megaMenu: MegaMenuData = {
+  "Sản phẩm": {
+    layout: "default",
+    categories: [
+      {
+        icon: "shirt",
+        title: "Chăm sóc trang phục",
+        items: ["Máy giặt", "Máy sấy quần áo"],
+      },
+      {
+        icon: "kitchen",
+        title: "Sản phẩm nhà bếp",
+        items: ["Tủ lạnh", "Bếp nấu"],
+      },
+      {
+        icon: "blender",
+        title: "Gia dụng nhỏ",
+        items: ["Nồi cơm điện", "Máy xay sinh tố"],
+      },
+      {
+        icon: "airpurifier",
+        title: "Giải pháp không khí",
+        items: ["Máy lọc không khí", "Máy hút ẩm"],
+      },
+      {
+        icon: "bathtub",
+        title: "Thiết bị phòng tắm",
+        items: ["Máy nước nóng trực tiếp", "Máy nước nóng gián tiếp"],
+      },
+    ],
+  },
+  "Dịch vụ": {
+    layout: "default",
+    categories: [
+      {
+        icon: "tools",
+        title: "Dịch vụ thu phí",
+        items: ["Dịch vụ bảo dưỡng", "Sửa chữa giá cố định"],
+      },
+      {
+        icon: "shield",
+        title: "Gia hạn bảo hành",
+        items: ["Gia hạn bảo hành"],
+      },
+    ],
+  },
+  "Hỗ trợ": {
+    layout: "circular",
+    items: [
+      { icon: "phone-circle",   label: "Liên hệ chúng tôi" },
+      { icon: "calendar",       label: "Đặt lịch hẹn bảo hành" },
+      { icon: "clipboard",      label: "Đăng ký bảo hành điện tử" },
+      { icon: "doc",            label: "Chính sách bảo hành" },
+      { icon: "toolbox",        label: "Xử lý sự cố" },
+    ],
+  },
+  "Khuyến mại": {
+    layout: "default",
+    categories: [
+      {
+        icon: "tag",
+        title: "Ưu đãi đặc biệt",
+        items: ["Flash Sale hàng ngày", "Mua nhiều giảm nhiều"],
+      },
+      {
+        icon: "gift",
+        title: "Quà tặng & Voucher",
+        items: ["Voucher giảm giá", "Quà tặng kèm"],
+      },
+    ],
+  },
+};
 
 /* ── Footer link sections ── */
 export const footerSections = [

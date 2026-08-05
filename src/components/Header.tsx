@@ -1,9 +1,38 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { popularSearchTags } from "@/data/siteData";
+import { popularSearchTags, megaMenu } from "@/data/siteData";
+import { categoryRoutes } from "@/data/categories";
 import AuthModal from "./AuthModal";
+import {
+  IconShirt, IconKitchen, IconBlender, IconAirPurifier, IconBathtub,
+  IconTag, IconGift,
+  IconTools, IconShield,
+  IconPhoneCircle, IconCalendar, IconClipboard, IconDoc, IconToolbox,
+} from "./MenuIcons";
+
+const MENU_ICONS: Record<string, React.ReactNode> = {
+  // Sản phẩm
+  shirt:        <IconShirt />,
+  kitchen:      <IconKitchen />,
+  blender:      <IconBlender />,
+  airpurifier:  <IconAirPurifier />,
+  bathtub:      <IconBathtub />,
+  // Dịch vụ
+  tools:        <IconTools />,
+  shield:       <IconShield />,
+  // Hỗ trợ (circular)
+  "phone-circle": <IconPhoneCircle />,
+  calendar:     <IconCalendar />,
+  clipboard:    <IconClipboard />,
+  doc:          <IconDoc />,
+  toolbox:      <IconToolbox />,
+  // Khuyến mại
+  tag:          <IconTag />,
+  gift:         <IconGift />,
+};
 
 type HeaderProps = {
   navItems: string[];
@@ -16,7 +45,10 @@ export default function Header({ navItems }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [authOpen, setAuthOpen] = useState(false);
   const [userDropdown, setUserDropdown] = useState(false);
+  const [activeNav, setActiveNav] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const megaMenuRef = useRef<HTMLDivElement>(null);
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Đóng search khi nhấn Escape
   useEffect(() => {
@@ -25,6 +57,7 @@ export default function Header({ navItems }: HeaderProps) {
         setSearchOpen(false);
         setAuthOpen(false);
         setUserDropdown(false);
+        setActiveNav(null);
       }
     };
     document.addEventListener("keydown", handleKey);
@@ -59,6 +92,29 @@ export default function Header({ navItems }: HeaderProps) {
     await signOut({ redirect: false });
     window.location.reload();
   };
+
+  const handleNavEnter = (item: string) => {
+    if (leaveTimer.current) clearTimeout(leaveTimer.current);
+    if (megaMenu[item]) setActiveNav(item);
+  };
+
+  const handleNavLeave = () => {
+    leaveTimer.current = setTimeout(() => {
+      setActiveNav(null);
+    }, 120);
+  };
+
+  const handleMegaEnter = () => {
+    if (leaveTimer.current) clearTimeout(leaveTimer.current);
+  };
+
+  const handleMegaLeave = () => {
+    leaveTimer.current = setTimeout(() => {
+      setActiveNav(null);
+    }, 120);
+  };
+
+  const activeSection = activeNav ? megaMenu[activeNav] : null;
 
   return (
     <>
@@ -179,20 +235,32 @@ export default function Header({ navItems }: HeaderProps) {
             /* Desktop Nav — ẩn trên mobile qua CSS class */
             <nav className="desktop-nav" style={{ display: "flex", gap: 0, alignItems: "center" }}>
               {navItems.map((item) => (
-                <a
+                <div
                   key={item}
-                  href="#"
-                  style={{
-                    padding: "24px 25px",
-                    fontWeight: 600,
-                    fontSize: "1.18rem",
-                    color: "var(--elx-navy)",
-                    position: "relative",
-                    whiteSpace: "nowrap",
-                  }}
+                  className="nav-item-wrapper"
+                  onMouseEnter={() => handleNavEnter(item)}
+                  onMouseLeave={handleNavLeave}
                 >
-                  {item}
-                </a>
+                  <a
+                    href="#"
+                    className={`nav-link${activeNav === item ? " nav-link--active" : ""}`}
+                    style={{
+                      padding: "24px 25px",
+                      fontWeight: 600,
+                      fontSize: "1.18rem",
+                      color: "var(--elx-navy)",
+                      position: "relative",
+                      whiteSpace: "nowrap",
+                      display: "block",
+                    }}
+                  >
+                    {item}
+                    {/* Underline indicator */}
+                    {activeNav === item && (
+                      <span className="nav-link__underline" />
+                    )}
+                  </a>
+                </div>
               ))}
             </nav>
           )}
@@ -369,6 +437,58 @@ export default function Header({ navItems }: HeaderProps) {
             </div>
           </div>
         )}
+
+        {/* ── Mega Menu Dropdown ── */}
+        {activeNav && activeSection && (
+          <div
+            ref={megaMenuRef}
+            className="mega-menu"
+            onMouseEnter={handleMegaEnter}
+            onMouseLeave={handleMegaLeave}
+          >
+            {/* ── Layout: default (cột danh mục) ── */}
+            {activeSection.layout === "default" && (
+              <div className="mega-menu__inner">
+                {activeSection.categories.map((cat) => (
+                  <div key={cat.title} className="mega-menu__col">
+                    <div className="mega-menu__col-header">
+                      <span className="mega-menu__col-icon">
+                        {MENU_ICONS[cat.icon] ?? null}
+                      </span>
+                      <span className="mega-menu__col-title">{cat.title}</span>
+                    </div>
+                    <ul className="mega-menu__list">
+                      {cat.items.map((sub) => {
+                        const href = categoryRoutes[sub] ?? "#";
+                        return (
+                          <li key={sub}>
+                            <Link href={href} className="mega-menu__item">
+                              {sub}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ── Layout: circular (icon tròn hàng ngang) ── */}
+            {activeSection.layout === "circular" && (
+              <div className="mega-menu__circular">
+                {activeSection.items.map((item) => (
+                  <a key={item.label} href="#" className="mega-menu__circle-item">
+                    <span className="mega-menu__circle-icon">
+                      {MENU_ICONS[item.icon] ?? null}
+                    </span>
+                    <span className="mega-menu__circle-label">{item.label}</span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </header>
 
       {/* Backdrop to close search on outside click */}
@@ -380,6 +500,14 @@ export default function Header({ navItems }: HeaderProps) {
             setSearchOpen(false);
             setSearchQuery("");
           }}
+        />
+      )}
+
+      {/* Mega menu backdrop */}
+      {activeNav && (
+        <div
+          className="mega-menu-dim"
+          onClick={() => setActiveNav(null)}
         />
       )}
 

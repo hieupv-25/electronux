@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import Header from "@/components/Header";
 import HeroSlider from "@/components/HeroSlider";
 import ServiceBanner from "@/components/ServiceBanner";
@@ -31,10 +32,10 @@ export default function Home() {
         <h2 className="section-heading">Khám phá sản phẩm</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 10 }}>
           {categories.map((c, i) => (
-            <a key={i} href="#" className="category-tile">
+            <Link key={i} href={c.href} className="category-tile">
               <Image src={c.icon} alt={c.name} width={80} height={80} className="category-tile__icon" />
               <span className="category-tile__name">{c.name}</span>
-            </a>
+            </Link>
           ))}
         </div>
       </section>
