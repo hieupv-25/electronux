@@ -32,7 +32,7 @@ export default function Home() {
       {/* ====== BROWSE PRODUCTS ====== */}
       <section style={{ padding: "50px 15px", maxWidth: 1180, margin: "0 auto" }}>
         <h2 className="section-heading">Khám phá sản phẩm</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 24 }}>
           {categories.map((c, i) => (
             <a key={i} href="#" className="category-tile">
               <Image src={c.icon} alt={c.name} width={80} height={80} className="category-tile__icon" />
