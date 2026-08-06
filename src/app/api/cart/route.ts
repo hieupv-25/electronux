@@ -95,8 +95,8 @@ function getSessionKey(userId?: string | null, sessionId?: string | null): strin
 }
 
 function getMemoryCart(key: string) {
-  if (!memoryCarts[key] || memoryCarts[key].length === 0) {
-    // Initial default demo item matching the user screenshot
+  if (memoryCarts[key] === undefined) {
+    // Initial default demo item for a brand new session
     memoryCarts[key] = [
       {
         id: "demo-item-1",
@@ -118,6 +118,7 @@ export async function GET(req: NextRequest) {
     const key = getSessionKey(userId, sessionId);
 
     let items: any[] = [];
+    let dbFound = false;
 
     // Try DB first
     try {
@@ -138,43 +139,46 @@ export async function GET(req: NextRequest) {
         },
       });
 
-      if (dbCart && dbCart.items.length > 0) {
-        items = dbCart.items.map((item) => {
-          const priceNum = Number(item.variant.price);
-          const discount = item.variant.discountPercentage || 0;
-          const originalPrice = discount > 0 ? Math.round(priceNum / (1 - discount / 100)) : priceNum;
-          return {
-            id: item.id,
-            cartId: item.cartId,
-            variantId: item.variantId,
-            quantity: item.quantity,
-            variant: {
-              id: item.variant.id,
-              productId: item.variant.productId,
-              sku: item.variant.sku,
-              variantName: item.variant.variantName,
-              price: priceNum,
-              originalPrice,
-              discountPercentage: discount,
-              stockQuantity: item.variant.stockQuantity,
-              product: {
-                id: item.variant.product.id,
-                name: item.variant.product.name,
-                slug: item.variant.product.slug,
-                images: item.variant.product.images.map((img) => ({ id: img.id, url: img.url })),
-                freeShipping: item.variant.product.freeShipping,
-                freeInstallation: item.variant.product.freeInstallation,
-                installment0Percent: item.variant.product.installment0Percent,
+      if (dbCart) {
+        dbFound = true;
+        if (dbCart.items.length > 0) {
+          items = dbCart.items.map((item) => {
+            const priceNum = Number(item.variant.price);
+            const discount = item.variant.discountPercentage || 0;
+            const originalPrice = discount > 0 ? Math.round(priceNum / (1 - discount / 100)) : priceNum;
+            return {
+              id: item.id,
+              cartId: item.cartId,
+              variantId: item.variantId,
+              quantity: item.quantity,
+              variant: {
+                id: item.variant.id,
+                productId: item.variant.productId,
+                sku: item.variant.sku,
+                variantName: item.variant.variantName,
+                price: priceNum,
+                originalPrice,
+                discountPercentage: discount,
+                stockQuantity: item.variant.stockQuantity,
+                product: {
+                  id: item.variant.product.id,
+                  name: item.variant.product.name,
+                  slug: item.variant.product.slug,
+                  images: item.variant.product.images.map((img) => ({ id: img.id, url: img.url })),
+                  freeShipping: item.variant.product.freeShipping,
+                  freeInstallation: item.variant.product.freeInstallation,
+                  installment0Percent: item.variant.product.installment0Percent,
+                },
               },
-            },
-          };
-        });
+            };
+          });
+        }
       }
     } catch (e) {
       console.warn("Prisma GET cart error, falling back to memory store:", e);
     }
 
-    if (items.length === 0) {
+    if (!dbFound) {
       items = getMemoryCart(key);
     }
 
