@@ -4,19 +4,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "@/components/CartContext";
+import CheckoutModal from "@/components/CheckoutModal";
 
 function fmt(n: number) {
   return new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " ₫";
 }
 
 export default function CartPage() {
-  const { cart, updateQty, removeItem, addToCart, loading } = useCart();
+  const { cart, updateQty, removeItem, addToCart, clearCart, loading } = useCart();
   const [couponCode, setCouponCode] = useState("");
   const [showExtraServices, setShowExtraServices] = useState(true);
   const [warrantyYears, setWarrantyYears] = useState("2");
   const [addedWarranty, setAddedWarranty] = useState(false);
   const [addedOldItem, setAddedOldItem] = useState(false);
   const [addedAddons, setAddedAddons] = useState<Record<string, boolean>>({});
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const items = cart?.items ?? [];
 
@@ -464,6 +466,7 @@ export default function CartPage() {
 
           {/* Big CTA */}
           <button
+            onClick={() => setIsCheckoutOpen(true)}
             style={{
               width: "100%",
               background: "#001e38",
@@ -553,6 +556,17 @@ export default function CartPage() {
       >
         💬 Cần trợ giúp?
       </button>
+
+      {/* Checkout Modal */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        items={items}
+        totalAmount={total}
+        onSuccess={() => {
+          clearCart();
+        }}
+      />
     </div>
   );
 }
