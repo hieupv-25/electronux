@@ -1840,9 +1840,6 @@ img {
 .plp-quick-filters {
   background: #fff;
   border-bottom: 1px solid var(--elx-border);
-  position: sticky;
-  top: 106px;
-  z-index: 20;
 }
 
 .plp-quick-filters__inner {
@@ -2344,4 +2341,4 @@ img {
   background: var(--elx-navy);
   color: #fff;
 }
-
+
