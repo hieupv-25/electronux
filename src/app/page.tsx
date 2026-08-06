@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import Header from "@/components/Header";
 import HeroSlider from "@/components/HeroSlider";
@@ -5,6 +6,7 @@ import ServiceBanner from "@/components/ServiceBanner";
 import PromoBentoGrid from "@/components/PromoBentoGrid";
 import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
+import ProductCard from "@/components/ProductCard";
 import {
   heroSlides,
   services,
@@ -18,7 +20,9 @@ import {
 export default function Home() {
   return (
     <>
-      <Header navItems={navItems} />
+      <Suspense fallback={null}>
+        <Header navItems={navItems} />
+      </Suspense>
 
       {/* ====== SERVICE BANNER ====== */}
       <ServiceBanner services={services} />
@@ -29,7 +33,7 @@ export default function Home() {
       {/* ====== BROWSE PRODUCTS ====== */}
       <section style={{ padding: "50px 15px", maxWidth: 1180, margin: "0 auto" }}>
         <h2 className="section-heading">Khám phá sản phẩm</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 24 }}>
           {categories.map((c, i) => (
             <a key={i} href="#" className="category-tile">
               <Image src={c.icon} alt={c.name} width={80} height={80} className="category-tile__icon" />
@@ -45,29 +49,7 @@ export default function Home() {
           <h2 className="section-heading">Sản phẩm bán chạy</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 20 }}>
             {products.map((p, i) => (
-              <div key={i} className="product-card">
-                {p.badge && <span className="product-card__badge">{p.badge}</span>}
-                <Image
-                  src={p.img}
-                  alt={p.name}
-                  width={300}
-                  height={300}
-                  className="product-card__img"
-                  style={{ objectFit: "contain", margin: "0 auto" }}
-                />
-                <h3 className="product-card__name">{p.name}</h3>
-                <p className="product-card__sku">{p.sku}</p>
-                <p className="product-card__price">{p.price}</p>
-                {p.oldPrice && <p className="product-card__price-old">{p.oldPrice}</p>}
-                <div className="product-card__actions">
-                  <a href="#" className="cta-btn" style={{ width: "100%" }}>
-                    Thêm vào giỏ
-                  </a>
-                  <a href="#" className="cta-btn cta-btn--outline" style={{ width: "100%" }}>
-                    Xem chi tiết
-                  </a>
-                </div>
-              </div>
+              <ProductCard key={i} product={p} />
             ))}
           </div>
         </div>

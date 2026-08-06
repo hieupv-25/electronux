@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
+import PasswordStrength from "./PasswordStrength";
+import { useToast } from "./Toast";
 
 type AuthView = "login" | "register" | "forgot" | "forgotSent";
 
@@ -16,6 +18,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
   const [view, setView] = useState<AuthView>(initialView);
   const [loading, setLoading] = useState(false);
   const [globalError, setGlobalError] = useState("");
+  const { showToast } = useToast();
 
   // Login state
   const [loginEmail, setLoginEmail] = useState("");
@@ -33,9 +36,41 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
   const [showRegPw, setShowRegPw] = useState(false);
   const [showRegConfirm, setShowRegConfirm] = useState(false);
   const [regErrors, setRegErrors] = useState<Record<string, string>>({});
+  const [regAcceptTerms, setRegAcceptTerms] = useState(false);
 
   // Forgot password state
   const [forgotEmail, setForgotEmail] = useState("");
+
+  // Sync initialView when the prop changes
+  useEffect(() => {
+    if (isOpen) {
+      setView(initialView);
+    }
+  }, [isOpen, initialView]);
+
+  const resetAllFields = useCallback(() => {
+    setGlobalError("");
+    setRegErrors({});
+    setLoading(false);
+    setLoginEmail("");
+    setLoginPassword("");
+    setShowLoginPw(false);
+    setRegEmail("");
+    setRegFirstName("");
+    setRegLastName("");
+    setRegPassword("");
+    setRegConfirm("");
+    setRegPhone("");
+    setShowRegPw(false);
+    setShowRegConfirm(false);
+    setRegAcceptTerms(false);
+    setForgotEmail("");
+  }, []);
+
+  const handleClose = useCallback(() => {
+    resetAllFields();
+    onClose();
+  }, [onClose, resetAllFields]);
 
   const resetState = () => {
     setGlobalError("");
@@ -67,8 +102,10 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
           ? "Email hoặc mật khẩu không đúng."
           : result.error);
       } else {
-        onClose();
-        window.location.reload();
+        handleClose();
+        showToast("Đăng nhập thành công! Chào mừng bạn quay trở lại.", "success");
+        // Small delay for toast to show before reload
+        setTimeout(() => window.location.reload(), 800);
       }
     } catch {
       setGlobalError("Đã xảy ra lỗi. Vui lòng thử lại.");
@@ -82,6 +119,13 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
     e.preventDefault();
     setRegErrors({});
     setGlobalError("");
+
+    // Client-side validation for terms
+    if (!regAcceptTerms) {
+      setGlobalError("Vui lòng đồng ý với điều khoản sử dụng.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -118,11 +162,12 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
 
         if (loginResult?.error) {
           // Registration succeeded but auto-login failed — switch to login view
-          switchView("login");
-          setGlobalError("Đăng ký thành công! Vui lòng đăng nhập.");
+          handleClose();
+          showToast("Đăng ký thành công! Vui lòng đăng nhập.", "success");
         } else {
-          onClose();
-          window.location.reload();
+          handleClose();
+          showToast(`Chào mừng ${regFirstName}! Tài khoản đã được tạo thành công.`, "success");
+          setTimeout(() => window.location.reload(), 800);
         }
       }
     } catch {
@@ -179,12 +224,12 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
   return (
     <>
       {/* Backdrop */}
-      <div className="auth-overlay" onClick={onClose} />
+      <div className="auth-overlay" onClick={handleClose} />
 
       {/* Modal */}
       <div className="auth-modal" role="dialog" aria-modal="true">
         {/* Close button */}
-        <button className="auth-close" onClick={onClose} aria-label="Đóng">
+        <button className="auth-close" onClick={handleClose} aria-label="Đóng">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M18 6L6 18M6 6l12 12" />
           </svg>
@@ -202,7 +247,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
           <div className="auth-modal__branding-overlay" />
           <div className="auth-modal__branding-text">
             <Image src="/electrolux_logo.svg" alt="Electrolux" width={180} height={44} />
-            <p>{view === "login" ? "Đăng nhập thành viên" : "Tạo tài khoản mới"}</p>
+            <p>{view === "login" ? "Đăng nhập thành viên" : view === "register" ? "Tạo tài khoản mới" : "Khôi phục mật khẩu"}</p>
           </div>
         </div>
 
@@ -238,8 +283,9 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
 
               <form onSubmit={handleLogin}>
                 <div className="auth-field">
-                  <label className="auth-label">Email*</label>
+                  <label className="auth-label" htmlFor="login-email">Email*</label>
                   <input
+                    id="login-email"
                     type="email"
                     className="auth-input"
                     placeholder="example@gmail.com *"
@@ -247,13 +293,15 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
                     onChange={(e) => setLoginEmail(e.target.value)}
                     required
                     autoComplete="email"
+                    autoFocus
                   />
                 </div>
 
                 <div className="auth-field">
-                  <label className="auth-label">Mật khẩu*</label>
+                  <label className="auth-label" htmlFor="login-password">Mật khẩu*</label>
                   <div className="auth-input-wrap">
                     <input
+                      id="login-password"
                       type={showLoginPw ? "text" : "password"}
                       className="auth-input"
                       placeholder="Mật khẩu *"
@@ -297,6 +345,9 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
               </form>
 
               <div className="auth-switch">
+                <span style={{ color: "var(--elx-gray)", fontSize: "0.9rem" }}>
+                  Chưa có tài khoản?{" "}
+                </span>
                 <button type="button" className="auth-link" onClick={() => switchView("register")}>
                   Tạo tài khoản mới
                 </button>
@@ -334,8 +385,9 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
 
               <form onSubmit={handleRegister}>
                 <div className="auth-field">
-                  <label className="auth-label">Email*</label>
+                  <label className="auth-label" htmlFor="reg-email">Email*</label>
                   <input
+                    id="reg-email"
                     type="email"
                     className="auth-input"
                     placeholder="example@gmail.com *"
@@ -349,8 +401,9 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
 
                 <div className="auth-field-row">
                   <div className="auth-field">
-                    <label className="auth-label">Tên*</label>
+                    <label className="auth-label" htmlFor="reg-first-name">Tên*</label>
                     <input
+                      id="reg-first-name"
                       type="text"
                       className="auth-input"
                       placeholder="Tên *"
@@ -362,8 +415,9 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
                     {regErrors.firstName && <span className="auth-field-error">{regErrors.firstName}</span>}
                   </div>
                   <div className="auth-field">
-                    <label className="auth-label">Họ*</label>
+                    <label className="auth-label" htmlFor="reg-last-name">Họ*</label>
                     <input
+                      id="reg-last-name"
                       type="text"
                       className="auth-input"
                       placeholder="Họ *"
@@ -378,9 +432,10 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
 
                 <div className="auth-field-row">
                   <div className="auth-field">
-                    <label className="auth-label">Mật khẩu*</label>
+                    <label className="auth-label" htmlFor="reg-password">Mật khẩu*</label>
                     <div className="auth-input-wrap">
                       <input
+                        id="reg-password"
                         type={showRegPw ? "text" : "password"}
                         className="auth-input"
                         placeholder="Mật khẩu *"
@@ -393,11 +448,13 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
                       <EyeButton show={showRegPw} toggle={() => setShowRegPw(!showRegPw)} />
                     </div>
                     {regErrors.password && <span className="auth-field-error">{regErrors.password}</span>}
+                    <PasswordStrength password={regPassword} />
                   </div>
                   <div className="auth-field">
-                    <label className="auth-label">Xác nhận lại mật khẩu*</label>
+                    <label className="auth-label" htmlFor="reg-confirm">Xác nhận lại mật khẩu*</label>
                     <div className="auth-input-wrap">
                       <input
+                        id="reg-confirm"
                         type={showRegConfirm ? "text" : "password"}
                         className="auth-input"
                         placeholder="Xác nhận lại mật khẩu *"
@@ -410,12 +467,24 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
                       <EyeButton show={showRegConfirm} toggle={() => setShowRegConfirm(!showRegConfirm)} />
                     </div>
                     {regErrors.confirmPassword && <span className="auth-field-error">{regErrors.confirmPassword}</span>}
+                    {regConfirm && regPassword && regConfirm !== regPassword && (
+                      <span className="auth-field-error">Mật khẩu xác nhận không khớp</span>
+                    )}
+                    {regConfirm && regPassword && regConfirm === regPassword && regConfirm.length >= 8 && (
+                      <span className="auth-field-success">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Mật khẩu khớp
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 <div className="auth-field">
-                  <label className="auth-label">Số điện thoại</label>
+                  <label className="auth-label" htmlFor="reg-phone">Số điện thoại</label>
                   <input
+                    id="reg-phone"
                     type="tel"
                     className="auth-input"
                     placeholder="Số điện thoại (tuỳ chọn)"
@@ -426,9 +495,31 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
                   {regErrors.phone && <span className="auth-field-error">{regErrors.phone}</span>}
                 </div>
 
+                {/* Terms & Conditions */}
+                <div className="auth-terms">
+                  <label className="auth-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={regAcceptTerms}
+                      onChange={(e) => setRegAcceptTerms(e.target.checked)}
+                      className="auth-checkbox"
+                    />
+                    <span>
+                      Tôi đồng ý với{" "}
+                      <a href="#" className="auth-link" onClick={(e) => e.stopPropagation()}>
+                        Điều khoản sử dụng
+                      </a>{" "}
+                      và{" "}
+                      <a href="#" className="auth-link" onClick={(e) => e.stopPropagation()}>
+                        Chính sách bảo mật
+                      </a>
+                    </span>
+                  </label>
+                </div>
+
                 {globalError && <p className="auth-error">{globalError}</p>}
 
-                <button type="submit" className="auth-submit" disabled={loading}>
+                <button type="submit" className="auth-submit" disabled={loading || !regAcceptTerms}>
                   {loading ? (
                     <span className="auth-spinner" />
                   ) : (
@@ -438,8 +529,11 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
               </form>
 
               <div className="auth-switch">
+                <span style={{ color: "var(--elx-gray)", fontSize: "0.9rem" }}>
+                  Đã có tài khoản?{" "}
+                </span>
                 <button type="button" className="auth-link" onClick={() => switchView("login")}>
-                  Đã có tài khoản?
+                  Đăng nhập ngay
                 </button>
               </div>
             </>
@@ -455,8 +549,9 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
 
               <form onSubmit={handleForgot}>
                 <div className="auth-field">
-                  <label className="auth-label">Email*</label>
+                  <label className="auth-label" htmlFor="forgot-email">Email*</label>
                   <input
+                    id="forgot-email"
                     type="email"
                     className="auth-input"
                     placeholder="example@gmail.com *"
@@ -464,6 +559,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
                     onChange={(e) => setForgotEmail(e.target.value)}
                     required
                     autoComplete="email"
+                    autoFocus
                   />
                 </div>
 
