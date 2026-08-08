@@ -10,7 +10,7 @@ type StrengthLevel = {
   width: string;
 };
 
-function getStrength(password: string): { score: number; level: StrengthLevel; checks: { label: string; passed: boolean }[] } {
+function getStrength(password: string): { level: StrengthLevel; checks: { label: string; passed: boolean }[] } {
   const checks = [
     { label: "Ít nhất 8 ký tự", passed: password.length >= 8 },
     { label: "Có chữ thường (a-z)", passed: /[a-z]/.test(password) },
@@ -19,7 +19,7 @@ function getStrength(password: string): { score: number; level: StrengthLevel; c
     { label: "Có ký tự đặc biệt (!@#$...)", passed: /[^a-zA-Z0-9]/.test(password) },
   ];
 
-  const score = checks.filter((c) => c.passed).length;
+  const score = checks.filter((check) => check.passed).length;
 
   const levels: Record<number, StrengthLevel> = {
     0: { label: "", color: "transparent", width: "0%" },
@@ -30,7 +30,7 @@ function getStrength(password: string): { score: number; level: StrengthLevel; c
     5: { label: "Rất mạnh", color: "#16a34a", width: "100%" },
   };
 
-  return { score, level: levels[score], checks };
+  return { level: levels[score], checks };
 }
 
 export default function PasswordStrength({ password }: Props) {
@@ -40,7 +40,6 @@ export default function PasswordStrength({ password }: Props) {
 
   return (
     <div className="pw-strength">
-      {/* Strength bar */}
       <div className="pw-strength__bar">
         <div
           className="pw-strength__fill"
@@ -54,11 +53,10 @@ export default function PasswordStrength({ password }: Props) {
         {level.label}
       </div>
 
-      {/* Checklist */}
       <div className="pw-strength__checks">
-        {checks.map((check, i) => (
+        {checks.map((check) => (
           <div
-            key={i}
+            key={check.label}
             className={`pw-strength__check${check.passed ? " pw-strength__check--pass" : ""}`}
           >
             {check.passed ? (
