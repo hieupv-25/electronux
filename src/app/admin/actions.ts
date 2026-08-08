@@ -67,17 +67,28 @@ function parseSpecifications(value: string) {
   }
 }
 
-async function uniqueCategorySlug(name: string, requestedSlug: string) {
+async function uniqueCategorySlug(
+  name: string,
+  requestedSlug: string,
+  excludeId?: string
+) {
   const baseSlug = slugify(requestedSlug || name) || `danh-muc-${Date.now()}`;
   let slug = baseSlug;
   let suffix = 2;
 
-  while (await prisma.category.findUnique({ where: { slug }, select: { id: true } })) {
+  while (true) {
+    const existingCategory = await prisma.category.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+
+    if (!existingCategory || existingCategory.id === excludeId) {
+      return slug;
+    }
+
     slug = `${baseSlug}-${suffix}`;
     suffix += 1;
   }
-
-  return slug;
 }
 
 async function uniqueProductSlug(name: string, requestedSlug: string) {
@@ -98,6 +109,7 @@ export async function createCategory(formData: FormData) {
 
   const name = getFormString(formData, "name");
   if (!name) return;
+  const parentId = getFormString(formData, "parentId");
 
   await prisma.category.create({
     data: {
@@ -105,9 +117,67 @@ export async function createCategory(formData: FormData) {
       slug: await uniqueCategorySlug(name, getFormString(formData, "slug")),
       iconUrl: getFormOptionalString(formData, "iconUrl"),
       order: getFormNumber(formData, "order"),
+      parentId: parentId || null,
     },
   });
 
+  revalidatePath("/admin/categories");
+  revalidatePath("/admin/products");
+  revalidatePath("/admin");
+}
+
+export async function updateCategory(formData: FormData) {
+  await requireAdminSession();
+
+  const id = getFormString(formData, "id");
+  const name = getFormString(formData, "name");
+  if (!id || !name) return;
+
+  const currentCategory = await prisma.category.findUnique({
+    where: { id },
+    select: { slug: true },
+  });
+  if (!currentCategory) return;
+
+  const requestedSlug = getFormString(formData, "slug");
+  const nextSlug = slugify(requestedSlug || name);
+  const parentId = getFormString(formData, "parentId");
+
+  await prisma.category.update({
+    where: { id },
+    data: {
+      name,
+      slug:
+        nextSlug && nextSlug !== currentCategory.slug
+          ? await uniqueCategorySlug(name, nextSlug, id)
+          : currentCategory.slug,
+      iconUrl: getFormOptionalString(formData, "iconUrl"),
+      order: getFormNumber(formData, "order"),
+      parentId: parentId && parentId !== id ? parentId : null,
+    },
+  });
+
+  revalidatePath("/admin/categories");
+  revalidatePath("/admin/products");
+  revalidatePath("/admin");
+}
+
+export async function toggleCategoryDeleted(formData: FormData) {
+  await requireAdminSession();
+
+  const id = getFormString(formData, "id");
+  if (!id) return;
+
+  const restore = getFormString(formData, "mode") === "restore";
+
+  await prisma.category.update({
+    where: { id },
+    data: {
+      deletedAt: restore ? null : new Date(),
+    },
+  });
+
+  revalidatePath("/admin/categories");
   revalidatePath("/admin/products");
   revalidatePath("/admin");
 }

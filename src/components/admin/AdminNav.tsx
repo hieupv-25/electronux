@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const adminNavItems = [
   { label: "Dashboard", href: "/admin" },
   { label: "Sản phẩm", href: "/admin/products" },
+  { label: "Danh mục", href: "/admin/categories" },
   { label: "Đơn hàng", href: "/admin/orders" },
   { label: "Khách hàng", href: "/admin/customers" },
   { label: "Dịch vụ", href: "/admin/services" },
