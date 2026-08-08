@@ -1790,6 +1790,13 @@ img {
   inset: 0;
 }
 
+.category-hero__image picture {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .category-hero__overlay {
   position: absolute;
   inset: 0;
@@ -1957,6 +1964,7 @@ img {
     transform: none;
     width: auto;
     max-width: none;
+    z-index: 20;
   }
 }
 

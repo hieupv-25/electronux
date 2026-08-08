@@ -11,7 +11,7 @@ type CategoryListingProps = {
 };
 
 export default function CategoryListing({ data }: CategoryListingProps) {
-  const [activeFilter, setActiveFilter] = useState("all");
+  const [activeFilter, setActiveFilter] = useState(data.defaultFilter ?? "all");
   const [sortBy, setSortBy] = useState<SortOption>("featured");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
@@ -21,7 +21,31 @@ export default function CategoryListing({ data }: CategoryListingProps) {
     features: true,
     colors: true,
     capacities: true,
+    widths: false,
+    energies: false,
+    installations: false,
+    zones: false,
+    deals: false,
+    prices: false,
   });
+
+  const filterCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    data.quickFilters.forEach((filter) => {
+      counts[filter.id] = 0;
+    });
+    counts.all = data.products.length;
+
+    data.products.forEach((product) => {
+      product.filters.forEach((filterId) => {
+        if (counts[filterId] !== undefined) {
+          counts[filterId] += 1;
+        }
+      });
+    });
+
+    return counts;
+  }, [data.quickFilters, data.products]);
 
   const filteredProducts = useMemo(() => {
     let result = [...data.products];
@@ -96,7 +120,7 @@ export default function CategoryListing({ data }: CategoryListingProps) {
               onClick={() => setActiveFilter(filter.id)}
             >
               <strong>
-                {filter.label} ({filter.id === "all" ? data.products.length : filter.count})
+                {filter.label} ({filterCounts[filter.id] ?? 0})
               </strong>
             </button>
           ))}
@@ -159,7 +183,7 @@ export default function CategoryListing({ data }: CategoryListingProps) {
                         className={`plp-filter-group__link ${activeFilter === item.id ? "plp-filter-group__link--active" : ""}`}
                         onClick={() => setActiveFilter(item.id)}
                       >
-                        {item.label} ({item.id === "all" ? data.products.length : item.count})
+                        {item.label} ({filterCounts[item.id] ?? 0})
                       </button>
                     </li>
                   ))}
@@ -234,7 +258,7 @@ export default function CategoryListing({ data }: CategoryListingProps) {
                 className="plp-filter-group__title"
                 onClick={() => toggleSection("capacities")}
               >
-                Khối lượng giặt (kg)
+                Số vùng nấu
                 <span>{expandedSections.capacities ? "−" : "+"}</span>
               </button>
               {expandedSections.capacities && (

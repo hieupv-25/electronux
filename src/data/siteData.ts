@@ -1,39 +1,38 @@
-/* ── Supabase Storage base URL ── */
-export const STORAGE_URL =
-  "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products";
+/* ── Public asset base path for local images ── */
+export const STORAGE_URL = "";
 
 /* ── Hero slider data ── */
 export const heroSlides = [
   {
-    img: `${STORAGE_URL}/heroes/hero-banner-1.jpg`,
+    img: "/hero-banner-1.jpg",
     title: "SALE LỚN GIỮA NĂM\nNÂNG TẦM TỔ ẤM",
     desc: "Số lượng ưu đãi có hạn",
     cta: "Mua Ngay",
     href: "#",
   },
   {
-    img: `${STORAGE_URL}/heroes/hero-banner-2.jpg`,
+    img: "/hero-banner-2.jpg",
     title: "Wash life balance",
     desc: "Máy giặt Electrolux mới giúp bạn giặt sạch cả tủ quần áo nhanh hơn",
     cta: "Khám phá ngay",
     href: "#",
   },
   {
-    img: `${STORAGE_URL}/heroes/hero-banner-3.jpg`,
+    img: "/hero-banner-3.jpg",
     title: "Tủ lạnh AI AutoSense",
     desc: "Tiết kiệm điện đến 10%",
     cta: "KHÁM PHÁ NGAY",
     href: "#",
   },
   {
-    img: `${STORAGE_URL}/heroes/hero-banner-4.png`,
+    img: "/hero-banner-4.png",
     title: "SẤY KHÔ HIỆU QUẢ\nGẤP 3 LẦN",
     desc: "Bộ sưu tập Máy rửa bát UltimateCare 300",
     cta: "Khám phá ngay",
     href: "#",
   },
   {
-    img: `${STORAGE_URL}/heroes/hero-banner-5.png`,
+    img: "/hero-banner-5.png",
     title: "Thu cũ đổi mới dễ dàng\nGiảm thêm 5%",
     desc: "Khi sắm thiết bị mới",
     cta: "Khám phá ngay!",
@@ -55,23 +54,23 @@ export const categories = [
   { icon: "/icon-fridge.svg", name: "Tủ lạnh", href: "/thiet-bi/tu-lanh" },
   { icon: "/icon-hob.svg", name: "Bếp nấu", href: "/thiet-bi/bep-nau" },
   { icon: "/icon-air-purifier.svg", name: "Máy lọc không khí", href: "/thiet-bi/may-loc-khong-khi" },
-  { icon: "/icon-dehumidifier.svg", name: "Máy hút ẩm", href: "#" },
+  { icon: "/icon-dehumidifier.svg", name: "Máy hút ẩm", href: "/thiet-bi/may-hut-am" },
   { icon: "/icon-vacuum.svg", name: "Máy hút bụi", href: "/thiet-bi/may-hut-bui" },
   { icon: "/icon-dishwasher.svg", name: "Máy rửa bát", href: "#" },
   { icon: "/icon-oven.svg", name: "Lò nướng", href: "#" },
   { icon: "/icon-hood.svg", name: "Máy hút mùi", href: "#" },
-  { icon: "/icon-rice-cooker.svg", name: "Nồi cơm điện", href: "#" },
+  { icon: "/icon-rice-cooker.svg", name: "Nồi cơm điện", href: "/thiet-bi/noi-com-dien" },
   { icon: "/icon-kettle.svg", name: "Bình đun siêu tốc", href: "#" },
   { icon: "/icon-blender.svg", name: "Máy xay sinh tố", href: "#" },
   { icon: "/icon-water-dispenser.svg", name: "Cây nước nóng lạnh", href: "#" },
   { icon: "/icon-iron.svg", name: "Bàn ủi", href: "#" },
-  { icon: "/icon-water-heater.svg", name: "Máy nước nóng", href: "#" },
+  { icon: "/icon-water-heater.svg", name: "Máy nước nóng", href: "/thiet-bi/may-nuoc-nong" },
 ];
 
 /* ── Best-seller products ── */
 export const products = [
   {
-    img: `${STORAGE_URL}/items/product-1.jpg`,
+    img: "/product-1.jpg",
     name: "Máy giặt cửa trước 10kg UltimateCare 300",
     sku: "EWF1023P5WC",
     price: "9.990.000₫",
@@ -79,7 +78,7 @@ export const products = [
     badge: "GIẢM 23%",
   },
   {
-    img: `${STORAGE_URL}/items/product-2.jpg`,
+    img: "/product-2.jpg",
     name: "Máy giặt cửa trước 9kg UltimateCare 500",
     sku: "EWF9023P5WC",
     price: "11.490.000₫",
@@ -87,7 +86,7 @@ export const products = [
     badge: "GIẢM 21%",
   },
   {
-    img: `${STORAGE_URL}/items/product-3.jpg`,
+    img: "/product-3.jpg",
     name: "Máy giặt cửa trước 9kg UltimateCare 500",
     sku: "EWF9023P5SC",
     price: "12.990.000₫",
@@ -95,7 +94,7 @@ export const products = [
     badge: "GIẢM 19%",
   },
   {
-    img: `${STORAGE_URL}/items/product-4.jpg`,
+    img: "/product-4.jpg",
     name: "Máy sấy cửa trước 8kg UltimateCare 300",
     sku: "EDV804H3WC",
     price: "8.990.000₫",
@@ -245,7 +244,7 @@ export const promoBento = {
   // Hàng 1: ảnh bên trái + thẻ chữ nền tối bên phải
   row1: {
     image: {
-      img: `${STORAGE_URL}/banners/ultimatecare.png`,
+      img: "/ultimatecare.png",
       alt: "Máy giặt sấy Electrolux UltimateCare",
     },
     dark: {
@@ -259,7 +258,7 @@ export const promoBento = {
   // Hàng 2: 2 ảnh có chữ, kích thước nhỏ hơn
   row2: [
     {
-      img: `${STORAGE_URL}/banners/warranty.jpg`,
+      img: "/warranty.jpg",
       title: "Đăng ký bảo hành điện tử",
       desc:
         "Đăng ký bảo hành cho thiết bị Electrolux của bạn ngay hôm nay để được hỗ trợ nhanh chóng, tận hưởng dịch vụ chăm sóc khách hàng tận tình cùng nhiều ưu đãi hấp dẫn.",
@@ -267,7 +266,7 @@ export const promoBento = {
       href: "#",
     },
     {
-      img: `${STORAGE_URL}/banners/refrigerators.jpg`,
+      img: "/refrigerators.jpg",
       title: "Giải pháp bảo quản thực phẩm chuyên nghiệp",
       desc:
         "Giữ thực phẩm tươi ngon lâu hơn với công nghệ làm lạnh tiên tiến từ tủ lạnh Electrolux, luôn sẵn sàng cho những bữa ăn ngon.",
@@ -277,7 +276,7 @@ export const promoBento = {
   ],
   // Hàng 3: 1 ảnh full-width
   row3: {
-    img: `${STORAGE_URL}/banners/blog-banner.jpg`,
+    img: "/blog-banner.jpg",
     title: "Gói đăng ký định kỳ hiện đã có",
     desc:
       "Tận hưởng những lợi ích của Gói đăng ký hiện tại: giao hàng miễn phí và giảm giá cho các sản phẩm được chọn.",
