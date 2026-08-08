@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { PaymentMethod, type PaymentMethod as PaymentMethodValue } from "@/generated/prisma/enums";
 import { memoryCarts } from "../cart/route";
 
 function getSessionKey(userId?: string | null, sessionId?: string | null): string {
@@ -14,7 +15,14 @@ export async function POST(req: NextRequest) {
     const sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value || "default-session";
     const key = getSessionKey(userId, sessionId);
 
-    const body = await req.json();
+    const body = (await req.json()) as {
+      recipientName?: string;
+      phone?: string;
+      shippingAddress?: string;
+      paymentMethod?: string;
+      items?: unknown[];
+      totalAmount?: number | string;
+    };
     const {
       recipientName = "Khách hàng",
       phone = "0987654321",
@@ -23,6 +31,11 @@ export async function POST(req: NextRequest) {
       items = [],
       totalAmount = 0,
     } = body;
+    const paymentMethodValue: PaymentMethodValue = Object.values(PaymentMethod).includes(
+      paymentMethod as PaymentMethodValue
+    )
+      ? (paymentMethod as PaymentMethodValue)
+      : PaymentMethod.cod;
 
     // Simulate backend processing delay (600ms)
     await new Promise((resolve) => setTimeout(resolve, 600));
@@ -33,7 +46,7 @@ export async function POST(req: NextRequest) {
     // Try DB insertion first
     try {
       if (userId) {
-        const newOrder = await prisma.order.create({
+        await prisma.order.create({
           data: {
             userId,
             shippingAddress,
@@ -44,7 +57,7 @@ export async function POST(req: NextRequest) {
             trackingNumber,
             payment: {
               create: {
-                method: paymentMethod as any,
+                method: paymentMethodValue,
                 amount: Number(totalAmount),
                 status: "paid",
                 paidAt: new Date(),

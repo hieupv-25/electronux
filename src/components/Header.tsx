@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { popularSearchTags, megaMenu } from "@/data/siteData";
 import { categoryRoutes } from "@/data/categories";
@@ -69,7 +69,6 @@ const MENU_ICONS: Record<string, ReactNode> = {
 
 export default function Header({ navItems }: HeaderProps) {
   const { data: session, update } = useSession();
-  const searchParams = useSearchParams();
   const router = useRouter();
   const { showToast } = useToast();
   const { count, openCart } = useCart();
@@ -102,13 +101,16 @@ export default function Header({ navItems }: HeaderProps) {
   ============================================================ */
 
   useEffect(() => {
-    const authRequired = searchParams.get("authRequired");
-
-    if (authRequired !== "true" || session?.user) {
+    if (session?.user) {
       return;
     }
 
     const url = new URL(window.location.href);
+    const authRequired = url.searchParams.get("authRequired");
+
+    if (authRequired !== "true") {
+      return;
+    }
 
     url.searchParams.delete("authRequired");
 
@@ -130,7 +132,6 @@ export default function Header({ navItems }: HeaderProps) {
       window.clearTimeout(timer);
     };
   }, [
-    searchParams,
     session,
     showToast,
     router,
