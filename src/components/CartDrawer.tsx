@@ -1,8 +1,9 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "./CartContext";
+import CheckoutModal from "./CheckoutModal";
 
 function fmt(n: number) {
   return new Intl.NumberFormat("vi-VN").format(Math.round(n)) + "₫";
@@ -18,6 +19,8 @@ export default function CartDrawer() {
     removeItem,
     clearCart,
   } = useCart();
+
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const items = cart?.items ?? [];
 
@@ -525,6 +528,7 @@ export default function CartDrawer() {
 
             {/* CTA */}
             <button
+              onClick={() => setIsCheckoutOpen(true)}
               style={{
                 width: "100%",
                 background: "var(--elx-navy, #003057)",
@@ -579,6 +583,19 @@ export default function CartDrawer() {
           </div>
         )}
       </div>
+
+      {/* Checkout Modal */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        items={items}
+        totalAmount={cart?.total ?? 0}
+        onSuccess={() => {
+          setIsCheckoutOpen(false);
+          closeCart();
+          clearCart();
+        }}
+      />
     </>
   );
 }

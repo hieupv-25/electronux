@@ -95,6 +95,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addToCart = useCallback(
     async (variantId: string, quantity = 1) => {
       setAdding(variantId);
+      setIsOpen(true);
       try {
         const res = await fetch("/api/cart", {
           method: "POST",
@@ -105,7 +106,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         if (res.ok && data.success) {
           showToast(data.message || "Đã thêm vào giỏ hàng ✓", "success");
           await refreshCart();
-          setIsOpen(true);
         } else {
           showToast("Không thể thêm sản phẩm", "error");
         }

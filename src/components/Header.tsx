@@ -162,7 +162,7 @@ export default function Header({ navItems }: HeaderProps) {
               )}
             </button>
             <a href="/" style={{ display: "flex", alignItems: "center" }}>
-              <Image src="/electrolux_logo.svg" alt="Electrolux Vietnam" width={156} height={38} priority />
+              <Image src="/electrolux_logo.svg" alt="Electrolux Vietnam" width={156} height={38} style={{ height: "auto" }} priority />
             </a>
           </div>
 
@@ -375,7 +375,7 @@ export default function Header({ navItems }: HeaderProps) {
                 paddingLeft: 16,
               }}
             >
-              <Image src="/flag-vn.png" alt="VN" width={26} height={18} /> Tiếng Việt ›
+              <Image src="/flag-vn.png" alt="VN" width={26} height={18} style={{ height: "auto" }} /> Tiếng Việt ›
             </a>
           </div>
         </div>

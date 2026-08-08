@@ -59,7 +59,7 @@ export default function CartPage() {
 
           {/* Logo */}
           <Link href="/" style={{ display: "flex", alignItems: "center" }}>
-            <Image src="/electrolux_logo.svg" alt="Electrolux" width={140} height={34} priority />
+            <Image src="/electrolux_logo.svg" alt="Electrolux" width={140} height={34} style={{ height: "auto" }} priority />
           </Link>
 
           {/* Location picker */}
@@ -400,7 +400,7 @@ export default function CartPage() {
 
               {/* Gift section */}
               <div style={{ background: "#f8fafc", border: "1px solid #e5e7eb", borderRadius: 8, padding: 20 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyBetween: "space-between", gap: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20 }}>
                   <div style={{ width: 60, height: 60, background: "#fff", borderRadius: 6, border: "1px solid #e5e7eb", overflow: "hidden" }}>
                     <Image src="https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-4.jpg" alt="Gift" width={60} height={60} style={{ objectFit: "contain" }} />
                   </div>

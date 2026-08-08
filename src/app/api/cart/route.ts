@@ -178,8 +178,11 @@ export async function GET(req: NextRequest) {
       console.warn("Prisma GET cart error, falling back to memory store:", e);
     }
 
-    if (!dbFound) {
-      items = getMemoryCart(key);
+    if (!dbFound || items.length === 0) {
+      const memItems = getMemoryCart(key);
+      if (memItems && memItems.length > 0) {
+        items = memItems;
+      }
     }
 
     const subtotal = items.reduce((acc, item) => {
@@ -214,11 +217,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
-    let sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value;
-
-    if (!sessionId && !userId) {
-      sessionId = crypto.randomUUID();
-    }
+    let sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value || "default-session";
     const key = getSessionKey(userId, sessionId);
 
     const body = await req.json();
