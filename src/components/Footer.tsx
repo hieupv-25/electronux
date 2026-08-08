@@ -1,4 +1,6 @@
 import Image from "next/image";
+import Link from "next/link";
+import { categoryRoutes } from "@/data/categories";
 
 type FooterSection = {
   title: string;
@@ -59,11 +61,14 @@ export default function Footer({ footerSections }: FooterProps) {
           {footerSections.map((sec) => (
             <div key={sec.title}>
               <h4 className="footer__heading">{sec.title}</h4>
-              {sec.links.map((link) => (
-                <a key={link} href="#" className="footer__link">
-                  {link}
-                </a>
-              ))}
+              {sec.links.map((link) => {
+                const href = categoryRoutes[link] ?? "#";
+                return (
+                  <Link key={link} href={href} className="footer__link">
+                    {link}
+                  </Link>
+                );
+              })}
             </div>
           ))}
         </div>
