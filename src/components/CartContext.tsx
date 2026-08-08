@@ -77,6 +77,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [adding, setAdding] = useState<string | null>(null);
 
   const refreshCart = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await fetch("/api/cart");
       if (res.ok) {
@@ -85,11 +86,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (e) {
       console.error("Failed to fetch cart:", e);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    refreshCart();
+    const timer = window.setTimeout(() => {
+      void refreshCart();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [refreshCart]);
 
   const addToCart = useCallback(

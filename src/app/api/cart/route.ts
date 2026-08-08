@@ -2,7 +2,40 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-export const DEMO_PRODUCTS: Record<string, any> = {
+export type CartVariantSnapshot = {
+  id: string;
+  productId: string;
+  sku: string;
+  variantName: string | null;
+  price: number;
+  originalPrice: number;
+  discountPercentage: number;
+  stockQuantity: number;
+  product: {
+    id: string;
+    name: string;
+    slug: string;
+    images: { id: string; url: string }[];
+    freeShipping: boolean;
+    freeInstallation: boolean;
+    installment0Percent: boolean;
+  };
+};
+
+export type MemoryCartItem = {
+  id: string;
+  cartId: string;
+  variantId: string;
+  quantity: number;
+  variant: CartVariantSnapshot;
+};
+
+type MemoryCartStore = Record<string, MemoryCartItem[]>;
+type MemoryCartGlobal = typeof globalThis & {
+  __memoryCarts?: MemoryCartStore;
+};
+
+export const DEMO_PRODUCTS: Record<string, CartVariantSnapshot> = {
   "demo-variant-1": {
     id: "demo-variant-1",
     productId: "demo-product-1",
@@ -85,16 +118,15 @@ export const DEMO_PRODUCTS: Record<string, any> = {
 };
 
 // Global in-memory store attached to globalThis for shared access across Next.js API routes
-if (!(globalThis as any).__memoryCarts) {
-  (globalThis as any).__memoryCarts = {};
-}
-export const memoryCarts: Record<string, any[]> = (globalThis as any).__memoryCarts;
+const memoryGlobal = globalThis as MemoryCartGlobal;
+export const memoryCarts: MemoryCartStore =
+  memoryGlobal.__memoryCarts ?? (memoryGlobal.__memoryCarts = {});
 
 function getSessionKey(userId?: string | null, sessionId?: string | null): string {
   return userId || sessionId || "default-session";
 }
 
-function getMemoryCart(key: string) {
+function getMemoryCart(key: string): MemoryCartItem[] {
   if (memoryCarts[key] === undefined) {
     // Initial default demo item for a brand new session
     memoryCarts[key] = [
@@ -117,7 +149,7 @@ export async function GET(req: NextRequest) {
     const sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value || "default-session";
     const key = getSessionKey(userId, sessionId);
 
-    let items: any[] = [];
+    let items: MemoryCartItem[] = [];
     let dbFound = false;
 
     // Try DB first
@@ -217,17 +249,15 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
-    let sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value || "default-session";
+    const sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value || "default-session";
     const key = getSessionKey(userId, sessionId);
 
-    const body = await req.json();
+    const body = (await req.json()) as { variantId?: string; quantity?: number };
     const { variantId, quantity = 1 } = body;
 
     if (!variantId) {
       return NextResponse.json({ error: "Missing variantId" }, { status: 400 });
     }
-
-    let addedToDb = false;
 
     // Try DB first
     try {
@@ -258,7 +288,6 @@ export async function POST(req: NextRequest) {
           },
         });
       }
-      addedToDb = true;
     } catch (e) {
       console.warn("DB insert failed, using memory store for cart item:", e);
     }
@@ -269,7 +298,7 @@ export async function POST(req: NextRequest) {
     if (existingIndex > -1) {
       memCart[existingIndex].quantity += Number(quantity);
     } else {
-      const variantObj = DEMO_PRODUCTS[variantId] || {
+      const variantObj: CartVariantSnapshot = DEMO_PRODUCTS[variantId] || {
         id: variantId,
         productId: "p-" + variantId,
         sku: "SKU-" + variantId,

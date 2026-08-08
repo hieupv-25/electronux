@@ -740,6 +740,7 @@ export type CategoryFilter = {
 
 export type CategoryProduct = {
   id: string;
+  variantId?: string;
   slug: string;
   name: string;
   sku: string;
@@ -760,6 +761,7 @@ export type CategoryPageData = {
   name: string;
   title: string;
   description: string;
+  defaultFilter?: string;
   heroImage: string;
   heroImageMobile?: string;
   quickFilters: CategoryFilter[];
