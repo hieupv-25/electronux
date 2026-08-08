@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { popularSearchTags } from "@/data/siteData";
 import AuthModal from "./AuthModal";
 import { useToast } from "./Toast";
+import { useCart } from "./CartContext";
 
 type HeaderProps = {
   navItems: string[];
@@ -18,6 +19,7 @@ export default function Header({ navItems }: HeaderProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { showToast } = useToast();
+  const { count, openCart } = useCart();
 
   const [mobileMenu, setMobileMenu] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -160,9 +162,8 @@ export default function Header({ navItems }: HeaderProps) {
                 </svg>
               )}
             </button>
-
             <Link href="/" style={{ display: "flex", alignItems: "center" }}>
-              <Image src="/electrolux_logo.svg" alt="Electrolux Vietnam" width={156} height={38} priority />
+              <Image src="/electrolux_logo.svg" alt="Electrolux Vietnam" width={156} height={38} style={{ height: "auto" }} priority />
             </Link>
           </div>
 
@@ -323,8 +324,12 @@ export default function Header({ navItems }: HeaderProps) {
                 </svg>
               </button>
             )}
-
-            <button aria-label="Giỏ hàng" style={{ background: "none", border: "none", cursor: "pointer", position: "relative" }}>
+            {/* Cart */}
+            <button
+              aria-label="Giỏ hàng"
+              onClick={openCart}
+              style={{ background: "none", border: "none", cursor: "pointer", position: "relative" }}
+            >
               <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2">
                 <circle cx="9" cy="21" r="1" />
                 <circle cx="20" cy="21" r="1" />
@@ -347,7 +352,7 @@ export default function Header({ navItems }: HeaderProps) {
                   justifyContent: "center",
                 }}
               >
-                0
+                {count}
               </span>
             </button>
 
@@ -365,7 +370,7 @@ export default function Header({ navItems }: HeaderProps) {
                 paddingLeft: 16,
               }}
             >
-              <Image src="/flag-vn.png" alt="VN" width={26} height={18} /> Tiếng Việt ›
+              <Image src="/flag-vn.png" alt="VN" width={26} height={18} style={{ height: "auto" }} /> Tiếng Việt ›
             </a>
           </div>
         </div>
