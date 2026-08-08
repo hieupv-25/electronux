@@ -1,8 +1,10 @@
 "use client";
+
 import Image from "next/image";
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useSession, signOut } from "next-auth/react";
-import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { signOut, useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { popularSearchTags } from "@/data/siteData";
 import AuthModal from "./AuthModal";
 import { useToast } from "./Toast";
@@ -13,7 +15,7 @@ type HeaderProps = {
 };
 
 export default function Header({ navItems }: HeaderProps) {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
   const { showToast } = useToast();
@@ -27,20 +29,25 @@ export default function Header({ navItems }: HeaderProps) {
   const [userDropdown, setUserDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Handle authRequired query param (redirect from middleware)
   useEffect(() => {
     const authRequired = searchParams.get("authRequired");
-    if (authRequired === "true" && !session?.user) {
+    if (authRequired !== "true" || session?.user) {
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("authRequired");
+    router.replace(url.pathname + url.search, { scroll: false });
+
+    const timer = window.setTimeout(() => {
+      setAuthView("login");
       setAuthOpen(true);
       showToast("Vui lòng đăng nhập để tiếp tục.", "info");
-      // Clean up the URL without refreshing
-      const url = new URL(window.location.href);
-      url.searchParams.delete("authRequired");
-      router.replace(url.pathname + url.search, { scroll: false });
-    }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [searchParams, session, showToast, router]);
 
-  // Đóng search khi nhấn Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -49,28 +56,27 @@ export default function Header({ navItems }: HeaderProps) {
         setUserDropdown(false);
       }
     };
+
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, []);
 
-  // Đóng user dropdown khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setUserDropdown(false);
       }
     };
-    if (userDropdown) document.addEventListener("mousedown", handleClickOutside);
+
+    if (userDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [userDropdown]);
 
-  // Prevent body scroll when modal is open
   useEffect(() => {
-    if (authOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = authOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
@@ -79,16 +85,15 @@ export default function Header({ navItems }: HeaderProps) {
   const handleLogout = useCallback(async () => {
     setUserDropdown(false);
     await signOut({ redirect: false });
+    await update();
     showToast("Đã đăng xuất thành công.", "info");
-    setTimeout(() => window.location.reload(), 600);
-  }, [showToast]);
+  }, [showToast, update]);
 
   const openAuth = (view: "login" | "register") => {
     setAuthView(view);
     setAuthOpen(true);
   };
 
-  // User initials for avatar
   const getUserInitials = () => {
     if (!session?.user) return "";
     const first = session.user.firstName?.[0] || "";
@@ -98,7 +103,6 @@ export default function Header({ navItems }: HeaderProps) {
 
   return (
     <>
-      {/* ====== TOP BAR ====== */}
       <div style={{ background: "var(--elx-navy)", color: "#fff", fontSize: "1.075rem" }}>
         <div
           style={{
@@ -111,7 +115,7 @@ export default function Header({ navItems }: HeaderProps) {
           }}
         >
           <a href="#" style={{ display: "flex", alignItems: "center", gap: 6, color: "#fff" }}>
-            <svg width="12" height="16" viewBox="0 0 10 14" fill="none">
+            <svg width="12" height="16" viewBox="0 0 10 14" fill="none" aria-hidden="true">
               <path
                 d="M5 0C2.24 0 0 2.24 0 5c0 3.75 5 9 5 9s5-5.25 5-9c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 115 3.5a1.5 1.5 0 010 3z"
                 fill="#fff"
@@ -122,7 +126,6 @@ export default function Header({ navItems }: HeaderProps) {
         </div>
       </div>
 
-      {/* ====== HEADER / NAV ====== */}
       <header
         style={{
           background: "#fff",
@@ -142,11 +145,9 @@ export default function Header({ navItems }: HeaderProps) {
             height: 85,
           }}
         >
-          {/* ── LEFT: Hamburger + Logo ── */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-            {/* Hamburger (chỉ hiện trên mobile qua CSS) */}
             <button
-              onClick={() => setMobileMenu(!mobileMenu)}
+              onClick={() => setMobileMenu((value) => !value)}
               aria-label="Menu"
               className="md-hide-hamburger"
               style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}
@@ -161,14 +162,12 @@ export default function Header({ navItems }: HeaderProps) {
                 </svg>
               )}
             </button>
-            <a href="/" style={{ display: "flex", alignItems: "center" }}>
+            <Link href="/" style={{ display: "flex", alignItems: "center" }}>
               <Image src="/electrolux_logo.svg" alt="Electrolux Vietnam" width={156} height={38} style={{ height: "auto" }} priority />
-            </a>
+            </Link>
           </div>
 
-          {/* ── CENTER: Desktop Nav OR Search Input ── */}
           {searchOpen ? (
-            /* Inline Search Input */
             <div
               className="search-bar-enter"
               style={{
@@ -205,14 +204,14 @@ export default function Header({ navItems }: HeaderProps) {
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
+                  aria-label="Xóa tìm kiếm"
                   style={{ background: "none", border: "none", cursor: "pointer", color: "#aaa", fontSize: "1.3rem", lineHeight: 1 }}
                 >
-                  ✕
+                  ×
                 </button>
               )}
             </div>
           ) : (
-            /* Desktop Nav — ẩn trên mobile qua CSS class */
             <nav className="desktop-nav" style={{ display: "flex", gap: 0, alignItems: "center" }}>
               {navItems.map((item) => (
                 <a
@@ -233,13 +232,11 @@ export default function Header({ navItems }: HeaderProps) {
             </nav>
           )}
 
-          {/* ── RIGHT: Icons + Language ── */}
           <div className="header-icons" style={{ display: "flex", gap: 18, alignItems: "center", flexShrink: 0 }}>
-            {/* Search toggle */}
             <button
               aria-label="Tìm kiếm"
               onClick={() => {
-                setSearchOpen(!searchOpen);
+                setSearchOpen((value) => !value);
                 if (searchOpen) setSearchQuery("");
               }}
               style={{ background: "none", border: "none", cursor: "pointer" }}
@@ -255,19 +252,18 @@ export default function Header({ navItems }: HeaderProps) {
                 </svg>
               )}
             </button>
-            {/* Wishlist */}
+
             <button aria-label="Yêu thích" style={{ background: "none", border: "none", cursor: "pointer" }}>
               <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2">
                 <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
               </svg>
             </button>
-            {/* Profile / Auth */}
+
             {session?.user ? (
-              /* Logged in — show user dropdown */
               <div className="user-dropdown" ref={dropdownRef}>
                 <button
                   aria-label="Tài khoản"
-                  onClick={() => setUserDropdown(!userDropdown)}
+                  onClick={() => setUserDropdown((value) => !value)}
                   className="user-avatar-btn"
                 >
                   <span className="user-avatar">{getUserInitials()}</span>
@@ -317,7 +313,6 @@ export default function Header({ navItems }: HeaderProps) {
                 )}
               </div>
             ) : (
-              /* Not logged in — open auth modal */
               <button
                 aria-label="Tài khoản"
                 onClick={() => openAuth("login")}
@@ -360,7 +355,7 @@ export default function Header({ navItems }: HeaderProps) {
                 {count}
               </span>
             </button>
-            {/* Language — ẩn trên mobile qua CSS class */}
+
             <a
               className="header-lang"
               href="#"
@@ -380,14 +375,12 @@ export default function Header({ navItems }: HeaderProps) {
           </div>
         </div>
 
-        {/* ── Mobile Nav Drawer ── */}
         <div className={`mobile-nav${mobileMenu ? " mobile-nav--open" : ""}`}>
           {navItems.map((item) => (
             <a key={item} href="#" onClick={() => setMobileMenu(false)}>
               {item}
             </a>
           ))}
-          {/* Mobile: Auth buttons when not logged in */}
           {!session?.user && (
             <div className="mobile-nav__auth">
               <button onClick={() => { setMobileMenu(false); openAuth("login"); }} className="mobile-nav__auth-btn">
@@ -400,7 +393,6 @@ export default function Header({ navItems }: HeaderProps) {
           )}
         </div>
 
-        {/* ── Popular Searches Dropdown ── */}
         {searchOpen && (
           <div
             className="search-dropdown-enter search-dropdown-mobile"
@@ -438,7 +430,6 @@ export default function Header({ navItems }: HeaderProps) {
         )}
       </header>
 
-      {/* Backdrop to close search on outside click */}
       {searchOpen && (
         <div
           className="search-dim"
@@ -450,8 +441,12 @@ export default function Header({ navItems }: HeaderProps) {
         />
       )}
 
-      {/* Auth Modal */}
-      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} initialView={authView} />
+      <AuthModal
+        key={`${authView}-${authOpen ? "open" : "closed"}`}
+        isOpen={authOpen}
+        onClose={() => setAuthOpen(false)}
+        initialView={authView}
+      />
     </>
   );
 }

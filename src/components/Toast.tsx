@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, createContext, useContext } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 type ToastType = "success" | "error" | "info";
 
@@ -35,13 +35,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const removeToast = useCallback((id: number) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      {/* Toast container */}
       <div className="toast-container" aria-live="polite">
         {toasts.map((toast) => (
           <ToastNotification key={toast.id} toast={toast} onDismiss={removeToast} />
@@ -61,18 +60,18 @@ function ToastNotification({
   const [exiting, setExiting] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       setExiting(true);
     }, 4000);
 
-    return () => clearTimeout(timer);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
-    if (exiting) {
-      const timer = setTimeout(() => onDismiss(toast.id), 300);
-      return () => clearTimeout(timer);
-    }
+    if (!exiting) return;
+
+    const timer = window.setTimeout(() => onDismiss(toast.id), 300);
+    return () => window.clearTimeout(timer);
   }, [exiting, onDismiss, toast.id]);
 
   const icons: Record<ToastType, React.ReactNode> = {
