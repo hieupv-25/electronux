@@ -1,52 +1,17 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { AdminPageHeader, EmptyBlock, EmptyTable, StatusBadge } from "@/components/admin/AdminUi";
+import {
+  formatCurrency,
+  formatDate,
+  orderStatusLabels,
+  paymentStatusLabels,
+  requestStatusLabels,
+} from "@/lib/admin-format";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-const currencyFormatter = new Intl.NumberFormat("vi-VN", {
-  style: "currency",
-  currency: "VND",
-  maximumFractionDigits: 0,
-});
-
-const dateFormatter = new Intl.DateTimeFormat("vi-VN", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-});
-
-const orderStatusLabels: Record<string, string> = {
-  pending: "Chờ xử lý",
-  processing: "Đang xử lý",
-  shipping: "Đang giao",
-  completed: "Hoàn tất",
-  cancelled: "Đã hủy",
-};
-
-const paymentStatusLabels: Record<string, string> = {
-  unpaid: "Chưa thanh toán",
-  paid: "Đã thanh toán",
-  refunded: "Đã hoàn tiền",
-};
-
-const requestStatusLabels: Record<string, string> = {
-  pending: "Chờ tiếp nhận",
-  processing: "Đang xử lý",
-  completed: "Hoàn tất",
-  cancelled: "Đã hủy",
-};
-
 type AdminDashboardData = Awaited<ReturnType<typeof getAdminDashboardData>>;
-
-function formatCurrency(value: unknown) {
-  return currencyFormatter.format(Number(value ?? 0));
-}
-
-function formatDate(value: Date) {
-  return dateFormatter.format(value);
-}
 
 async function getAdminDashboardData() {
   try {
@@ -122,7 +87,6 @@ async function getAdminDashboardData() {
           id: true,
           createdAt: true,
           status: true,
-          notes: true,
           user: {
             select: {
               firstName: true,
@@ -133,7 +97,6 @@ async function getAdminDashboardData() {
           service: {
             select: {
               name: true,
-              type: true,
             },
           },
         },
@@ -192,30 +155,6 @@ async function getAdminDashboardData() {
   }
 }
 
-function StatusBadge({
-  value,
-  labels,
-}: {
-  value: string;
-  labels: Record<string, string>;
-}) {
-  return (
-    <span className={`admin-status admin-status--${value}`}>
-      {labels[value] ?? value}
-    </span>
-  );
-}
-
-function EmptyTable({ columns, label }: { columns: number; label: string }) {
-  return (
-    <tr>
-      <td className="admin-empty" colSpan={columns}>
-        {label}
-      </td>
-    </tr>
-  );
-}
-
 function MetricCards({ data }: { data: AdminDashboardData["metrics"] }) {
   const metrics = [
     {
@@ -251,7 +190,7 @@ function MetricCards({ data }: { data: AdminDashboardData["metrics"] }) {
   ];
 
   return (
-    <section className="admin-metrics" aria-label="Tong quan he thong">
+    <section className="admin-metrics" aria-label="Tổng quan hệ thống">
       {metrics.map((metric) => (
         <article
           className={`admin-metric admin-metric--${metric.accent}`}
@@ -274,7 +213,7 @@ function OrdersPanel({ orders }: { orders: AdminDashboardData["recentOrders"] })
           <p className="admin-eyebrow">Bán hàng</p>
           <h2>Đơn hàng mới</h2>
         </div>
-        <Link className="admin-panel__link" href="#">
+        <Link className="admin-panel__link" href="/admin/orders">
           Xem tất cả
         </Link>
       </div>
@@ -354,15 +293,13 @@ function InventoryPanel({
           <p className="admin-eyebrow">Kho hàng</p>
           <h2>Cần bổ sung</h2>
         </div>
-        <Link className="admin-panel__link" href="#">
+        <Link className="admin-panel__link" href="/admin/products">
           Quản lý kho
         </Link>
       </div>
       <div className="admin-list">
         {variants.length === 0 ? (
-          <p className="admin-empty admin-empty--block">
-            Không có sản phẩm sắp hết hàng.
-          </p>
+          <EmptyBlock>Không có sản phẩm sắp hết hàng.</EmptyBlock>
         ) : (
           variants.map((variant) => (
             <article className="admin-list-item" key={variant.id}>
@@ -396,15 +333,13 @@ function ServicePanel({
           <p className="admin-eyebrow">Chăm sóc</p>
           <h2>Yêu cầu dịch vụ</h2>
         </div>
-        <Link className="admin-panel__link" href="#">
+        <Link className="admin-panel__link" href="/admin/services">
           Điều phối
         </Link>
       </div>
       <div className="admin-list">
         {requests.length === 0 ? (
-          <p className="admin-empty admin-empty--block">
-            Chưa có yêu cầu dịch vụ.
-          </p>
+          <EmptyBlock>Chưa có yêu cầu dịch vụ.</EmptyBlock>
         ) : (
           requests.map((request) => (
             <article className="admin-list-item" key={request.id}>
@@ -442,7 +377,7 @@ function CustomersPanel({
           <p className="admin-eyebrow">CRM</p>
           <h2>Khách hàng mới</h2>
         </div>
-        <Link className="admin-panel__link" href="#">
+        <Link className="admin-panel__link" href="/admin/customers">
           Mở danh sách
         </Link>
       </div>
@@ -479,97 +414,45 @@ function CustomersPanel({
 }
 
 export default async function AdminPage() {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/?authRequired=true");
-  }
-
-  if (session.user.role !== "admin") {
-    redirect("/");
-  }
-
   const data = await getAdminDashboardData();
-  const adminName = `${session.user.firstName} ${session.user.lastName}`.trim();
 
   return (
-    <main className="admin-shell">
-      <aside className="admin-sidebar" aria-label="Admin navigation">
-        <Link className="admin-brand" href="/">
-          <span className="admin-brand__mark">E</span>
-          <span>
-            <strong>Electrolux</strong>
-            <small>Admin Center</small>
-          </span>
-        </Link>
-        <nav className="admin-nav">
-          {[
-            "Dashboard",
-            "Sản phẩm",
-            "Đơn hàng",
-            "Khách hàng",
-            "Khuyến mãi",
-            "Bảo hành",
-            "Nội dung",
-            "Cài đặt",
-          ].map((item, index) => (
-            <Link
-              className={index === 0 ? "admin-nav__item admin-nav__item--active" : "admin-nav__item"}
-              href="#"
-              key={item}
-            >
-              <span>{item}</span>
-            </Link>
-          ))}
-        </nav>
-        <div className="admin-sidebar__footer">
-          <span>Đăng nhập với vai trò</span>
-          <strong>{session.user.role}</strong>
+    <>
+      <AdminPageHeader
+        eyebrow="Dashboard"
+        title="Tổng quan vận hành"
+        description="Theo dõi nhanh doanh thu, đơn hàng, tồn kho, khách hàng và yêu cầu dịch vụ mới nhất."
+      />
+
+      {data.hasDatabaseError && (
+        <div className="admin-alert">
+          Không thể đọc dữ liệu database hiện tại. Dashboard đang hiển thị ở
+          trạng thái rỗng.
         </div>
-      </aside>
+      )}
 
-      <section className="admin-main">
-        <header className="admin-topbar">
-          <div>
-            <p className="admin-eyebrow">Quản trị hệ thống</p>
-            <h1>Dashboard vận hành</h1>
-          </div>
-          <div className="admin-user-pill">
-            <span>{adminName || "Admin"}</span>
-            <strong>{session.user.email}</strong>
-          </div>
-        </header>
+      <MetricCards data={data.metrics} />
 
-        {data.hasDatabaseError && (
-          <div className="admin-alert">
-            Không thể đọc dữ liệu database hiện tại. Dashboard đang hiển thị ở
-            trạng thái rỗng.
-          </div>
-        )}
-
-        <MetricCards data={data.metrics} />
-
-        <section className="admin-actions" aria-label="Thao tac nhanh">
-          {[
-            "Thêm sản phẩm",
-            "Tạo khuyến mãi",
-            "Xử lý đơn hàng",
-            "Tiếp nhận bảo hành",
-          ].map((action) => (
-            <Link href="#" className="admin-action" key={action}>
-              <span>{action}</span>
-              <strong>+</strong>
-            </Link>
-          ))}
-        </section>
-
-        <div className="admin-grid">
-          <OrdersPanel orders={data.recentOrders} />
-          <InventoryPanel variants={data.lowStockVariants} />
-          <ServicePanel requests={data.recentServiceRequests} />
-          <CustomersPanel customers={data.recentCustomers} />
-        </div>
+      <section className="admin-actions" aria-label="Thao tác nhanh">
+        {[
+          { label: "Thêm sản phẩm", href: "/admin/products" },
+          { label: "Tạo khuyến mãi", href: "/admin/promotions" },
+          { label: "Xử lý đơn hàng", href: "/admin/orders" },
+          { label: "Tiếp nhận bảo hành", href: "/admin/services" },
+        ].map((action) => (
+          <Link href={action.href} className="admin-action" key={action.href}>
+            <span>{action.label}</span>
+            <strong>+</strong>
+          </Link>
+        ))}
       </section>
-    </main>
+
+      <div className="admin-grid">
+        <OrdersPanel orders={data.recentOrders} />
+        <InventoryPanel variants={data.lowStockVariants} />
+        <ServicePanel requests={data.recentServiceRequests} />
+        <CustomersPanel customers={data.recentCustomers} />
+      </div>
+    </>
   );
 }
