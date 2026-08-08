@@ -19,8 +19,8 @@ export const hobCategory: CategoryPageData = {
   title: "Mua Bếp Nấu Electrolux Chính Hãng Giá Tốt 2026",
   description:
     "Khám phá các thiết bị bếp nấu Electrolux hiện đại, tiết kiệm năng lượng và dễ dàng sử dụng cho mọi gia đình. Từ bếp từ đến bếp ga, lựa chọn công suất và kiểu dáng phù hợp với không gian bếp của bạn.",
-  heroImage: "/bep-nau/hero.png",
-  heroImageMobile: "/bep-nau/hero.png",
+  heroImage: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/hero.png",
+  heroImageMobile: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/hero.png",
   quickFilters: [
     { id: "all", label: "Tất cả", count: 7 },
     { id: "bep-ga", label: "Bếp ga âm, bếp ga dương", count: 2 },
@@ -53,7 +53,7 @@ export const hobCategory: CategoryPageData = {
       slug: "kis87553it",
       name: "Bếp từ âm Electrolux 80cm 5 vùng nấu SaphirMatt",
       sku: "KIS87553IT",
-      img: "/bep-nau/KIS87553IT.jpg",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/KIS87553IT.jpg",
       price: 38000000,
       oldPrice: 42500000,
       features: ["Nấu nhanh", "Bề mặt chống bám bẩn"],
@@ -69,7 +69,7 @@ export const hobCategory: CategoryPageData = {
       slug: "etis457cgb",
       name: "Bếp từ đơn Electrolux 28cm Series 500",
       sku: "ETIS457CGB",
-      img: "/bep-nau/ETIS457CGB.jpg",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/ETIS457CGB.jpg",
       price: 1790000,
       oldPrice: 1990000,
       features: ["Tiết kiệm điện", "An toàn trẻ em"],
@@ -85,7 +85,7 @@ export const hobCategory: CategoryPageData = {
       slug: "etis453cga",
       name: "Bếp từ đơn Electrolux 28cm Series 450",
       sku: "ETIS453CGA",
-      img: "/bep-nau/ETIS453CGA.jpg",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/ETIS453CGA.jpg",
       price: 1690000,
       oldPrice: 1890000,
       features: ["Tiết kiệm điện", "Bảng điều khiển đơn giản"],
@@ -101,7 +101,7 @@ export const hobCategory: CategoryPageData = {
       slug: "etg7283gkr",
       name: "Bếp ga âm Electrolux 70cm Series 300",
       sku: "ETG7283GKR",
-      img: "/bep-nau/ETG7283GKR.jpg",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/ETG7283GKR.jpg",
       price: 3090000,
       oldPrice: 3250000,
       features: ["Bếp ga âm", "Dễ vệ sinh"],
@@ -117,7 +117,7 @@ export const hobCategory: CategoryPageData = {
       slug: "etg7257gkr",
       name: "Bếp ga dương Electrolux 70cm Series 300",
       sku: "ETG7257GKR",
-      img: "/bep-nau/ETG7257GKR.jpg",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/ETG7257GKR.jpg",
       price: 2350000,
       oldPrice: 2550000,
       features: ["Bếp ga dương", "Thiết kế nhỏ gọn"],
@@ -133,7 +133,7 @@ export const hobCategory: CategoryPageData = {
       slug: "ehm7254bf",
       name: "Bếp từ - hồng ngoại âm Electrolux 2 vùng nấu 73cm",
       sku: "EHM7254BF",
-      img: "/bep-nau/EHM7254BF.jpg",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/EHM7254BF.jpg",
       price: 6290000,
       oldPrice: 6990000,
       features: ["2 vùng nấu", "Nhiệt độ chính xác"],
@@ -149,7 +149,7 @@ export const hobCategory: CategoryPageData = {
       slug: "ehi8278bf",
       name: "Bếp từ âm Electrolux 80cm 2 vùng nấu S500",
       sku: "EHI8278BF",
-      img: "/bep-nau/EHI8278BF.jpg",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/EHI8278BF.jpg",
       price: 17990000,
       oldPrice: 19990000,
       features: ["2 vùng nấu", "Bề mặt chịu nhiệt"],
@@ -169,8 +169,8 @@ export const fridgeCategory: CategoryPageData = {
   title: "Mua Tủ Lạnh Electrolux Chính Hãng Giá Tốt 2026",
   description:
     "Tìm tủ lạnh Electrolux với công nghệ làm lạnh thông minh, tiết kiệm điện và bảo quản thực phẩm tươi lâu. Nhiều dung tích và kiểu dáng phù hợp mọi gia đình.",
-  heroImage: "/tu-lanh/hero.png",
-  heroImageMobile: "/tu-lanh/hero.png",
+  heroImage: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/tu-lanh/hero.png",
+  heroImageMobile: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/tu-lanh/hero.png",
   quickFilters: [
     { id: "all", label: "Tất cả", count: 8 },
     { id: "tu-lanh-mini", label: "Tủ lạnh mini", count: 3 },
@@ -205,7 +205,7 @@ export const fridgeCategory: CategoryPageData = {
       slug: "fridge-350l-inox",
       name: "Tủ lạnh Electrolux mini 94L UltimateTaste 300 Đen nhám",
       sku: "ERF350I",
-      img: "/tu-lanh/ERF180S.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/tu-lanh/ERF180S.avif",
       price: 11990000,
       oldPrice: 13990000,
       features: ["Frost Free", "Multi Air Flow"],
@@ -221,7 +221,7 @@ export const fridgeCategory: CategoryPageData = {
       slug: "fridge-260l-white",
       name: "Tủ lạnh Electrolux mini 94L UltimateTaste 300 Xám Arctic",
       sku: "ERF260W",
-      img: "/tu-lanh/ERF260W.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/tu-lanh/ERF260W.avif",
       price: 8990000,
       oldPrice: 10490000,
       features: ["Tiết kiệm điện Inverter", "Bảo quản tươi lâu"],
@@ -237,7 +237,7 @@ export const fridgeCategory: CategoryPageData = {
       slug: "fridge-420l-black",
       name: "Tủ lạnh Electrolux mini 45 lít UltimateTaste 300 Xám Arctic",
       sku: "ERF420B",
-      img: "/tu-lanh/ERF420B.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/tu-lanh/ERF420B.avif",
       price: 15990000,
       oldPrice: 18990000,
       features: ["Ngăn đông mềm", "Làm lạnh nhanh"],
@@ -253,7 +253,7 @@ export const fridgeCategory: CategoryPageData = {
       slug: "fridge-180l-single",
       name: "Tủ lạnh Electrolux AI ngăn đá trên 341L Series 700",
       sku: "ERF1802",
-      img: "/tu-lanh/ERF1802.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/tu-lanh/ERF1802.avif",
       price: 5990000,
       oldPrice: 7490000,
       features: ["Thiết kế nhỏ gọn", "Tiết kiệm điện"],
@@ -269,7 +269,7 @@ export const fridgeCategory: CategoryPageData = {
       slug: "fridge-320l-inverter",
       name: "Tủ lạnh Electrolux AI ngăn đá trên 312L Series 700",
       sku: "ERF320I",
-      img: "/tu-lanh/ERF320I.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/tu-lanh/ERF320I.avif",
       price: 12990000,
       oldPrice: 14990000,
       features: ["Inverter tiết kiệm điện", "Frost Free"],
@@ -285,7 +285,7 @@ export const fridgeCategory: CategoryPageData = {
       slug: "fridge-300l-white",
       name: "Tủ lạnh Electrolux 300L Trắng",
       sku: "ERF300W",
-      img: "/tu-lanh/ERF300W.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/tu-lanh/ERF300W.avif",
       price: 10990000,
       oldPrice: 12990000,
       features: ["Làm lạnh đều", "Bảo quản tươi"],
@@ -301,7 +301,7 @@ export const fridgeCategory: CategoryPageData = {
       slug: "fridge-450l-inox",
       name: "Tủ lạnh Electrolux 4 cánh 609L UltimateTaste 900 Xám đậm",
       sku: "ERF450I",
-      img: "/tu-lanh/ERF450I.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/tu-lanh/ERF450I.avif",
       price: 17990000,
       oldPrice: 20990000,
       features: ["Dung tích lớn", "Ngăn giữ ẩm"],
@@ -317,7 +317,7 @@ export const fridgeCategory: CategoryPageData = {
       slug: "fridge-230l-slim",
       name: "Tủ lạnh Electrolux 4 cánh Series 800 562L",
       sku: "ERF230S",
-      img: "/tu-lanh/ERF230S.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/tu-lanh/ERF230S.avif",
       price: 7990000,
       oldPrice: 9490000,
       features: ["Thiết kế hẹp phù hợp căn hộ", "Tiết kiệm điện"],
@@ -374,7 +374,7 @@ export const dryerCategory: CategoryPageData = {
       slug: "edv904s3sc",
       name: "Máy sấy quần áo Electrolux thông hơi 9kg UltimateCare 300 xám",
       sku: "EDV904S3SC",
-      img: "/may-say/EDV904S3SC.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-say/EDV904S3SC.avif",
       price: 11490000,
       oldPrice: 11773000,
       features: [
@@ -394,7 +394,7 @@ export const dryerCategory: CategoryPageData = {
       slug: "edv904h3wc",
       name: "Máy sấy quần áo Electrolux thông hơi 9kg trắng",
       sku: "EDV904H3WC",
-      img: "/may-say/EDV904H3WC.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-say/EDV904H3WC.avif",
       price: 10490000,
       oldPrice: 10750182,
       features: [
@@ -414,7 +414,7 @@ export const dryerCategory: CategoryPageData = {
       slug: "edv804h3wc",
       name: "Máy sấy quần áo Electrolux thông hơi 8kg trắng",
       sku: "EDV804H3WC",
-      img: "/may-say/EDV804H3WC.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-say/EDV804H3WC.avif",
       price: 9490000,
       oldPrice: 9808363,
       features: [
@@ -434,7 +434,7 @@ export const dryerCategory: CategoryPageData = {
       slug: "eds904s3sc",
       name: "Máy sấy quần áo Electrolux thông hơi 9kg VapourRefresh xám",
       sku: "EDS904S3SC",
-      img: "/may-say/EDS904S3SC.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-say/EDS904S3SC.avif",
       price: 12990000,
       oldPrice: 13244727,
       features: [
@@ -454,7 +454,7 @@ export const dryerCategory: CategoryPageData = {
       slug: "eds904h3wc",
       name: "Máy sấy quần áo Electrolux thông hơi 9kg VapourRefresh trắng",
       sku: "EDS904H3WC",
-      img: "/may-say/EDS904H3WC.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-say/EDS904H3WC.avif",
       price: 11990000,
       oldPrice: 12262909,
       features: [
@@ -474,7 +474,7 @@ export const dryerCategory: CategoryPageData = {
       slug: "edh903r7wc",
       name: "Máy sấy quần áo Electrolux bơm nhiệt 9kg UltimateCare 700",
       sku: "EDH903R7WC",
-      img: "/may-say/EDH903R7WC.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-say/EDH903R7WC.avif",
       price: 20990000,
       oldPrice: 22573000,
       features: [
@@ -494,7 +494,7 @@ export const dryerCategory: CategoryPageData = {
       slug: "edh903r7sc",
       name: "Máy sấy quần áo Electrolux bơm nhiệt 9kg UltimateCare 700 xám",
       sku: "EDH903R7SC",
-      img: "/may-say/EDH903R7SC.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-say/EDH903R7SC.avif",
       price: 21990000,
       oldPrice: 23552819,
       features: [
@@ -514,7 +514,7 @@ export const dryerCategory: CategoryPageData = {
       slug: "edh902r9sc",
       name: "Máy sấy quần áo Electrolux bơm nhiệt 9kg UltimateCare 900",
       sku: "EDH902R9SC",
-      img: "/may-say/EDH902R9SC.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-say/EDH902R9SC.avif",
       price: 24990000,
       oldPrice: 26490273,
       features: [
@@ -534,7 +534,7 @@ export const dryerCategory: CategoryPageData = {
       slug: "edh803j5wcr",
       name: "Máy sấy quần áo Electrolux bơm nhiệt 8kg UltimateCare 500 trắng - Tự xả nước",
       sku: "EDH803J5WCR",
-      img: "/may-say/EDH803J5WCR.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-say/EDH803J5WCR.avif",
       price: 18900000,
       oldPrice: 18900000,
       features: [
@@ -554,7 +554,7 @@ export const dryerCategory: CategoryPageData = {
       slug: "edh803j5wc",
       name: "Máy sấy quần áo Electrolux bơm nhiệt 8kg UltimateCare 500",
       sku: "EDH803J5WC",
-      img: "/may-say/EDH803J5WC.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-say/EDH803J5WC.avif",
       price: 16990000,
       oldPrice: 17273727,
       features: [
@@ -574,7 +574,7 @@ export const dryerCategory: CategoryPageData = {
       slug: "edh803j5scr",
       name: "Máy sấy quần áo Electrolux bơm nhiệt 8kg UltimateCare 500 xám - Tự xả nước",
       sku: "EDH803J5SCR",
-      img: "/may-say/EDH803J5SCR.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-say/EDH803J5SCR.avif",
       price: 19980000,
       oldPrice: 19980000,
       features: [
@@ -594,7 +594,7 @@ export const dryerCategory: CategoryPageData = {
       slug: "edh803j5sc",
       name: "Máy sấy quần áo Electrolux bơm nhiệt 8kg UltimateCare 500 xám",
       sku: "EDH803J5SC",
-      img: "/may-say/EDH803J5SC.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-say/EDH803J5SC.avif",
       price: 17990000,
       oldPrice: 18626545,
       features: [
@@ -618,8 +618,8 @@ export const riceCookerCategory: CategoryPageData = {
   title: "Mua Nồi Cơm Điện Electrolux Chính Hãng Giá Tốt 2026",
   description:
     "Tìm nồi cơm điện Electrolux chất lượng, nấu cơm thơm ngon, dễ sử dụng và bảo hành chính hãng. Lựa chọn phù hợp cho gia đình Việt với nhiều dung tích và chế độ nấu thông minh.",
-  heroImage: "/rice-cooker/hero-rice-cooker-1.png",
-  heroImageMobile: "/rice-cooker/hero-rice-cooker-2.png",
+  heroImage: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/rice-cooker/hero-rice-cooker-1.png",
+  heroImageMobile: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/rice-cooker/hero-rice-cooker-2.png",
   quickFilters: [
     { id: "all", label: "Tất cả", count: 5 },
     { id: "noi-com-dien-tu", label: "Nồi cơm điện tử", count: 2 },
@@ -654,7 +654,7 @@ export const riceCookerCategory: CategoryPageData = {
       slug: "erc2020w",
       name: "Nồi cơm điện Electrolux 1.8L ERC2020W",
       sku: "ERC2020W",
-      img: "/rice-cooker/product-rice-cooker-1.png",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/rice-cooker/product-rice-cooker-1.png",
       price: 1890000,
       oldPrice: 2190000,
       features: ["Giữ ấm 24h", "Nấu nhanh"],
@@ -670,7 +670,7 @@ export const riceCookerCategory: CategoryPageData = {
       slug: "eric701b",
       name: "Nồi cơm điện tử Electrolux 1.2L ERIC701B",
       sku: "ERIC701B",
-      img: "/rice-cooker/hero-rice-cooker-2.png",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/rice-cooker/hero-rice-cooker-2.png",
       price: 2590000,
       oldPrice: 2890000,
       features: ["Công nghệ điện tử", "Giữ ấm tự động"],
@@ -686,7 +686,7 @@ export const riceCookerCategory: CategoryPageData = {
       slug: "eric703g",
       name: "Nồi cơm điện tử Electrolux 1.5L ERIC703G",
       sku: "ERIC703G",
-      img: "/rice-cooker/hero-rice-cooker-1.png",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/rice-cooker/hero-rice-cooker-1.png",
       price: 2990000,
       oldPrice: 3390000,
       features: ["Chế độ nấu đa dạng", "Lòng nồi chống dính"],
@@ -702,7 +702,7 @@ export const riceCookerCategory: CategoryPageData = {
       slug: "erc3050s",
       name: "Nồi cơm điện Electrolux 1.8L ERC3050S",
       sku: "ERC3050S",
-      img: "/rice-cooker/hero-rice-cooker-1.png",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/rice-cooker/hero-rice-cooker-1.png",
       price: 1790000,
       oldPrice: 2090000,
       features: ["Thiết kế nhỏ gọn", "Dễ lau chùi"],
@@ -718,7 +718,7 @@ export const riceCookerCategory: CategoryPageData = {
       slug: "erc601w",
       name: "Nồi cơm điện Electrolux 2.0L ERC601W",
       sku: "ERC601W",
-      img: "/rice-cooker/hero-rice-cooker-2.png",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/rice-cooker/hero-rice-cooker-2.png",
       price: 2290000,
       oldPrice: 2590000,
       features: ["Giữ ấm lâu", "Tiết kiệm điện"],
@@ -784,7 +784,7 @@ export const washingMachineCategory: CategoryPageData = {
   title: "Mua Máy Giặt Electrolux Chính Hãng Giá Tốt 2026 Trả Góp 0%",
   description:
     "Khám phá dòng máy giặt Electrolux UltimateCare mới với công nghệ đột phá, giặt sạch 13kg quần áo chỉ trong 45 phút ở 30°C, nhanh chóng và tiết kiệm điện nước tối đa.",
-  heroImage: "/plp/hero-may-giat.jpg",
+  heroImage: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/hero-may-giat.jpg",
   quickFilters: [
     { id: "all", label: "Tất cả", count: 23 },
     { id: "may-giat-9kg", label: "Máy giặt 9kg", count: 4 },
@@ -826,7 +826,7 @@ products: [
     slug: "eww9024p3wc",
     name: "Máy giặt sấy Electrolux giặt 9kg + sấy 6kg UltimateCare 300",
     sku: "EWW9024P3WC",
-    img: "/plp/EWW9024P3WC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWW9024P3WC.avif",
     price: 11990000,
     oldPrice: 14717455,
     features: [
@@ -847,7 +847,7 @@ products: [
     slug: "eww1343r7wc",
     name: "Máy giặt sấy Electrolux giặt 13kg + sấy 9kg UltimateCare 700",
     sku: "EWW1343R7WC",
-    img: "/plp/EWW1343R7WC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWW1343R7WC.avif",
     price: 22990000,
     oldPrice: 25517455,
     features: [
@@ -868,7 +868,7 @@ products: [
     slug: "eww1343p5sc",
     name: "Máy giặt sấy Electrolux giặt 13kg + sấy 9kg UltimateCare 500",
     sku: "EWW1343P5SC",
-    img: "/plp/EWW1343P5SC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWW1343P5SC.avif",
     price: 19990000,
     oldPrice: 23081091,
     features: [
@@ -889,7 +889,7 @@ products: [
     slug: "eww1143r7sc",
     name: "Máy giặt sấy Electrolux giặt 11kg + sấy 7kg UltimateCare 700",
     sku: "EWW1143R7SC",
-    img: "/plp/EWW1143R7SC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWW1143R7SC.avif",
     price: 19990000,
     oldPrice: 23081091,
     features: [
@@ -910,7 +910,7 @@ products: [
     slug: "eww1123p5wc",
     name: "Máy giặt sấy Electrolux giặt 11kg + sấy 7kg UltimateCare 500",
     sku: "EWW1123P5WC",
-    img: "/plp/EWW1123P5WC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWW1123P5WC.avif",
     price: 17490000,
     oldPrice: 19135637,
     features: [
@@ -931,7 +931,7 @@ products: [
     slug: "eww1023p5sc",
     name: "Máy giặt sấy Electrolux giặt 10kg + sấy 7kg UltimateCare 500",
     sku: "EWW1023P5SC",
-    img: "/plp/EWW1023P5SC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWW1023P5SC.avif",
     price: 14690000,
     oldPrice: 16681091,
     features: [
@@ -952,7 +952,7 @@ products: [
     slug: "ewf9025dqwb",
     name: "Máy giặt cửa ngang Electrolux 9kg UltimateCare 100 trắng",
     sku: "EWF9025DQWB",
-    img: "/plp/EWF9025DQWB.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF9025DQWB.avif",
     price: 7490000,
     oldPrice: 9808363,
     features: [
@@ -973,7 +973,7 @@ products: [
     slug: "ewf9023p5wc",
     name: "Máy giặt cửa ngang Electrolux 9kg UltimateCare 500 trắng",
     sku: "EWF9023P5WC",
-    img: "/plp/EWF9023P5WC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF9023P5WC.avif",
     price: 9490000,
     oldPrice: 11772000,
     features: [
@@ -994,7 +994,7 @@ products: [
     slug: "ewf9023p5sc",
     name: "Máy giặt cửa ngang Electrolux 9kg UltimateCare 500 xám đen",
     sku: "EWF9023P5SC",
-    img: "/plp/EWF9023P5SC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF9023P5SC.avif",
     price: 10490000,
     oldPrice: 12753818,
     features: [
@@ -1015,7 +1015,7 @@ products: [
     slug: "ewf1343r7wc",
     name: "Máy giặt cửa ngang Electrolux 13kg UltimateCare 700 trắng",
     sku: "EWF1343R7WC",
-    img: "/plp/EWF1343R7WC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF1343R7WC.avif",
     price: 19990000,
     oldPrice: 22573000,
     features: [
@@ -1036,7 +1036,7 @@ products: [
     slug: "ewf1343p5wc",
     name: "Máy giặt cửa ngang Electrolux 13kg UltimateCare 500 trắng",
     sku: "EWF1343P5WC",
-    img: "/plp/EWF1343P5WC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF1343P5WC.avif",
     price: 14990000,
     oldPrice: 15499273,
     features: [
@@ -1057,7 +1057,7 @@ products: [
     slug: "ewf1342r9sc",
     name: "Máy giặt cửa ngang Electrolux 13kg UltimateCare 900 xám đen",
     sku: "EWF1342R9SC",
-    img: "/plp/EWF1342R9SC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF1342R9SC.avif",
     price: 23490000,
     oldPrice: 25517655,
     features: [
@@ -1078,7 +1078,7 @@ products: [
     slug: "ewf1143r7wc",
     name: "Máy giặt cửa ngang Electrolux 11kg UltimateCare 700 trắng",
     sku: "EWF1143R7WC",
-    img: "/plp/EWF1143R7WC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF1143R7WC.avif",
     price: 15990000,
     oldPrice: 17663000,
     features: [
@@ -1099,7 +1099,7 @@ products: [
     slug: "ewf1143r7sc",
     name: "Máy giặt cửa ngang Electrolux 11kg UltimateCare 700 xám đen",
     sku: "EWF1143R7SC",
-    img: "/plp/EWF1143R7SC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF1143R7SC.avif",
     price: 16990000,
     oldPrice: 18664727,
     features: [
@@ -1120,7 +1120,7 @@ products: [
     slug: "ewf1142r9sc",
     name: "Máy giặt cửa ngang Electrolux 11kg UltimateCare 900 xám đen",
     sku: "EWF1142R9SC",
-    img: "/plp/EWF1142R9SC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF1142R9SC.avif",
     price: 19990000,
     oldPrice: 21500182,
     features: [
@@ -1141,7 +1141,7 @@ products: [
     slug: "ewf1043r7wc",
     name: "Máy giặt cửa ngang Electrolux 10kg UltimateCare 700 trắng",
     sku: "EWF1043R7WC",
-    img: "/plp/EWF1043R7WC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF1043R7WC.avif",
     price: 13990000,
     oldPrice: 15499273,
     features: [
@@ -1162,7 +1162,7 @@ products: [
     slug: "ewf1043r7sc",
     name: "Máy giặt cửa ngang Electrolux 10kg UltimateCare 700 xám đen",
     sku: "EWF1043R7SC",
-    img: "/plp/EWF1043R7SC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF1043R7SC.avif",
     price: 14990000,
     oldPrice: 16681091,
     features: [
@@ -1183,7 +1183,7 @@ products: [
     slug: "ewf1025dqwb",
     name: "Máy giặt cửa ngang Electrolux 10kg UltimateCare 100 trắng",
     sku: "EWF1025DQWB",
-    img: "/plp/EWF1025DQWB.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF1025DQWB.avif",
     price: 7990000,
     oldPrice: 11281091,
     features: [
@@ -1204,7 +1204,7 @@ products: [
     slug: "ewf1024d3wc",
     name: "Máy giặt cửa ngang Electrolux 10kg UltimateCare 300 trắng",
     sku: "EWF1024D3WC",
-    img: "/plp/EWF1024D3WC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF1024D3WC.avif",
     price: 9490000,
     oldPrice: 11772000,
     features: [
@@ -1225,7 +1225,7 @@ products: [
     slug: "ewf1024d3sc",
     name: "Máy giặt cửa ngang Electrolux 10kg UltimateCare 300 xám đen",
     sku: "EWF1024D3SC",
-    img: "/plp/EWF1024D3SC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF1024D3SC.avif",
     price: 10490000,
     oldPrice: 12753818,
     features: [
@@ -1246,7 +1246,7 @@ products: [
     slug: "ewf1024d3ec",
     name: "Máy giặt cửa ngang Electrolux 10kg UltimateCare 300 trắng - Phiên bản Elegance",
     sku: "EWF1024D3EC",
-    img: "/plp/EWF1024D3EC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF1024D3EC.avif",
     price: 9990000,
     oldPrice: 12166727,
     features: [
@@ -1267,7 +1267,7 @@ products: [
     slug: "ewf1023p5wc",
     name: "Máy giặt cửa ngang Electrolux 10kg UltimateCare 500 trắng",
     sku: "EWF1023P5WC",
-    img: "/plp/EWF1023P5WC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF1023P5WC.avif",
     price: 10490000,
     oldPrice: 12753818,
     features: [
@@ -1288,7 +1288,7 @@ products: [
     slug: "ewf1023p5sc",
     name: "Máy giặt cửa ngang Electrolux 10kg UltimateCare 500 xám đen",
     sku: "EWF1023P5SC",
-    img: "/plp/EWF1023P5SC.avif",
+    img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/EWF1023P5SC.avif",
     price: 11490000,
     oldPrice: 13755637,
     features: [
@@ -1312,8 +1312,8 @@ export const blenderCategory: CategoryPageData = {
   title: "Mua Máy Xay Sinh Tố Electrolux Chính Hãng Giá Tốt 2026",
   description:
     "Khám phá các dòng máy xay sinh tố Electrolux công suất mạnh, lưỡi dao thép không gỉ bền bỉ, dễ vệ sinh và nhiều chương trình xay thông minh phù hợp cho mọi nhu cầu bếp gia đình.",
-  heroImage: "/may-xay-sinh-to/hero.png",
-  heroImageMobile: "/may-xay-sinh-to/hero.png",
+  heroImage: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-xay-sinh-to/hero.png",
+  heroImageMobile: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-xay-sinh-to/hero.png",
   quickFilters: [
     { id: "all", label: "Tất cả", count: 4 },
     { id: "may-xay-cam-tay", label: "Máy xay cầm tay", count: 2 },
@@ -1345,7 +1345,7 @@ export const blenderCategory: CategoryPageData = {
       slug: "e5pb1-100l",
       name: "Máy xay sinh tố cầm tay Electrolux",
       sku: "E5PB1-100L",
-      img: "/may-xay-sinh-to/product1.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-xay-sinh-to/product1.avif",
       price: 1190000,
       oldPrice: 1296000,
       features: [
@@ -1365,7 +1365,7 @@ export const blenderCategory: CategoryPageData = {
       slug: "estm5417s",
       name: "Máy xay cầm tay đa năng",
       sku: "ESTM5417S",
-      img: "/may-xay-sinh-to/product2.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-xay-sinh-to/product2.avif",
       price: 1290000,
       oldPrice: 1290000,
       features: [
@@ -1385,7 +1385,7 @@ export const blenderCategory: CategoryPageData = {
       slug: "e7tb1-84sm",
       name: "Máy xay sinh tố 900W Explore 7",
       sku: "E7TB1-84SM",
-      img: "/may-xay-sinh-to/product3.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-xay-sinh-to/product3.avif",
       price: 1700000,
       oldPrice: 1700000,
       features: [
@@ -1405,7 +1405,7 @@ export const blenderCategory: CategoryPageData = {
       slug: "e7cb1-86sm",
       name: "Máy xay sinh tố nhỏ gọn 900W Explore 7",
       sku: "E7CB1-86SM",
-      img: "/may-xay-sinh-to/product4.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-xay-sinh-to/product4.avif",
       price: 1590000,
       oldPrice: 1790000,
       features: [
@@ -1429,8 +1429,8 @@ export const airPurifierCategory: CategoryPageData = {
   title: "Mua Máy Lọc Không Khí Electrolux Chính Hãng Giá Tốt 2026",
   description:
     "Khám phá các dòng máy lọc không khí Electrolux với công nghệ PureProtect, lọc sạch tới 99.99% vi khuẩn và bụi mịn, vận hành êm ái, phù hợp mọi diện tích phòng.",
-  heroImage: "/may-loc-khong-khi/product1.avif",
-  heroImageMobile: "/may-loc-khong-khi/product1.avif",
+  heroImage: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-loc-khong-khi/product1.avif",
+  heroImageMobile: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-loc-khong-khi/product1.avif",
   quickFilters: [
     { id: "all", label: "Tất cả", count: 4 },
     { id: "duoi-30m2", label: "Phòng dưới 30m²", count: 2 },
@@ -1461,7 +1461,7 @@ export const airPurifierCategory: CategoryPageData = {
       slug: "pa91-406gy",
       name: "Máy lọc không khí Electrolux cỡ lớn phòng 60m² Pure A9",
       sku: "PA91-406GY",
-      img: "/may-loc-khong-khi/PA91-406GY.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-loc-khong-khi/PA91-406GY.avif",
       price: 8990000,
       oldPrice: 10301667,
       features: [
@@ -1481,7 +1481,7 @@ export const airPurifierCategory: CategoryPageData = {
       slug: "fa31-200wt",
       name: "Máy lọc không khí Electrolux phòng 26m² UH300 bộ lọc HEPA",
       sku: "FA31-200WT",
-      img: "/may-loc-khong-khi/FA31-200WT.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-loc-khong-khi/FA31-200WT.avif",
       price: 3490000,
       oldPrice: 3977455,
       features: [
@@ -1501,7 +1501,7 @@ export const airPurifierCategory: CategoryPageData = {
       slug: "ep53-46uga",
       name: "Máy lọc không khí Electrolux phòng 52m² UH500 bộ lọc HEPA",
       sku: "EP53-46UGA",
-      img: "/may-loc-khong-khi/EP53-46UGA.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-loc-khong-khi/EP53-46UGA.avif",
       price: 6090000,
       oldPrice: 7192000,
       features: [
@@ -1521,7 +1521,7 @@ export const airPurifierCategory: CategoryPageData = {
       slug: "ep32-25uga",
       name: "Máy lọc không khí Electrolux phòng 30m² UH300 bộ lọc HEPA",
       sku: "EP32-25UGA",
-      img: "/may-loc-khong-khi/EP32-25UGA.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-loc-khong-khi/EP32-25UGA.avif",
       price: 3690000,
       oldPrice: 4500545,
       features: [
@@ -1545,8 +1545,8 @@ export const dehumidifierCategory: CategoryPageData = {
   title: "Mua Máy Hút Ẩm Electrolux Chính Hãng Giá Tốt 2026",
   description:
     "Khám phá các dòng máy hút ẩm Electrolux UltimateHome, tích hợp công nghệ PureProtect và PureZan loại bỏ vi khuẩn, khử mùi, giữ không gian sống luôn khô thoáng và dễ chịu.",
-  heroImage: "/may-hut-am/hero.png",
-  heroImageMobile: "/may-hut-am/hero.png",
+  heroImage: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-hut-am/hero.png",
+  heroImageMobile: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-hut-am/hero.png",
   quickFilters: [
     { id: "all", label: "Tất cả", count: 4 },
     { id: "hut-am-loc-khong-khi", label: "Hút ẩm kết hợp lọc không khí", count: 3 },
@@ -1577,7 +1577,7 @@ export const dehumidifierCategory: CategoryPageData = {
       slug: "edh18trbd3",
       name: "Máy hút ẩm kết hợp lọc không khí UltimateHome 700 28.5L cho phòng 66m²",
       sku: "EDH18TRBD3",
-      img: "/may-hut-am/EDH18TRBD3.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-hut-am/EDH18TRBD3.avif",
       price: 10990000,
       oldPrice: 12779000,
       features: [
@@ -1597,7 +1597,7 @@ export const dehumidifierCategory: CategoryPageData = {
       slug: "edh34trbd2",
       name: "Máy hút ẩm kết hợp lọc không khí UltimateHome 700 27L cho phòng 58m²",
       sku: "EDH34TRBD2",
-      img: "/may-hut-am/EDH34TRBD2.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-hut-am/EDH34TRBD2.avif",
       price: 9990000,
       oldPrice: 10955637,
       features: [
@@ -1617,7 +1617,7 @@ export const dehumidifierCategory: CategoryPageData = {
       slug: "edh37trbd2",
       name: "Máy hút ẩm kết hợp lọc không khí UltimateHome 500 24L cho phòng 50m²",
       sku: "EDH37TRBD2",
-      img: "/may-hut-am/EDH37TRBD2.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-hut-am/EDH37TRBD2.avif",
       price: 8990000,
       oldPrice: 9317654,
       features: [
@@ -1637,7 +1637,7 @@ export const dehumidifierCategory: CategoryPageData = {
       slug: "edh10trbw1",
       name: "Máy hút ẩm UltimateHome 300 20L cho phòng 42m²",
       sku: "EDH10TRBW1",
-      img: "/may-hut-am/EDH10TRBW1.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-hut-am/EDH10TRBW1.avif",
       price: 7590000,
       oldPrice: 8641727,
       features: [
@@ -1661,8 +1661,8 @@ export const waterHeaterCategory: CategoryPageData = {
   title: "Mua Máy Nước Nóng Electrolux Chính Hãng Giá Tốt 2026",
   description:
     "Khám phá các dòng máy nước nóng trực tiếp UltimateHome và ComfortFlow từ Electrolux, ổn định nhiệt độ, tiết kiệm điện và an toàn tuyệt đối với công nghệ SafeReady.",
-  heroImage: "/may-nuoc-nong/hero.png",
-  heroImageMobile: "/may-nuoc-nong/hero.png",
+  heroImage: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-nuoc-nong/hero.png",
+  heroImageMobile: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-nuoc-nong/hero.png",
   quickFilters: [
     { id: "all", label: "Tất cả", count: 9 },
     { id: "truc-tiep", label: "Máy nước nóng trực tiếp", count: 6 },
@@ -1695,7 +1695,7 @@ export const waterHeaterCategory: CategoryPageData = {
       slug: "ewe4451b-g6",
       name: "Máy nước nóng trực tiếp UltimateHome 900 4.5kW",
       sku: "EWE4451B-G6",
-      img: "/may-nuoc-nong/EWE4451B-G6.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-nuoc-nong/EWE4451B-G6.avif",
       price: 4690000,
       oldPrice: 5290667,
       features: [
@@ -1715,7 +1715,7 @@ export const waterHeaterCategory: CategoryPageData = {
       slug: "ewe4451rb-g6",
       name: "Máy nước nóng trực tiếp UltimateHome 700 4.5kW",
       sku: "EWE4451RB-G6",
-      img: "/may-nuoc-nong/EWE4451RB-G6.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-nuoc-nong/EWE4451RB-G6.avif",
       price: 3990000,
       oldPrice: 4656674,
       features: [
@@ -1735,7 +1735,7 @@ export const waterHeaterCategory: CategoryPageData = {
       slug: "ewe4532x-w4",
       name: "Máy nước nóng trực tiếp UltimateHome 500 4.5kW",
       sku: "EWE4532X-W4",
-      img: "/may-nuoc-nong/EWE4532X-W4.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-nuoc-nong/EWE4532X-W4.avif",
       price: 2590000,
       oldPrice: 2955637,
       features: [
@@ -1755,7 +1755,7 @@ export const waterHeaterCategory: CategoryPageData = {
       slug: "ewe4521gb-w4",
       name: "Máy nước nóng trực tiếp UltimateHome 500 4.5kW",
       sku: "EWE4521GB-W4",
-      img: "/may-nuoc-nong/EWE4521GB-W4.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-nuoc-nong/EWE4521GB-W4.avif",
       price: 3290000,
       oldPrice: 4015637,
       features: [
@@ -1775,7 +1775,7 @@ export const waterHeaterCategory: CategoryPageData = {
       slug: "ewe4521px-dwx6",
       name: "Máy nước nóng trực tiếp UltimateHome 300 4.5kW",
       sku: "EWE4521PX-DWX6",
-      img: "/may-nuoc-nong/EWE4521PX-DWX6.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-nuoc-nong/EWE4521PX-DWX6.avif",
       price: 2090000,
       oldPrice: 2918363,
       features: [
@@ -1795,7 +1795,7 @@ export const waterHeaterCategory: CategoryPageData = {
       slug: "ewe4531mb-dst2",
       name: "Máy nước nóng ComfortFlow 800",
       sku: "EWE4531MB-DST2",
-      img: "/may-nuoc-nong/EWE4531MB-DST2.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-nuoc-nong/EWE4531MB-DST2.avif",
       price: 4890000,
       oldPrice: 4890000,
       features: [
@@ -1814,7 +1814,7 @@ export const waterHeaterCategory: CategoryPageData = {
       slug: "ewe4451lb-dpx2",
       name: "Máy nước nóng ComfortFlow 700 - Hồng",
       sku: "EWE4451LB-DPX2",
-      img: "/may-nuoc-nong/EWE4451LB-DPX2.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-nuoc-nong/EWE4451LB-DPX2.avif",
       price: 4390000,
       oldPrice: 4390000,
       features: [
@@ -1833,7 +1833,7 @@ export const waterHeaterCategory: CategoryPageData = {
       slug: "ewe4351kb-dwg2",
       name: "Máy nước nóng trực tiếp ComfortFlow 500 4.5kW",
       sku: "EWE4351KB-DWG2",
-      img: "/may-nuoc-nong/EWE4351KB-DWG2.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-nuoc-nong/EWE4351KB-DWG2.avif",
       price: 3990000,
       oldPrice: 3990000,
       features: [
@@ -1853,7 +1853,7 @@ export const waterHeaterCategory: CategoryPageData = {
       slug: "ewe4451gx-dwr",
       name: "Máy nước nóng công suất 4500W - Trắng & Đỏ",
       sku: "EWE4451GX-DWR",
-      img: "/may-nuoc-nong/EWE4451GX-DWR.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-nuoc-nong/EWE4451GX-DWR.avif",
       price: 2390000,
       oldPrice: 2390000,
       features: [
@@ -1876,8 +1876,8 @@ export const indirectWaterHeaterCategory: CategoryPageData = {
   title: "Mua Máy Nước Nóng Gián Tiếp Electrolux Chính Hãng Giá Tốt 2026",
   description:
     "Máy nước nóng gián tiếp Electrolux với lõi Titanium bảo vệ tối đa, chống rò rỉ nước, mang lại nguồn nước nóng ổn định và an toàn cho cả gia đình.",
-  heroImage: "/may-nuoc-nong-gian-tiep/hero.jpg",
-  heroImageMobile: "/may-nuoc-nong-gian-tiep/hero.jpg",
+  heroImage: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-nuoc-nong-gian-tiep/hero.jpg",
+  heroImageMobile: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-nuoc-nong-gian-tiep/hero.jpg",
   quickFilters: [
     { id: "all", label: "Tất cả", count: 1 },
   ],
@@ -1902,7 +1902,7 @@ export const indirectWaterHeaterCategory: CategoryPageData = {
       slug: "ews202dx-dwm",
       name: "Máy nước nóng gián tiếp 20L EWS202DX-DWM",
       sku: "EWS202DX-DWM",
-      img: "/may-nuoc-nong-gian-tiep/EWS202DX-DWM.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-nuoc-nong-gian-tiep/EWS202DX-DWM.avif",
       price: 3290000,
       oldPrice: 3290000,
       features: [
