@@ -40,6 +40,18 @@ type HeaderProps = {
   navItems: string[];
 };
 
+function getNavHref(item: string) {
+  if (item === "Hỗ trợ") {
+    return "/support";
+  }
+
+  if (item === "Blog") {
+    return "/blog";
+  }
+
+  return "#";
+}
+
 /* ============================================================
    MENU ICONS
 ============================================================ */
@@ -529,11 +541,7 @@ export default function Header({ navItems }: HeaderProps) {
                   }}
                 >
                   <a
-                    href={
-                      item === "Hỗ trợ"
-                        ? "/support"
-                        : "#"
-                    }
+                    href={getNavHref(item)}
                     className={`nav-link${
                       activeNav === item
                         ? " nav-link--active"
@@ -894,11 +902,7 @@ export default function Header({ navItems }: HeaderProps) {
           {navItems.map((item) => (
             <a
               key={item}
-              href={
-                item === "Hỗ trợ"
-                  ? "/support"
-                  : "#"
-              }
+              href={getNavHref(item)}
               onClick={() =>
                 setMobileMenu(false)
               }
