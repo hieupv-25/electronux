@@ -1,7 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { calcDiscountBadge, formatPrice } from "@/lib/formatPrice";
 import type { CategoryProduct } from "@/data/categories";
+import { useCart } from "./CartContext";
 
 type ProductCardProps = {
   product: CategoryProduct;
@@ -11,6 +14,10 @@ type ProductCardProps = {
 export default function ProductCard({ product, categorySlug = "may-giat" }: ProductCardProps) {
   const badge = calcDiscountBadge(product.price, product.oldPrice);
   const detailHref = `/thiet-bi/${categorySlug}/${product.slug}`;
+
+  const { addToCart, adding } = useCart();
+  const isAddingThis = adding === product.variantId;
+  const canAddToCart = Boolean(product.variantId);
 
   return (
     <article className="plp-card">
@@ -72,8 +79,18 @@ export default function ProductCard({ product, categorySlug = "may-giat" }: Prod
         </div>
 
         <div className="plp-card__actions">
-          <button type="button" className="cta-btn plp-card__add-btn">
-            Thêm vào giỏ
+          <button
+            type="button"
+            onClick={() => product.variantId && addToCart(product.variantId)}
+            disabled={isAddingThis || !canAddToCart}
+            title={canAddToCart ? undefined : "Sản phẩm này chưa có variantId, chưa thể thêm vào giỏ"}
+            className="cta-btn plp-card__add-btn"
+            style={{
+              cursor: isAddingThis || !canAddToCart ? "not-allowed" : "pointer",
+              opacity: isAddingThis || !canAddToCart ? 0.7 : 1,
+            }}
+          >
+            {isAddingThis ? "Đang thêm..." : "Thêm vào giỏ"}
           </button>
           <Link href={detailHref} className="cta-btn cta-btn--outline plp-card__detail-btn">
             Xem chi tiết
