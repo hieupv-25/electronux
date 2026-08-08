@@ -3,62 +3,56 @@ import { randomUUID } from "crypto";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email } = body;
+    const email = typeof body.email === "string" ? body.email.toLowerCase().trim() : "";
 
-    if (!email || typeof email !== "string") {
+    if (!email || !emailPattern.test(email)) {
       return NextResponse.json(
-        { message: "Vui lòng nhập email." },
+        { message: "Vui lòng nhập email hợp lệ." },
         { status: 400 }
       );
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
-
-    // Always return success to avoid leaking whether email exists
     const successResponse = NextResponse.json({
       message: "Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu.",
     });
 
-    // Check if user exists (and not soft-deleted)
     const user = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
+      where: { email },
+      select: { id: true, deletedAt: true },
     });
 
     if (!user || user.deletedAt) {
       return successResponse;
     }
 
-    // Delete any existing reset tokens for this email
     await prisma.passwordResetToken.deleteMany({
-      where: { email: normalizedEmail },
+      where: { email },
     });
 
-    // Generate token — hash it before storing for security
     const rawToken = randomUUID();
     const hashedToken = await hash(rawToken, 10);
 
-    // Store hashed token with 1 hour expiry
     await prisma.passwordResetToken.create({
       data: {
-        email: normalizedEmail,
+        email,
         token: hashedToken,
-        expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
       },
     });
 
-    // Build reset URL with raw token (user clicks this)
-    const resetUrl = `${process.env.AUTH_URL || "http://localhost:3000"}/reset-password?token=${rawToken}&email=${encodeURIComponent(normalizedEmail)}`;
+    const baseUrl = process.env.AUTH_URL || process.env.NEXTAUTH_URL || req.nextUrl.origin;
+    const resetUrl = `${baseUrl}/reset-password?token=${rawToken}&email=${encodeURIComponent(email)}`;
 
-    // In development: log the reset link
-    // In production: send via email service (Resend, SendGrid, etc.)
     if (process.env.NODE_ENV !== "production") {
       console.log("\n========================================");
-      console.log("🔑 PASSWORD RESET LINK (DEV ONLY)");
+      console.log("PASSWORD RESET LINK (DEV ONLY)");
       console.log("========================================");
-      console.log(`Email: ${normalizedEmail}`);
+      console.log(`Email: ${email}`);
       console.log(`Link: ${resetUrl}`);
       console.log("========================================\n");
     }

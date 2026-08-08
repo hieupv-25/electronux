@@ -1,7 +1,37 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
+
+type EyeButtonProps = {
+  show: boolean;
+  onToggle: () => void;
+};
+
+function EyeButton({ show, onToggle }: EyeButtonProps) {
+  return (
+    <button
+      type="button"
+      className="auth-eye"
+      onClick={onToggle}
+      tabIndex={-1}
+      aria-label={show ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+    >
+      {show ? (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--elx-gray)" strokeWidth="2">
+          <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+          <line x1="1" y1="1" x2="23" y2="23" />
+        </svg>
+      ) : (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--elx-gray)" strokeWidth="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      )}
+    </button>
+  );
+}
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -16,12 +46,6 @@ function ResetPasswordForm() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-
-  useEffect(() => {
-    if (!token || !email) {
-      setError("Link đặt lại mật khẩu không hợp lệ.");
-    }
-  }, [token, email]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,9 +81,9 @@ function ResetPasswordForm() {
         <div className="reset-card">
           <h1>Đặt lại mật khẩu</h1>
           <p className="reset-error">Link đặt lại mật khẩu không hợp lệ.</p>
-          <a href="/" className="cta-btn" style={{ display: "block", textAlign: "center", marginTop: 20 }}>
+          <Link href="/" className="cta-btn" style={{ display: "block", textAlign: "center", marginTop: 20 }}>
             Về trang chủ
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -77,9 +101,9 @@ function ResetPasswordForm() {
           </div>
           <h1 style={{ color: "#22c55e" }}>Thành công!</h1>
           <p>{message}</p>
-          <a href="/" className="cta-btn" style={{ display: "block", textAlign: "center", marginTop: 20 }}>
+          <Link href="/" className="cta-btn" style={{ display: "block", textAlign: "center", marginTop: 20 }}>
             Về trang chủ để đăng nhập
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -95,9 +119,10 @@ function ResetPasswordForm() {
 
         <form onSubmit={handleSubmit}>
           <div className="auth-field">
-            <label className="auth-label">Mật khẩu mới*</label>
+            <label className="auth-label" htmlFor="reset-password">Mật khẩu mới*</label>
             <div className="auth-input-wrap">
               <input
+                id="reset-password"
                 type={showPassword ? "text" : "password"}
                 className="auth-input"
                 placeholder="Mật khẩu mới"
@@ -105,22 +130,17 @@ function ResetPasswordForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
+                autoComplete="new-password"
               />
-              <button
-                type="button"
-                className="auth-eye"
-                onClick={() => setShowPassword(!showPassword)}
-                tabIndex={-1}
-              >
-                {showPassword ? "🙈" : "👁"}
-              </button>
+              <EyeButton show={showPassword} onToggle={() => setShowPassword((value) => !value)} />
             </div>
           </div>
 
           <div className="auth-field">
-            <label className="auth-label">Xác nhận mật khẩu*</label>
+            <label className="auth-label" htmlFor="reset-confirm">Xác nhận mật khẩu*</label>
             <div className="auth-input-wrap">
               <input
+                id="reset-confirm"
                 type={showConfirm ? "text" : "password"}
                 className="auth-input"
                 placeholder="Xác nhận mật khẩu mới"
@@ -128,15 +148,9 @@ function ResetPasswordForm() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={8}
+                autoComplete="new-password"
               />
-              <button
-                type="button"
-                className="auth-eye"
-                onClick={() => setShowConfirm(!showConfirm)}
-                tabIndex={-1}
-              >
-                {showConfirm ? "🙈" : "👁"}
-              </button>
+              <EyeButton show={showConfirm} onToggle={() => setShowConfirm((value) => !value)} />
             </div>
           </div>
 
