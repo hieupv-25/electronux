@@ -666,135 +666,137 @@ export default function Header({ navItems }: HeaderProps) {
               <div
                 className="user-dropdown"
                 ref={dropdownRef}
+                onMouseEnter={() => {
+                  if (leaveTimer.current) {
+                    clearTimeout(leaveTimer.current);
+                  }
+                  setUserDropdown(true);
+                }}
+                onMouseLeave={() => {
+                  leaveTimer.current = setTimeout(
+                    () => setUserDropdown(false),
+                    120
+                  );
+                }}
               >
+                {/* Trigger: icon + "Xin chào [tên]" + chevron */}
                 <button
                   aria-label="Tài khoản"
-                  onClick={() =>
-                    setUserDropdown(
-                      (value) => !value
-                    )
-                  }
-                  className="user-avatar-btn"
+                  className="user-account-trigger"
                 >
-                  <span className="user-avatar">
-                    {getUserInitials()}
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--elx-navy)"
+                    strokeWidth="2"
+                  >
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+
+                  <span className="user-account-trigger__label">
+                    Xin chào{" "}
+                    <strong>
+                      {session.user.firstName ||
+                        session.user.email?.split("@")[0]}
+                    </strong>
                   </span>
+
+                  <svg
+                    className={`user-account-trigger__chevron${userDropdown ? " user-account-trigger__chevron--open" : ""}`}
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--elx-navy)"
+                    strokeWidth="2.5"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
                 </button>
 
+                {/* Dropdown menu */}
                 {userDropdown && (
                   <div className="user-dropdown__menu">
-                    <div className="user-dropdown__header">
-                      <div className="user-dropdown__name">
-                        {
-                          session.user
-                            .firstName
-                        }{" "}
-                        {
-                          session.user
-                            .lastName
-                        }
-                      </div>
-
-                      <div className="user-dropdown__email">
-                        {
-                          session.user
-                            .email
-                        }
-                      </div>
-                    </div>
-
-                    <a
-                      href="/account"
-                      className="user-dropdown__item"
-                    >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
+                    {/* Chi tiết tài khoản */}
+                    <a href="/account" className="user-dropdown__item">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                         <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                        <circle
-                          cx="12"
-                          cy="7"
-                          r="4"
-                        />
+                        <circle cx="12" cy="7" r="4" />
                       </svg>
-
-                      Tài khoản của tôi
-                    </a>
-
-                    <a
-                      href="/account/orders"
-                      className="user-dropdown__item"
-                    >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <rect
-                          x="2"
-                          y="3"
-                          width="20"
-                          height="14"
-                          rx="2"
-                        />
-                        <path d="M8 21h8M12 17v4" />
-                      </svg>
-
-                      Đơn hàng của tôi
-                    </a>
-
-                    <a
-                      href="/account/wishlist"
-                      className="user-dropdown__item"
-                    >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-                      </svg>
-
-                      Yêu thích
+                      Chi tiết tài khoản
                     </a>
 
                     <div className="user-dropdown__divider" />
 
+                    {/* Lịch sử mua hàng */}
+                    <a href="/account/orders" className="user-dropdown__item">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                        <rect x="9" y="3" width="6" height="4" rx="1" />
+                        <path d="M9 12h6M9 16h4" />
+                      </svg>
+                      Lịch sử mua hàng
+                    </a>
+
+                    <div className="user-dropdown__divider" />
+
+                    {/* Gói Đăng ký Định kỳ */}
+                    <a href="/account/subscriptions" className="user-dropdown__item">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                        <path d="M16 2v4M8 2v4M3 10h18" />
+                        <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
+                      </svg>
+                      Gói Đăng ký Định kỳ
+                    </a>
+
+                    <div className="user-dropdown__divider" />
+
+                    {/* Sản phẩm đã đăng ký */}
+                    <a href="/account/registered-products" className="user-dropdown__item">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                        <rect x="9" y="3" width="6" height="4" rx="1" />
+                        <polyline points="9 12 11 14 15 10" />
+                      </svg>
+                      Sản phẩm đã đăng ký
+                    </a>
+
+                    <div className="user-dropdown__divider" />
+
+                    {/* Lịch sử dịch vụ */}
+                    <a href="/account/service-history" className="user-dropdown__item">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
+                      </svg>
+                      Lịch sử dịch vụ
+                    </a>
+
+                    <div className="user-dropdown__divider" />
+
+                    {/* Danh sách nhắc nhở */}
+                    <a href="/account/reminders" className="user-dropdown__item">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
+                      </svg>
+                      Danh sách nhắc nhở
+                    </a>
+
+                    <div className="user-dropdown__divider" />
+
+                    {/* Đăng xuất */}
                     <button
-                      className="user-dropdown__item user-dropdown__item--danger"
-                      onClick={
-                        handleLogout
-                      }
+                      className="user-dropdown__item user-dropdown__item--logout"
+                      onClick={handleLogout}
                     >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                         <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
                         <polyline points="16 17 21 12 16 7" />
-                        <line
-                          x1="21"
-                          y1="12"
-                          x2="9"
-                          y2="12"
-                        />
+                        <line x1="21" y1="12" x2="9" y2="12" />
                       </svg>
-
                       Đăng xuất
                     </button>
                   </div>

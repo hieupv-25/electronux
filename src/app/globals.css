@@ -1354,29 +1354,72 @@ img {
   position: relative;
 }
 
+/* Invisible hover bridge: fills the gap between trigger and menu
+   so the mouse doesn't leave the hover zone when moving downward */
+.user-dropdown::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 12px; /* matches the gap below */
+  background: transparent;
+}
+
+/* Trigger button: icon + "Xin chào tên" + chevron */
+.user-account-trigger {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  color: var(--elx-navy);
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.user-account-trigger__label {
+  font-size: 1.08rem;
+  color: var(--elx-navy);
+}
+
+.user-account-trigger__chevron {
+  transition: transform 0.2s ease;
+  margin-left: 2px;
+}
+
+.user-account-trigger__chevron--open {
+  transform: rotate(180deg);
+}
+
 .user-dropdown__menu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px); /* keep visual gap for arrow */
   right: 0;
   background: #fff;
-  border: 1px solid var(--elx-border);
-  border-radius: 6px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-  min-width: 200px;
-  padding: 8px 0;
+  border: 1px solid #e8eaf0;
+  border-radius: 8px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.13);
+  min-width: 230px;
+  padding: 6px 0;
   z-index: 100;
-  animation: authSlideUp 0.2s ease-out;
+  animation: dropdownSlideIn 0.18s ease-out;
 }
 
-.user-dropdown__header {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--elx-border);
-}
-
-.user-dropdown__name {
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--elx-navy);
+/* Arrow pointer at top of menu */
+.user-dropdown__menu::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  right: 20px;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-left: 1px solid #e8eaf0;
+  border-top: 1px solid #e8eaf0;
+  transform: rotate(45deg);
 }
 
 .user-dropdown__email {
@@ -1385,10 +1428,22 @@ img {
   margin-top: 2px;
 }
 
+
 /* ── Auth Animations ── */
 @keyframes authFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes authSlideUp {
@@ -2527,28 +2582,30 @@ img {
 .user-dropdown__item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
   width: 100%;
-  padding: 10px 16px;
-  font-size: 0.9rem;
+  padding: 13px 20px;
+  font-size: 1rem;
   color: var(--elx-navy);
   background: none;
   border: none;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
   text-decoration: none;
+  letter-spacing: 0.01em;
 }
 
 .user-dropdown__item svg {
   flex-shrink: 0;
-  opacity: 0.6;
+  opacity: 0.55;
+  transition: opacity 0.15s;
 }
 
 .user-dropdown__item:hover {
-  background: var(--elx-gray-light);
-  opacity: 1;
+  background: #f4f6f8;
+  color: var(--elx-navy);
 }
 
 .user-dropdown__item:hover svg {
@@ -2557,8 +2614,8 @@ img {
 
 .user-dropdown__divider {
   height: 1px;
-  background: var(--elx-border);
-  margin: 4px 0;
+  background: #eaecf0;
+  margin: 2px 0;
 }
 
 .user-dropdown__item--danger {
@@ -2569,7 +2626,16 @@ img {
   background: #fef2f2;
 }
 
-/* =====================================================   MOBILE AUTH BUTTONS (Hamburger Menu)
+.user-dropdown__item--logout {
+  color: var(--elx-navy);
+}
+
+.user-dropdown__item--logout:hover {
+  background: #f4f6f8;
+}
+
+/* ============================================================
+   MOBILE AUTH BUTTONS (Hamburger Menu)
    ============================================================ */
 .mobile-nav__auth {
   display: flex;
@@ -2598,6 +2664,691 @@ img {
 .mobile-nav__auth-btn:hover {
   background: #0a3567;
 }
+
+/* ============================================================
+   MYELECTROLUX ACCOUNT PAGE
+   ============================================================ */
+.account-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+  font-family: inherit;
+}
+
+.account-heading {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #0b2545;
+  margin-bottom: 40px;
+}
+
+.account-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .account-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+/* Sidebar */
+.account-sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 16px;
+}
+
+.account-sidebar__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #0b2545;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.account-sidebar__greeting {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-sidebar__welcome {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.account-sidebar__name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0b2545;
+}
+
+.account-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #64748b;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.account-sidebar__item svg {
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.account-sidebar__item:hover {
+  background: #f8fafc;
+  color: #0b2545;
+}
+
+.account-sidebar__item:hover svg {
+  color: #0b2545;
+}
+
+.account-sidebar__item--active {
+  font-weight: 600;
+  color: #0b2545;
+}
+
+.account-sidebar__item--active svg {
+  color: #0b2545;
+}
+
+/* Cards */
+.account-content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.account-card {
+  border: 1px solid #dcdfe6;
+  border-radius: 2px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.account-card__header {
+  background: #e2e8ee;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.account-card__header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0b2545;
+  margin: 0;
+}
+
+.account-card__edit-btn {
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0b2545;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  letter-spacing: 0.5px;
+}
+
+.account-card__body {
+  padding: 24px 32px;
+}
+
+.account-field-grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  row-gap: 16px;
+  column-gap: 24px;
+  align-items: center;
+  font-size: 0.95rem;
+  margin-bottom: 24px;
+}
+
+.account-field__label {
+  color: #0b2545;
+  font-weight: 600;
+}
+
+.account-field__value {
+  color: #475569;
+}
+
+.account-card__desc {
+  font-size: 0.95rem;
+  color: #475569;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.account-card__link {
+  color: #0b2545;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.account-card__action {
+  margin-top: 16px;
+}
+
+.account-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 32px;
+  border: 1.5px solid #0b2545;
+  background: transparent;
+  color: #0b2545;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 0px;
+}
+
+.account-btn-outline:hover {
+  background: #0b2545;
+  color: #fff;
+}
+
+/* Switch & Checkbox */
+.account-toggle-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.account-switch {
+  width: 44px;
+  height: 24px;
+  background: #cbd5e1;
+  border-radius: 12px;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+  margin-top: 2px;
+}
+
+.account-switch--on {
+  background: #0b2545;
+}
+
+.account-switch__handle {
+  display: block;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+}
+
+.account-switch--on .account-switch__handle {
+  transform: translateX(20px);
+}
+
+.account-toggle-text {
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.account-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-left: 60px;
+}
+
+@media (max-width: 640px) {
+  .account-checkbox-group {
+    padding-left: 0;
+  }
+}
+
+.account-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #475569;
+  cursor: pointer;
+  user-select: none;
+}
+
+.account-checkbox input {
+  display: none;
+}
+
+.account-checkbox__checkmark {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #94a3b8;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.account-checkbox input:checked + .account-checkbox__checkmark {
+  background: #0b2545;
+  border-color: #0b2545;
+}
+
+.account-checkbox input:checked + .account-checkbox__checkmark::after {
+  content: "";
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
+
+/* Account Forms & Address List */
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 500px;
+}
+
+.account-form--password,
+.account-form--address {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.account-form__title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0b2545;
+  margin-bottom: 8px;
+}
+
+.account-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.account-form-row label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0b2545;
+}
+
+.account-form-row input[type="text"],
+.account-form-row input[type="password"],
+.account-form-row select {
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  color: #0b2545;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.account-form-row input:focus,
+.account-form-row select:focus {
+  border-color: #0b2545;
+}
+
+.account-form-row--checkbox {
+  flex-direction: row;
+  align-items: center;
+}
+
+.account-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.account-btn-solid {
+  padding: 10px 24px;
+  background: #0b2545;
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.account-btn-solid:hover {
+  background: #0a3567;
+}
+
+.account-btn-solid:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.account-card__link-btn {
+  background: none;
+  border: none;
+  color: #0b2545;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* Address List */
+.account-address-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.account-address-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background: #f8fafc;
+}
+
+.account-address-item__name {
+  font-size: 0.95rem;
+  color: #0b2545;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.account-address-item__text {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.account-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #0b2545;
+  background: #e2e8ee;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.account-address-item__delete {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.account-address-item__delete:hover {
+  text-decoration: underline;
+}
+
+/* ============================================================
+   ORDERS HISTORY PAGE
+   ============================================================ */
+.orders-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.orders-tabs {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+}
+
+.orders-tab {
+  background: none;
+  border: none;
+  padding: 12px 0 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.orders-tab:hover {
+  color: #0b2545;
+}
+
+.orders-tab--active {
+  color: #0b2545;
+}
+
+.orders-tab--active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #0b2545;
+}
+
+.orders-search {
+  position: relative;
+  margin-bottom: 32px;
+}
+
+.orders-search input {
+  width: 100%;
+  padding: 14px 48px 14px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 2px;
+  font-size: 0.95rem;
+  color: #0b2545;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.orders-search input::placeholder {
+  color: #94a3b8;
+}
+
+.orders-search input:focus {
+  border-color: #0b2545;
+}
+
+.orders-search__icon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.orders-loading,
+.orders-empty {
+  padding: 40px 0;
+  text-align: center;
+  color: #64748b;
+  font-size: 1rem;
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.order-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.order-card__header {
+  background: #f8fafc;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.order-card__code {
+  font-weight: 600;
+  color: #0b2545;
+  margin-right: 8px;
+}
+
+.order-card__date {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.orders-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.orders-badge--warning {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.orders-badge--info {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.orders-badge--success {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.orders-badge--danger {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.order-card__body {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.order-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.order-item__img {
+  width: 70px;
+  height: 70px;
+  background: #f8fafc;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 4px;
+}
+
+.order-item__info {
+  flex: 1;
+}
+
+.order-item__name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0b2545;
+  margin: 0 0 4px;
+}
+
+.order-item__sku,
+.order-item__qty {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.order-item__price {
+  font-weight: 600;
+  color: #0b2545;
+  font-size: 1rem;
+}
+
+.order-card__footer {
+  padding: 14px 20px;
+  background: #fff;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+.order-card__total-label {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.order-card__total-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0b2545;
+}
+
+
+
 
 .mobile-nav__auth-btn--outline {
   background: transparent;
