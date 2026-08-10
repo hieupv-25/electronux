@@ -71,7 +71,7 @@ export const categories = [
 /* ── Best-seller products ── */
 export const products = [
   {
-    variantId: "demo-variant-1",
+    variantId: "bdd9f65d-b6f8-4dac-9e90-e8df342452e0",
     img: `${STORAGE_URL}/items/product-1.jpg`,
     name: "Máy giặt cửa trước 10kg UltimateCare 300",
     sku: "EWF1023P5WC",
@@ -80,7 +80,7 @@ export const products = [
     badge: "GIẢM 23%",
   },
   {
-    variantId: "demo-variant-2",
+    variantId: "77d21379-3912-46e1-a807-70265907814b",
     img: `${STORAGE_URL}/items/product-2.jpg`,
     name: "Máy giặt cửa trước 9kg UltimateCare 500",
     sku: "EWF9023P5WC",
@@ -89,7 +89,7 @@ export const products = [
     badge: "GIẢM 21%",
   },
   {
-    variantId: "demo-variant-3",
+    variantId: "504826ae-ab11-4ccf-ac52-55a7e7115a6e",
     img: `${STORAGE_URL}/items/product-3.jpg`,
     name: "Máy giặt cửa trước 9kg UltimateCare 500",
     sku: "EWF9023P5SC",
@@ -98,7 +98,7 @@ export const products = [
     badge: "GIẢM 19%",
   },
   {
-    variantId: "demo-variant-4",
+    variantId: "d4a794c0-8505-4c2c-b374-a84f54e962e1",
     img: `${STORAGE_URL}/items/product-4.jpg`,
     name: "Máy sấy cửa trước 8kg UltimateCare 300",
     sku: "EDV804H3WC",
