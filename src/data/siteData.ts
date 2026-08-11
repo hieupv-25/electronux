@@ -228,17 +228,18 @@ type MegaMenuCategory = {
 type MegaMenuCircleItem = {
   label: string;
   icon: string;
+  href?: string;
 };
 
 type MegaMenuSection =
   | {
-      layout: "default";
-      categories: MegaMenuCategory[];
-    }
+    layout: "default";
+    categories: MegaMenuCategory[];
+  }
   | {
-      layout: "circular";
-      items: MegaMenuCircleItem[];
-    };
+    layout: "circular";
+    items: MegaMenuCircleItem[];
+  };
 
 export const megaMenu: Record<string, MegaMenuSection> = {
   "Sản phẩm": {
@@ -269,27 +270,29 @@ export const megaMenu: Record<string, MegaMenuSection> = {
   "Dịch vụ": {
     layout: "circular",
     items: [
-      { label: "Đặt lịch sửa chữa", icon: "calendar" },
-      { label: "Đăng ký sản phẩm", icon: "clipboard" },
-      { label: "Gia hạn bảo hành", icon: "shield" },
-      { label: "Tư vấn mua hàng", icon: "phoneCircle" },
+      { label: "Dịch vụ bảo dưỡng", icon: "tools", href: "/support/maintenance" },
+      { label: "Sửa chữa giá cố định", icon: "toolbox", href: "/support/fixed-price-repair" },
+      { label: "Gia hạn bảo hành", icon: "shield", href: "/support/warranty-extension" },
+      { label: "Đặt lịch sửa chữa", icon: "calendar", href: "/support/book-service" },
     ],
   },
   "Hỗ trợ": {
     layout: "circular",
     items: [
-      { label: "Trung tâm hỗ trợ", icon: "tools" },
-      { label: "Chính sách bảo hành", icon: "doc" },
-      { label: "Câu hỏi thường gặp", icon: "toolbox" },
-      { label: "Liên hệ", icon: "phoneCircle" },
+      { label: "Trung tâm hỗ trợ", icon: "tools", href: "/support" },
+      { label: "Chính sách bảo hành", icon: "doc", href: "/support/warranty-policy" },
+      { label: "Xử lý sự cố", icon: "toolbox", href: "/support/troubleshooting" },
+      { label: "Câu hỏi thường gặp", icon: "clipboard", href: "/support/online-order-faq" },
+      { label: "Đăng ký bảo hành", icon: "shield", href: "/support/warranty-registration" },
+      { label: "Liên hệ", icon: "phoneCircle", href: "/support" },
     ],
   },
   "Khuyến mại": {
     layout: "circular",
     items: [
-      { label: "Ưu đãi đang diễn ra", icon: "tag" },
-      { label: "Quà tặng", icon: "gift" },
-      { label: "Trả góp 0%", icon: "clipboard" },
+      { label: "Ưu đãi đang diễn ra", icon: "tag", href: "/khuyen-mai" },
+      { label: "Quà tặng", icon: "gift", href: "/khuyen-mai" },
+      { label: "Trả góp 0%", icon: "clipboard", href: "/khuyen-mai" },
     ],
   },
 };

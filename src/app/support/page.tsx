@@ -17,14 +17,61 @@ const deviceCategories = [
     { icon: "/icon-hood.svg", label: "Máy hút mùi" },
 ];
 
+/* ─── Quick‑link SVG icons ─── */
+const QL_ICONS = {
+    troubleshooting: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
+        </svg>
+    ),
+    onlineOrder: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <path d="M16 10a4 4 0 01-8 0" />
+        </svg>
+    ),
+    warrantyReg: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="12" y1="18" x2="12" y2="12" />
+            <line x1="9" y1="15" x2="15" y2="15" />
+        </svg>
+    ),
+    warrantyPolicy: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+    ),
+    bookService: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+            <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" strokeWidth="2" />
+        </svg>
+    ),
+    recycling: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M7.5 7.5L12 2l4.5 5.5" />
+            <path d="M16.5 7.5L21 16h-5" />
+            <path d="M16 16l-4 6-4-6" />
+            <path d="M8 16H3l4.5-8.5" />
+            <path d="M12 2v6M21 16h-5M3 16h5" />
+        </svg>
+    ),
+};
+
 /* ─── Quick links ─── */
 const quickLinks = [
-    { icon: "❓", label: "Xử lý sự cố và câu hỏi thường gặp", href: "/support/troubleshooting" },
-    { icon: "🛒", label: "Câu hỏi thường gặp về đơn hàng trực tuyến", href: "/support/online-order-faq" },
-    { icon: "📋", label: "Đăng kí bảo hành điện tử", href: "/support/warranty-registration" },
-    { icon: "🛡️", label: "Điều khoản và điều kiện bảo hành sản phẩm", href: "/support/warranty-policy" },
-    { icon: "🔧", label: "Đặt hẹn dịch vụ", href: "/support/book-service" },
-    { icon: "♻️", label: "Điểm tiếp nhận sản phẩm thải bỏ", href: "/support/recycling-points" },
+    { icon: QL_ICONS.troubleshooting, label: "Xử lý sự cố và câu hỏi thường gặp", href: "/support/troubleshooting" },
+    { icon: QL_ICONS.onlineOrder, label: "Câu hỏi thường gặp về đơn hàng trực tuyến", href: "/support/online-order-faq" },
+    { icon: QL_ICONS.warrantyReg, label: "Đăng kí bảo hành điện tử", href: "/support/warranty-registration" },
+    { icon: QL_ICONS.warrantyPolicy, label: "Điều khoản và điều kiện bảo hành sản phẩm", href: "/support/warranty-policy" },
+    { icon: QL_ICONS.bookService, label: "Đặt hẹn dịch vụ", href: "/support/book-service" },
+    { icon: QL_ICONS.recycling, label: "Điểm tiếp nhận sản phẩm thải bỏ", href: "/support/recycling-points" },
 ];
 
 /* ─── FAQ data (answer as JSX node) ─── */

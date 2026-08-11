@@ -41,15 +41,15 @@ type HeaderProps = {
 };
 
 function getNavHref(item: string) {
-  if (item === "Hỗ trợ") {
-    return "/support";
-  }
+  const routes: Record<string, string> = {
+    "Sản phẩm": "/thiet-bi/may-giat",
+    "Dịch vụ": "/support",
+    "Hỗ trợ": "/support",
+    "Khuyến mại": "/khuyen-mai",
+    "Blog": "/blog",
+  };
 
-  if (item === "Blog") {
-    return "/blog";
-  }
-
-  return "#";
+  return routes[item] ?? "#";
 }
 
 /* ============================================================
@@ -540,13 +540,15 @@ export default function Header({ navItems }: HeaderProps) {
                       "nowrap",
                   }}
                 >
-                  <a
+                  <Link
                     href={getNavHref(item)}
-                    className={`nav-link${
-                      activeNav === item
-                        ? " nav-link--active"
-                        : ""
-                    }`}
+                    className={`nav-link${activeNav === item
+                      ? " nav-link--active"
+                      : ""
+                      }`}
+                    onClick={() =>
+                      setActiveNav(null)
+                    }
                     style={{
                       padding:
                         "24px 25px",
@@ -568,7 +570,7 @@ export default function Header({ navItems }: HeaderProps) {
                     {activeNav === item && (
                       <span className="nav-link__underline" />
                     )}
-                  </a>
+                  </Link>
                 </div>
               ))}
             </nav>
@@ -893,14 +895,13 @@ export default function Header({ navItems }: HeaderProps) {
         ==================================================== */}
 
         <div
-          className={`mobile-nav${
-            mobileMenu
-              ? " mobile-nav--open"
-              : ""
-          }`}
+          className={`mobile-nav${mobileMenu
+            ? " mobile-nav--open"
+            : ""
+            }`}
         >
           {navItems.map((item) => (
-            <a
+            <Link
               key={item}
               href={getNavHref(item)}
               onClick={() =>
@@ -908,7 +909,7 @@ export default function Header({ navItems }: HeaderProps) {
               }
             >
               {item}
-            </a>
+            </Link>
           ))}
 
           {!session?.user && (
@@ -1023,90 +1024,102 @@ export default function Header({ navItems }: HeaderProps) {
 
               {activeSection.layout ===
                 "default" && (
-                <div className="mega-menu__inner">
-                  {activeSection.categories.map(
-                    (cat) => (
-                      <div
-                        key={cat.title}
-                        className="mega-menu__col"
-                      >
-                        <div className="mega-menu__col-header">
-                          <span className="mega-menu__col-icon">
-                            {MENU_ICONS[
-                              cat.icon
-                            ] ?? null}
-                          </span>
+                  <div className="mega-menu__inner">
+                    {activeSection.categories.map(
+                      (cat) => (
+                        <div
+                          key={cat.title}
+                          className="mega-menu__col"
+                        >
+                          <div className="mega-menu__col-header">
+                            <span className="mega-menu__col-icon">
+                              {MENU_ICONS[
+                                cat.icon
+                              ] ?? null}
+                            </span>
 
-                          <span className="mega-menu__col-title">
-                            {cat.title}
-                          </span>
-                        </div>
+                            <span className="mega-menu__col-title">
+                              {cat.title}
+                            </span>
+                          </div>
 
-                        <ul className="mega-menu__list">
-                          {cat.items.map(
-                            (sub) => {
-                              const href =
-                                categoryRoutes[
+                          <ul className="mega-menu__list">
+                            {cat.items.map(
+                              (sub) => {
+                                const href =
+                                  categoryRoutes[
                                   sub
-                                ] ?? "#";
+                                  ] ?? "#";
 
-                              return (
-                                <li
-                                  key={
-                                    sub
-                                  }
-                                >
-                                  <Link
-                                    href={
-                                      href
-                                    }
-                                    className="mega-menu__item"
-                                  >
-                                    {
+                                return (
+                                  <li
+                                    key={
                                       sub
                                     }
-                                  </Link>
-                                </li>
-                              );
-                            }
-                          )}
-                        </ul>
-                      </div>
-                    )
-                  )}
-                </div>
-              )}
+                                  >
+                                    <Link
+                                      href={
+                                        href
+                                      }
+                                      className="mega-menu__item"
+                                      onClick={() =>
+                                        setActiveNav(
+                                          null
+                                        )
+                                      }
+                                    >
+                                      {
+                                        sub
+                                      }
+                                    </Link>
+                                  </li>
+                                );
+                              }
+                            )}
+                          </ul>
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
 
               {/* Circular layout */}
 
               {activeSection.layout ===
                 "circular" && (
-                <div className="mega-menu__circular">
-                  {activeSection.items.map(
-                    (item) => (
-                      <a
-                        key={
-                          item.label
-                        }
-                        href="#"
-                        className="mega-menu__circle-item"
-                      >
-                        <span className="mega-menu__circle-icon">
-                          {MENU_ICONS[
-                            item.icon
-                          ] ?? null}
-                        </span>
-
-                        <span className="mega-menu__circle-label">
-                          {
+                  <div className="mega-menu__circular">
+                    {activeSection.items.map(
+                      (item) => (
+                        <Link
+                          key={
                             item.label
                           }
-                        </span>
-                      </a>
-                    )
-                  )}
-                </div>
-              )}
+                          href={
+                            item.href ?? "#"
+                          }
+                          className="mega-menu__circle-item"
+                          onClick={() =>
+                            setActiveNav(
+                              null
+                            )
+                          }
+                        >
+                          <span className="mega-menu__circle-icon">
+                            {MENU_ICONS[
+                              item.icon
+                            ] ?? null}
+                          </span>
+
+                          <span className="mega-menu__circle-label">
+                            {
+                              item.label
+                            }
+                          </span>
+                        </Link>
+                      )
+                    )}
+                  </div>
+                )}
             </div>
           )}
       </header>
@@ -1151,11 +1164,10 @@ export default function Header({ navItems }: HeaderProps) {
       ====================================================== */}
 
       <AuthModal
-        key={`${authView}-${
-          authOpen
-            ? "open"
-            : "closed"
-        }`}
+        key={`${authView}-${authOpen
+          ? "open"
+          : "closed"
+          }`}
         isOpen={authOpen}
         onClose={() =>
           setAuthOpen(false)
