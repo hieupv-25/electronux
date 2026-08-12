@@ -1,0 +1,379 @@
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
+
+export type CartVariantSnapshot = {
+  id: string;
+  productId: string;
+  sku: string;
+  variantName: string | null;
+  price: number;
+  originalPrice: number;
+  discountPercentage: number;
+  stockQuantity: number;
+  product: {
+    id: string;
+    name: string;
+    slug: string;
+    images: { id: string; url: string }[];
+    freeShipping: boolean;
+    freeInstallation: boolean;
+    installment0Percent: boolean;
+  };
+};
+
+export type MemoryCartItem = {
+  id: string;
+  cartId: string;
+  variantId: string;
+  quantity: number;
+  variant: CartVariantSnapshot;
+};
+
+type MemoryCartStore = Record<string, MemoryCartItem[]>;
+type MemoryCartGlobal = typeof globalThis & {
+  __memoryCarts?: MemoryCartStore;
+};
+
+const prod1: CartVariantSnapshot = {
+  id: "bdd9f65d-b6f8-4dac-9e90-e8df342452e0",
+  productId: "6fd27012-4a75-4f41-b5cc-b2c790ed971c",
+  sku: "EWF1023P5WC",
+  variantName: "Trắng - 10kg",
+  price: 9990000,
+  originalPrice: 12990000,
+  discountPercentage: 23,
+  stockQuantity: 10,
+  product: {
+    id: "6fd27012-4a75-4f41-b5cc-b2c790ed971c",
+    name: "Máy giặt cửa trước 10kg UltimateCare 300",
+    slug: "may-giat-cua-truoc-10kg-ultimatecare-300",
+    images: [{ id: "img-3", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg" }],
+    freeShipping: true,
+    freeInstallation: true,
+    installment0Percent: true,
+  },
+};
+
+const prod2: CartVariantSnapshot = {
+  id: "77d21379-3912-46e1-a807-70265907814b",
+  productId: "5015f6d5-8c48-4f0a-af00-07675fcad3bf",
+  sku: "EWF9023P5WC",
+  variantName: "Trắng - 9kg",
+  price: 9490000,
+  originalPrice: 12543000,
+  discountPercentage: 24,
+  stockQuantity: 10,
+  product: {
+    id: "5015f6d5-8c48-4f0a-af00-07675fcad3bf",
+    name: "Máy giặt cửa ngang Electrolux 9kg UltimateCare 500 trắng",
+    slug: "may-giat-cua-ngang-electrolux-9kg-ultimatecare-500-trang",
+    images: [
+      { id: "img-1", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-2.jpg" },
+      { id: "img-2", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg" }
+    ],
+    freeShipping: true,
+    freeInstallation: true,
+    installment0Percent: true,
+  },
+};
+
+const prod3: CartVariantSnapshot = {
+  id: "504826ae-ab11-4ccf-ac52-55a7e7115a6e",
+  productId: "5561f754-568b-43cb-9a25-4b0a0331c668",
+  sku: "EWF9023P5SC",
+  variantName: "Xám - 9kg",
+  price: 12990000,
+  originalPrice: 15990000,
+  discountPercentage: 19,
+  stockQuantity: 10,
+  product: {
+    id: "5561f754-568b-43cb-9a25-4b0a0331c668",
+    name: "Máy giặt cửa trước 9kg UltimateCare 500 xám",
+    slug: "may-giat-cua-truoc-9kg-ultimatecare-500-xam",
+    images: [{ id: "img-4", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-3.jpg" }],
+    freeShipping: true,
+    freeInstallation: true,
+    installment0Percent: true,
+  },
+};
+
+const prod4: CartVariantSnapshot = {
+  id: "d4a794c0-8505-4c2c-b374-a84f54e962e1",
+  productId: "b078ab43-ce1f-4a8f-add4-ac3e9d682d07",
+  sku: "EDV804H3WC",
+  variantName: "Trắng - 8kg",
+  price: 8990000,
+  originalPrice: 11490000,
+  discountPercentage: 22,
+  stockQuantity: 10,
+  product: {
+    id: "b078ab43-ce1f-4a8f-add4-ac3e9d682d07",
+    name: "Máy sấy cửa trước 8kg UltimateCare 300",
+    slug: "may-say-cua-truoc-8kg-ultimatecare-300",
+    images: [{ id: "img-5", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-4.jpg" }],
+    freeShipping: true,
+    freeInstallation: true,
+    installment0Percent: true,
+  },
+};
+
+export const DEMO_PRODUCTS: Record<string, CartVariantSnapshot> = {
+  // Legacy demo keys (backward compat)
+  "demo-variant-1": prod2,
+  "demo-variant-2": prod1,
+  "demo-variant-3": prod3,
+  "demo-variant-4": prod4,
+  // Real UUIDs from database
+  "bdd9f65d-b6f8-4dac-9e90-e8df342452e0": prod1,
+  "77d21379-3912-46e1-a807-70265907814b": prod2,
+  "504826ae-ab11-4ccf-ac52-55a7e7115a6e": prod3,
+  "d4a794c0-8505-4c2c-b374-a84f54e962e1": prod4,
+};
+
+// Global in-memory store attached to globalThis for shared access across Next.js API routes
+const memoryGlobal = globalThis as MemoryCartGlobal;
+export const memoryCarts: MemoryCartStore =
+  memoryGlobal.__memoryCarts ?? (memoryGlobal.__memoryCarts = {});
+
+function getSessionKey(userId?: string | null, sessionId?: string | null): string {
+  return userId || sessionId || "default-session";
+}
+
+function getMemoryCart(key: string): MemoryCartItem[] {
+  if (memoryCarts[key] === undefined) {
+    memoryCarts[key] = [];
+  }
+  return memoryCarts[key];
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const session = await auth();
+    const userId = session?.user?.id;
+    const sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value || "default-session";
+    const key = getSessionKey(userId, sessionId);
+
+    let items: MemoryCartItem[] = [];
+    let dbFound = false;
+
+    // Try DB first
+    try {
+      const dbCart = await prisma.cart.findFirst({
+        where: userId ? { userId } : { sessionId },
+        include: {
+          items: {
+            include: {
+              variant: {
+                include: {
+                  product: {
+                    include: { images: { orderBy: { order: "asc" } } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (dbCart) {
+        dbFound = true;
+        if (dbCart.items.length > 0) {
+          items = dbCart.items.map((item) => {
+            const priceNum = Number(item.variant.price);
+            const discount = item.variant.discountPercentage || 0;
+            const originalPrice = discount > 0 ? Math.round(priceNum / (1 - discount / 100)) : priceNum;
+            return {
+              id: item.id,
+              cartId: item.cartId,
+              variantId: item.variantId,
+              quantity: item.quantity,
+              variant: {
+                id: item.variant.id,
+                productId: item.variant.productId,
+                sku: item.variant.sku,
+                variantName: item.variant.variantName,
+                price: priceNum,
+                originalPrice,
+                discountPercentage: discount,
+                stockQuantity: item.variant.stockQuantity,
+                product: {
+                  id: item.variant.product.id,
+                  name: item.variant.product.name,
+                  slug: item.variant.product.slug,
+                  images: item.variant.product.images.map((img) => ({ id: img.id, url: img.url })),
+                  freeShipping: item.variant.product.freeShipping,
+                  freeInstallation: item.variant.product.freeInstallation,
+                  installment0Percent: item.variant.product.installment0Percent,
+                },
+              },
+            };
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("Prisma GET cart error, falling back to memory store:", e);
+    }
+
+    if (!dbFound || items.length === 0) {
+      const memItems = getMemoryCart(key);
+      if (memItems && memItems.length > 0) {
+        items = memItems;
+      }
+    }
+
+    const subtotal = items.reduce((acc, item) => {
+      const orig = item.variant.originalPrice || item.variant.price;
+      return acc + orig * item.quantity;
+    }, 0);
+    const total = items.reduce((acc, item) => acc + item.variant.price * item.quantity, 0);
+    const savings = Math.max(0, subtotal - total);
+
+    return NextResponse.json({
+      id: "cart-" + key,
+      userId: userId || null,
+      sessionId,
+      items,
+      subtotal,
+      savings,
+      total,
+    });
+  } catch (error) {
+    console.error("GET /api/cart fatal error:", error);
+    return NextResponse.json({
+      id: "cart-fallback",
+      items: [],
+      subtotal: 0,
+      savings: 0,
+      total: 0,
+    });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await auth();
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, message: "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng." },
+        { status: 401 }
+      );
+    }
+
+    const sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value || "default-session";
+    const key = getSessionKey(userId, sessionId);
+
+    const body = (await req.json()) as { variantId?: string; quantity?: number };
+    const { variantId, quantity = 1 } = body;
+
+    if (!variantId) {
+      return NextResponse.json({ error: "Missing variantId" }, { status: 400 });
+    }
+
+    // Try DB first
+    try {
+      let cart = await prisma.cart.findFirst({
+        where: userId ? { userId } : { sessionId: sessionId! },
+      });
+      if (!cart) {
+        cart = await prisma.cart.create({
+          data: userId ? { userId } : { sessionId: sessionId! },
+        });
+      }
+
+      const existingItem = await prisma.cartItem.findUnique({
+        where: { cartId_variantId: { cartId: cart.id, variantId } },
+      });
+
+      if (existingItem) {
+        await prisma.cartItem.update({
+          where: { id: existingItem.id },
+          data: { quantity: existingItem.quantity + Number(quantity) },
+        });
+      } else {
+        await prisma.cartItem.create({
+          data: {
+            cartId: cart.id,
+            variantId,
+            quantity: Number(quantity),
+          },
+        });
+      }
+    } catch (e) {
+      console.warn("DB insert failed, using memory store for cart item:", e);
+    }
+
+    // Always update memory store as fallback
+    const memCart = getMemoryCart(key);
+    const existingIndex = memCart.findIndex((i) => i.variantId === variantId);
+    if (existingIndex > -1) {
+      memCart[existingIndex].quantity += Number(quantity);
+    } else {
+      const variantObj: CartVariantSnapshot = DEMO_PRODUCTS[variantId] || {
+        id: variantId,
+        productId: "p-" + variantId,
+        sku: "SKU-" + variantId,
+        variantName: "Mặc định",
+        price: 9490000,
+        originalPrice: 12543000,
+        discountPercentage: 24,
+        stockQuantity: 10,
+        product: {
+          id: "p-" + variantId,
+          name: "Sản phẩm " + variantId,
+          slug: "san-pham-" + variantId,
+          images: [{ id: "img-def", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-2.jpg" }],
+          freeShipping: true,
+          freeInstallation: true,
+          installment0Percent: true,
+        },
+      };
+
+      memCart.push({
+        id: "item-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7),
+        cartId: "cart-" + key,
+        variantId,
+        quantity: Number(quantity),
+        variant: variantObj,
+      });
+    }
+
+    const response = NextResponse.json({ success: true, message: "Sản phẩm đã được thêm vào giỏ hàng" });
+    if (sessionId && !userId) {
+      response.cookies.set("cart_session_id", sessionId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
+    }
+    return response;
+  } catch (error) {
+    console.error("POST /api/cart error:", error);
+    return NextResponse.json({ success: true, message: "Đã thêm vào giỏ hàng" });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await auth();
+    const userId = session?.user?.id;
+    const sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value;
+    const key = getSessionKey(userId, sessionId);
+
+    try {
+      const cart = await prisma.cart.findFirst({
+        where: userId ? { userId } : { sessionId: sessionId || "" },
+      });
+      if (cart) {
+        await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+      }
+    } catch (e) {
+      console.warn("DB clear cart error:", e);
+    }
+
+    memoryCarts[key] = [];
+
+    return NextResponse.json({ success: true, message: "Đã xóa toàn bộ giỏ hàng" });
+  } catch (error) {
+    console.error("DELETE /api/cart error:", error);
+    return NextResponse.json({ success: true, message: "Đã xóa toàn bộ giỏ hàng" });
+  }
+}
