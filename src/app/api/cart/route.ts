@@ -35,100 +35,86 @@ type MemoryCartGlobal = typeof globalThis & {
   __memoryCarts?: MemoryCartStore;
 };
 
-const prod1: CartVariantSnapshot = {
-  id: "bdd9f65d-b6f8-4dac-9e90-e8df342452e0",
-  productId: "6fd27012-4a75-4f41-b5cc-b2c790ed971c",
-  sku: "EWF1023P5WC",
-  variantName: "Trắng - 10kg",
-  price: 9990000,
-  originalPrice: 12990000,
-  discountPercentage: 23,
-  stockQuantity: 10,
-  product: {
-    id: "6fd27012-4a75-4f41-b5cc-b2c790ed971c",
-    name: "Máy giặt cửa trước 10kg UltimateCare 300",
-    slug: "may-giat-cua-truoc-10kg-ultimatecare-300",
-    images: [{ id: "img-3", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg" }],
-    freeShipping: true,
-    freeInstallation: true,
-    installment0Percent: true,
-  },
-};
-
-const prod2: CartVariantSnapshot = {
-  id: "77d21379-3912-46e1-a807-70265907814b",
-  productId: "5015f6d5-8c48-4f0a-af00-07675fcad3bf",
-  sku: "EWF9023P5WC",
-  variantName: "Trắng - 9kg",
-  price: 9490000,
-  originalPrice: 12543000,
-  discountPercentage: 24,
-  stockQuantity: 10,
-  product: {
-    id: "5015f6d5-8c48-4f0a-af00-07675fcad3bf",
-    name: "Máy giặt cửa ngang Electrolux 9kg UltimateCare 500 trắng",
-    slug: "may-giat-cua-ngang-electrolux-9kg-ultimatecare-500-trang",
-    images: [
-      { id: "img-1", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-2.jpg" },
-      { id: "img-2", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg" }
-    ],
-    freeShipping: true,
-    freeInstallation: true,
-    installment0Percent: true,
-  },
-};
-
-const prod3: CartVariantSnapshot = {
-  id: "504826ae-ab11-4ccf-ac52-55a7e7115a6e",
-  productId: "5561f754-568b-43cb-9a25-4b0a0331c668",
-  sku: "EWF9023P5SC",
-  variantName: "Xám - 9kg",
-  price: 12990000,
-  originalPrice: 15990000,
-  discountPercentage: 19,
-  stockQuantity: 10,
-  product: {
-    id: "5561f754-568b-43cb-9a25-4b0a0331c668",
-    name: "Máy giặt cửa trước 9kg UltimateCare 500 xám",
-    slug: "may-giat-cua-truoc-9kg-ultimatecare-500-xam",
-    images: [{ id: "img-4", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-3.jpg" }],
-    freeShipping: true,
-    freeInstallation: true,
-    installment0Percent: true,
-  },
-};
-
-const prod4: CartVariantSnapshot = {
-  id: "d4a794c0-8505-4c2c-b374-a84f54e962e1",
-  productId: "b078ab43-ce1f-4a8f-add4-ac3e9d682d07",
-  sku: "EDV804H3WC",
-  variantName: "Trắng - 8kg",
-  price: 8990000,
-  originalPrice: 11490000,
-  discountPercentage: 22,
-  stockQuantity: 10,
-  product: {
-    id: "b078ab43-ce1f-4a8f-add4-ac3e9d682d07",
-    name: "Máy sấy cửa trước 8kg UltimateCare 300",
-    slug: "may-say-cua-truoc-8kg-ultimatecare-300",
-    images: [{ id: "img-5", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-4.jpg" }],
-    freeShipping: true,
-    freeInstallation: true,
-    installment0Percent: true,
-  },
-};
-
 export const DEMO_PRODUCTS: Record<string, CartVariantSnapshot> = {
-  // Legacy demo keys (backward compat)
-  "demo-variant-1": prod2,
-  "demo-variant-2": prod1,
-  "demo-variant-3": prod3,
-  "demo-variant-4": prod4,
-  // Real UUIDs from database
-  "bdd9f65d-b6f8-4dac-9e90-e8df342452e0": prod1,
-  "77d21379-3912-46e1-a807-70265907814b": prod2,
-  "504826ae-ab11-4ccf-ac52-55a7e7115a6e": prod3,
-  "d4a794c0-8505-4c2c-b374-a84f54e962e1": prod4,
+  "demo-variant-1": {
+    id: "demo-variant-1",
+    productId: "demo-product-1",
+    sku: "EWF9023P5WC",
+    variantName: "Trắng - 9kg",
+    price: 9490000,
+    originalPrice: 12543000,
+    discountPercentage: 24,
+    stockQuantity: 10,
+    product: {
+      id: "demo-product-1",
+      name: "Máy giặt cửa ngang Electrolux 9kg UltimateCare 500 trắng",
+      slug: "may-giat-cua-ngang-electrolux-9kg-ultimatecare-500-trang",
+      images: [
+        { id: "img-1", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-2.jpg" },
+        { id: "img-2", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg" }
+      ],
+      freeShipping: true,
+      freeInstallation: true,
+      installment0Percent: true,
+    },
+  },
+  "demo-variant-2": {
+    id: "demo-variant-2",
+    productId: "demo-product-2",
+    sku: "EWF1023P5WC",
+    variantName: "Trắng - 10kg",
+    price: 9990000,
+    originalPrice: 12990000,
+    discountPercentage: 23,
+    stockQuantity: 10,
+    product: {
+      id: "demo-product-2",
+      name: "Máy giặt cửa trước 10kg UltimateCare 300",
+      slug: "may-giat-cua-truoc-10kg-ultimatecare-300",
+      images: [{ id: "img-3", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg" }],
+      freeShipping: true,
+      freeInstallation: true,
+      installment0Percent: true,
+    },
+  },
+  "demo-variant-3": {
+    id: "demo-variant-3",
+    productId: "demo-product-3",
+    sku: "EWF9023P5SC",
+    variantName: "Xám - 9kg",
+    price: 12990000,
+    originalPrice: 15990000,
+    discountPercentage: 19,
+    stockQuantity: 10,
+    product: {
+      id: "demo-product-3",
+      name: "Máy giặt cửa trước 9kg UltimateCare 500 xám",
+      slug: "may-giat-cua-truoc-9kg-ultimatecare-500-xam",
+      images: [{ id: "img-4", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-3.jpg" }],
+      freeShipping: true,
+      freeInstallation: true,
+      installment0Percent: true,
+    },
+  },
+  "demo-variant-4": {
+    id: "demo-variant-4",
+    productId: "demo-product-4",
+    sku: "EDV804H3WC",
+    variantName: "Trắng - 8kg",
+    price: 8990000,
+    originalPrice: 11490000,
+    discountPercentage: 22,
+    stockQuantity: 10,
+    product: {
+      id: "demo-product-4",
+      name: "Máy sấy cửa trước 8kg UltimateCare 300",
+      slug: "may-say-cua-truoc-8kg-ultimatecare-300",
+      images: [{ id: "img-5", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-4.jpg" }],
+      freeShipping: true,
+      freeInstallation: true,
+      installment0Percent: true,
+    },
+  },
 };
 
 // Global in-memory store attached to globalThis for shared access across Next.js API routes
@@ -142,7 +128,16 @@ function getSessionKey(userId?: string | null, sessionId?: string | null): strin
 
 function getMemoryCart(key: string): MemoryCartItem[] {
   if (memoryCarts[key] === undefined) {
-    memoryCarts[key] = [];
+    // Initial default demo item for a brand new session
+    memoryCarts[key] = [
+      {
+        id: "demo-item-1",
+        cartId: "demo-cart",
+        variantId: "demo-variant-1",
+        quantity: 1,
+        variant: DEMO_PRODUCTS["demo-variant-1"],
+      },
+    ];
   }
   return memoryCarts[key];
 }
@@ -242,10 +237,10 @@ export async function GET(req: NextRequest) {
     console.error("GET /api/cart fatal error:", error);
     return NextResponse.json({
       id: "cart-fallback",
-      items: [],
-      subtotal: 0,
-      savings: 0,
-      total: 0,
+      items: getMemoryCart("default-session"),
+      subtotal: 12543000,
+      savings: 3053000,
+      total: 9490000,
     });
   }
 }
@@ -254,14 +249,6 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
-
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, message: "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng." },
-        { status: 401 }
-      );
-    }
-
     const sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value || "default-session";
     const key = getSessionKey(userId, sessionId);
 

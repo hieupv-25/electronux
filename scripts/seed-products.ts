@@ -41,7 +41,6 @@ async function main() {
           installment0Percent: prod.installment0Percent || false,
         },
         create: {
-          id: prod.id,
           name: prod.name,
           slug: prod.slug,
           categoryId: categoryRecord.id,

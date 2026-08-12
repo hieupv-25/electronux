@@ -40,33 +40,38 @@ export async function GET() {
     return NextResponse.json({ items: [] }, { status: 200 });
   }
 
-  const wishlist = await prisma.wishlist.upsert({
-    where: { userId: session.user.id },
-    update: {},
-    create: { userId: session.user.id },
-    include: {
-      items: {
-        orderBy: { addedAt: "desc" },
-        include: {
-          product: {
-            include: {
-              category: true,
-              images: { orderBy: { order: "asc" } },
-              variants: {
-                where: { isActive: true },
-                orderBy: { price: "asc" },
+  try {
+    const wishlist = await prisma.wishlist.upsert({
+      where: { userId: session.user.id },
+      update: {},
+      create: { userId: session.user.id },
+      include: {
+        items: {
+          orderBy: { addedAt: "desc" },
+          include: {
+            product: {
+              include: {
+                category: true,
+                images: { orderBy: { order: "asc" } },
+                variants: {
+                  where: { isActive: true },
+                  orderBy: { price: "asc" },
+                },
               },
             },
           },
         },
       },
-    },
-  });
+    });
 
-  return NextResponse.json({
-    items: wishlist.items.map((item) => toWishlistItem(item)),
-    count: wishlist.items.length,
-  });
+    return NextResponse.json({
+      items: wishlist.items.map((item) => toWishlistItem(item)),
+      count: wishlist.items.length,
+    });
+  } catch (error) {
+    console.error("Fetch wishlist error:", error);
+    return NextResponse.json({ items: [], count: 0 }, { status: 200 });
+  }
 }
 
 export async function POST(req: NextRequest) {

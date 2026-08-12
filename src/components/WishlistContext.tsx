@@ -79,12 +79,13 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await fetch("/api/wishlist");
       if (!res.ok) {
-        throw new Error("Wishlist request failed");
+        setItems([]);
+        return;
       }
       const data = await parseJsonResponse(res);
       setItems(Array.isArray(data.items) ? data.items : []);
     } catch (error) {
-      console.error("Failed to fetch wishlist", error);
+      console.warn("Could not load wishlist", error);
       setItems([]);
     } finally {
       setLoading(false);

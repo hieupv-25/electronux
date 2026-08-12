@@ -6,7 +6,6 @@ import {
   useCallback,
   useEffect,
 } from "react";
-import { useSession } from "next-auth/react";
 import { useToast } from "./Toast";
 
 /* ── Types ── */
@@ -71,7 +70,6 @@ export function useCart() {
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const { data: session } = useSession();
   const { showToast } = useToast();
   const [cart, setCart] = useState<CartData | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -105,15 +103,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addToCart = useCallback(
     async (variantId: string, quantity = 1) => {
-      if (!session?.user?.id) {
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent("open-auth-modal", { detail: { view: "login" } })
-          );
-        }
-        return;
-      }
-
       setAdding(variantId);
       setIsOpen(true);
       try {
@@ -127,7 +116,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           showToast(data.message || "Đã thêm vào giỏ hàng ✓", "success");
           await refreshCart();
         } else {
-          showToast(data.message || "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.", "info");
+          showToast("Không thể thêm sản phẩm", "error");
         }
       } catch {
         showToast("Lỗi kết nối", "error");
@@ -135,7 +124,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setAdding(null);
       }
     },
-    [session?.user?.id, showToast, refreshCart]
+    [showToast, refreshCart]
   );
 
   const updateQty = useCallback(

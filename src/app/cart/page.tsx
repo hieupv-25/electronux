@@ -59,7 +59,7 @@ export default function CartPage() {
 
           {/* Logo */}
           <Link href="/" style={{ display: "flex", alignItems: "center" }}>
-            <Image src="/electrolux_logo.svg" alt="Electrolux" width={140} height={34} style={{ width: "auto", height: "auto" }} priority />
+            <Image src="/electrolux_logo.svg" alt="Electrolux" width={140} height={34} style={{ height: "auto" }} priority />
           </Link>
 
           {/* Location picker */}

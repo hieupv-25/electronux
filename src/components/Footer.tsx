@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { categoryRoutes } from "@/data/categories";
+import { footerSections as defaultFooterSections } from "@/data/siteData";
 
 type FooterSection = {
   title: string;
@@ -8,10 +9,13 @@ type FooterSection = {
 };
 
 type FooterProps = {
-  footerSections: FooterSection[];
+  footerSections?: FooterSection[];
+  sections?: FooterSection[];
 };
 
-export default function Footer({ footerSections }: FooterProps) {
+export default function Footer({ footerSections, sections }: FooterProps) {
+  const activeSections = footerSections ?? sections ?? defaultFooterSections ?? [];
+
   return (
     <footer className="footer">
       <div style={{ maxWidth: 1180, margin: "0 auto", padding: "50px 15px 30px" }}>
@@ -58,7 +62,7 @@ export default function Footer({ footerSections }: FooterProps) {
             </div>
           </div>
           {/* Footer Sections */}
-          {footerSections.map((sec) => (
+          {activeSections.map((sec) => (
             <div key={sec.title}>
               <h4 className="footer__heading">{sec.title}</h4>
               {sec.links.map((link) => {
