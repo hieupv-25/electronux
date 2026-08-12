@@ -18,6 +18,7 @@ import { categoryRoutes } from "@/data/categories";
 import AuthModal from "./AuthModal";
 import { useToast } from "./Toast";
 import { useCart } from "./CartContext";
+import { useWishlist } from "./WishlistContext";
 
 import {
   IconShirt,
@@ -84,6 +85,7 @@ export default function Header({ navItems }: HeaderProps) {
   const router = useRouter();
   const { showToast } = useToast();
   const { count, openCart } = useCart();
+  const { count: wishlistCount } = useWishlist();
 
   /* ============================================================
      STATE
@@ -266,25 +268,21 @@ export default function Header({ navItems }: HeaderProps) {
     setAuthOpen(true);
   };
 
+  const handleWishlistClick = () => {
+    if (!session?.user?.id) {
+      openAuth("login");
+      showToast("Vui lòng đăng nhập để xem danh sách yêu thích.", "info");
+      return;
+    }
+
+    router.push("/account/wishlist");
+  };
+
   /* ============================================================
      USER INITIALS
   ============================================================ */
 
-  const getUserInitials = () => {
-    if (!session?.user) {
-      return "";
-    }
-
-    const first =
-      session.user.firstName?.[0] || "";
-
-    const last =
-      session.user.lastName?.[0] || "";
-
-    return (
-      first + last
-    ).toUpperCase();
-  };
+  
 
   /* ============================================================
      MEGA MENU
@@ -443,7 +441,7 @@ export default function Header({ navItems }: HeaderProps) {
             </button>
 
             <Link href="/" style={{ display: "flex", alignItems: "center" }}>
-              <Image src="/electrolux_logo.svg" alt="Electrolux Vietnam" width={156} height={38} style={{ height: "auto" }} priority />
+              <Image src="/electrolux_logo.svg" alt="Electrolux Vietnam" width={156} height={38} style={{ width: "auto", height: "auto" }} priority />
             </Link>
           </div>
 
@@ -655,10 +653,12 @@ export default function Header({ navItems }: HeaderProps) {
 
             <button
               aria-label="Yêu thích"
+              onClick={handleWishlistClick}
               style={{
                 background: "none",
                 border: "none",
                 cursor: "pointer",
+                position: "relative",
               }}
             >
               <svg
@@ -671,6 +671,29 @@ export default function Header({ navItems }: HeaderProps) {
               >
                 <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
               </svg>
+
+              {wishlistCount > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: -6,
+                    right: -6,
+                    background: "var(--elx-red)",
+                    color: "#fff",
+                    fontSize: "0.8rem",
+                    fontWeight: 700,
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    lineHeight: 1,
+                  }}
+                >
+                  {wishlistCount}
+                </span>
+              )}
             </button>
 
             {/* ==================================================
@@ -900,7 +923,7 @@ export default function Header({ navItems }: HeaderProps) {
                 paddingLeft: 16,
               }}
             >
-              <Image src="/flag-vn.png" alt="VN" width={26} height={18} style={{ height: "auto" }} /> Tiếng Việt ›
+              <Image src="/flag-vn.png" alt="VN" width={26} height={18} style={{ width: "auto", height: "auto" }} /> Tiếng Việt ›
             </a>
           </div>
         </div>
