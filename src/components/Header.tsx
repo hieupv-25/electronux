@@ -542,11 +542,10 @@ export default function Header({ navItems }: HeaderProps) {
                 >
                   <a
                     href={getNavHref(item)}
-                    className={`nav-link${
-                      activeNav === item
-                        ? " nav-link--active"
-                        : ""
-                    }`}
+                    className={`nav-link${activeNav === item
+                      ? " nav-link--active"
+                      : ""
+                      }`}
                     style={{
                       padding:
                         "24px 25px",
@@ -895,11 +894,10 @@ export default function Header({ navItems }: HeaderProps) {
         ==================================================== */}
 
         <div
-          className={`mobile-nav${
-            mobileMenu
-              ? " mobile-nav--open"
-              : ""
-          }`}
+          className={`mobile-nav${mobileMenu
+            ? " mobile-nav--open"
+            : ""
+            }`}
         >
           {navItems.map((item) => (
             <a
@@ -1025,90 +1023,90 @@ export default function Header({ navItems }: HeaderProps) {
 
               {activeSection.layout ===
                 "default" && (
-                <div className="mega-menu__inner">
-                  {activeSection.categories.map(
-                    (cat) => (
-                      <div
-                        key={cat.title}
-                        className="mega-menu__col"
-                      >
-                        <div className="mega-menu__col-header">
-                          <span className="mega-menu__col-icon">
-                            {MENU_ICONS[
-                              cat.icon
-                            ] ?? null}
-                          </span>
+                  <div className="mega-menu__inner">
+                    {activeSection.categories.map(
+                      (cat) => (
+                        <div
+                          key={cat.title}
+                          className="mega-menu__col"
+                        >
+                          <div className="mega-menu__col-header">
+                            <span className="mega-menu__col-icon">
+                              {MENU_ICONS[
+                                cat.icon
+                              ] ?? null}
+                            </span>
 
-                          <span className="mega-menu__col-title">
-                            {cat.title}
-                          </span>
-                        </div>
+                            <span className="mega-menu__col-title">
+                              {cat.title}
+                            </span>
+                          </div>
 
-                        <ul className="mega-menu__list">
-                          {cat.items.map(
-                            (sub) => {
-                              const href =
-                                categoryRoutes[
+                          <ul className="mega-menu__list">
+                            {cat.items.map(
+                              (sub) => {
+                                const href =
+                                  categoryRoutes[
                                   sub
-                                ] ?? "#";
+                                  ] ?? "#";
 
-                              return (
-                                <li
-                                  key={
-                                    sub
-                                  }
-                                >
-                                  <Link
-                                    href={
-                                      href
-                                    }
-                                    className="mega-menu__item"
-                                  >
-                                    {
+                                return (
+                                  <li
+                                    key={
                                       sub
                                     }
-                                  </Link>
-                                </li>
-                              );
-                            }
-                          )}
-                        </ul>
-                      </div>
-                    )
-                  )}
-                </div>
-              )}
+                                  >
+                                    <Link
+                                      href={
+                                        href
+                                      }
+                                      className="mega-menu__item"
+                                    >
+                                      {
+                                        sub
+                                      }
+                                    </Link>
+                                  </li>
+                                );
+                              }
+                            )}
+                          </ul>
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
 
               {/* Circular layout */}
 
               {activeSection.layout ===
                 "circular" && (
-                <div className="mega-menu__circular">
-                  {activeSection.items.map(
-                    (item) => (
-                      <a
-                        key={
-                          item.label
-                        }
-                        href="#"
-                        className="mega-menu__circle-item"
-                      >
-                        <span className="mega-menu__circle-icon">
-                          {MENU_ICONS[
-                            item.icon
-                          ] ?? null}
-                        </span>
-
-                        <span className="mega-menu__circle-label">
-                          {
+                  <div className="mega-menu__circular">
+                    {activeSection.items.map(
+                      (item) => (
+                        <a
+                          key={
                             item.label
                           }
-                        </span>
-                      </a>
-                    )
-                  )}
-                </div>
-              )}
+                          href="#"
+                          className="mega-menu__circle-item"
+                        >
+                          <span className="mega-menu__circle-icon">
+                            {MENU_ICONS[
+                              item.icon
+                            ] ?? null}
+                          </span>
+
+                          <span className="mega-menu__circle-label">
+                            {
+                              item.label
+                            }
+                          </span>
+                        </a>
+                      )
+                    )}
+                  </div>
+                )}
             </div>
           )}
       </header>
@@ -1153,11 +1151,10 @@ export default function Header({ navItems }: HeaderProps) {
       ====================================================== */}
 
       <AuthModal
-        key={`${authView}-${
-          authOpen
-            ? "open"
-            : "closed"
-        }`}
+        key={`${authView}-${authOpen
+          ? "open"
+          : "closed"
+          }`}
         isOpen={authOpen}
         onClose={() =>
           setAuthOpen(false)

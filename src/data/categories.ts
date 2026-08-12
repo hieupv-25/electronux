@@ -4,7 +4,6 @@ export const categoryRoutes: Record<string, string> = {
   "Tủ lạnh": "/thiet-bi/tu-lanh",
   "Bếp nấu": "/thiet-bi/bep-nau",
   "Máy lọc không khí": "/thiet-bi/may-loc-khong-khi",
-  "Máy hút bụi": "/thiet-bi/may-hut-bui",
   "Nồi cơm điện": "/thiet-bi/noi-com-dien",
   "Máy xay sinh tố": "/thiet-bi/may-xay-sinh-to",
   "Máy hút ẩm": "/thiet-bi/may-hut-am",
@@ -749,7 +748,6 @@ export type CategoryFilter = {
 
 export type CategoryProduct = {
   id: string;
-  variantId?: string;
   slug: string;
   name: string;
   sku: string;
@@ -1519,7 +1517,7 @@ export const airPurifierCategory: CategoryPageData = {
       slug: "ep53-46uga",
       name: "Máy lọc không khí Electrolux phòng 52m² UH500 bộ lọc HEPA",
       sku: "EP53-46UGA",
-      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-loc-khong-khi/EP53-46UGA.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-loc-khong-khi/ep53-46uga.avif",
       price: 6090000,
       oldPrice: 7192000,
       features: [
@@ -1539,7 +1537,7 @@ export const airPurifierCategory: CategoryPageData = {
       slug: "ep32-25uga",
       name: "Máy lọc không khí Electrolux phòng 30m² UH300 bộ lọc HEPA",
       sku: "EP32-25UGA",
-      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-loc-khong-khi/EP32-25UGA.avif",
+      img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-loc-khong-khi/ep32-25uga.avif",
       price: 3690000,
       oldPrice: 4500545,
       features: [

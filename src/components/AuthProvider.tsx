@@ -3,6 +3,7 @@
 import { SessionProvider } from "next-auth/react";
 import { ToastProvider } from "./Toast";
 import { CartProvider } from "./CartContext";
+import { WishlistProvider } from "./WishlistContext";
 import CartDrawer from "./CartDrawer";
 
 export default function AuthProvider({
@@ -14,8 +15,10 @@ export default function AuthProvider({
     <SessionProvider>
       <ToastProvider>
         <CartProvider>
-          {children}
-          <CartDrawer />
+          <WishlistProvider>
+            {children}
+            <CartDrawer />
+          </WishlistProvider>
         </CartProvider>
       </ToastProvider>
     </SessionProvider>
