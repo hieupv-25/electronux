@@ -41,15 +41,15 @@ type HeaderProps = {
 };
 
 function getNavHref(item: string) {
-  if (item === "Hỗ trợ") {
-    return "/support";
-  }
+  const routes: Record<string, string> = {
+    "Sản phẩm": "/thiet-bi/may-giat",
+    "Dịch vụ": "/services",
+    "Hỗ trợ": "/support",
+    "Khuyến mại": "/khuyen-mai",
+    "Blog": "/blog",
+  };
 
-  if (item === "Blog") {
-    return "/blog";
-  }
-
-  return "#";
+  return routes[item] ?? "#";
 }
 
 /* ============================================================
@@ -551,12 +551,15 @@ export default function Header({ navItems }: HeaderProps) {
                       "nowrap",
                   }}
                 >
-                  <a
+                  <Link
                     href={getNavHref(item)}
                     className={`nav-link${activeNav === item
                       ? " nav-link--active"
                       : ""
                       }`}
+                    onClick={() =>
+                      setActiveNav(null)
+                    }
                     style={{
                       padding:
                         "24px 25px",
@@ -578,7 +581,7 @@ export default function Header({ navItems }: HeaderProps) {
                     {activeNav === item && (
                       <span className="nav-link__underline" />
                     )}
-                  </a>
+                  </Link>
                 </div>
               ))}
             </nav>
@@ -911,7 +914,7 @@ export default function Header({ navItems }: HeaderProps) {
             }`}
         >
           {navItems.map((item) => (
-            <a
+            <Link
               key={item}
               href={getNavHref(item)}
               onClick={() =>
@@ -919,7 +922,7 @@ export default function Header({ navItems }: HeaderProps) {
               }
             >
               {item}
-            </a>
+            </Link>
           ))}
 
           {!session?.user && (
@@ -1072,6 +1075,11 @@ export default function Header({ navItems }: HeaderProps) {
                                         href
                                       }
                                       className="mega-menu__item"
+                                      onClick={() =>
+                                        setActiveNav(
+                                          null
+                                        )
+                                      }
                                     >
                                       {
                                         sub
@@ -1099,8 +1107,15 @@ export default function Header({ navItems }: HeaderProps) {
                           key={
                             item.label
                           }
-                          href={categoryRoutes[item.label] ?? "#"}
+                          href={
+                            item.href ?? categoryRoutes[item.label] ?? "#"
+                          }
                           className="mega-menu__circle-item"
+                          onClick={() =>
+                            setActiveNav(
+                              null
+                            )
+                          }
                         >
                           <span className="mega-menu__circle-icon">
                             {MENU_ICONS[

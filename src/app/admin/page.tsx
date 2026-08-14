@@ -34,8 +34,8 @@ async function getAdminDashboardData() {
       prisma.order.count({ where: { deletedAt: null } }),
       prisma.order.count({ where: { deletedAt: null, status: "pending" } }),
       prisma.user.count({ where: { deletedAt: null, role: "customer" } }),
-      prisma.serviceRequest.count(),
-      prisma.serviceRequest.count({ where: { status: "pending" } }),
+      prisma.warrantyAppointment.count(),
+      prisma.warrantyAppointment.count({ where: { status: "pending" } }),
       prisma.order.aggregate({
         where: { deletedAt: null, paymentStatus: "paid" },
         _sum: { totalAmount: true },
@@ -80,13 +80,15 @@ async function getAdminDashboardData() {
           },
         },
       }),
-      prisma.serviceRequest.findMany({
+      prisma.warrantyAppointment.findMany({
         orderBy: { createdAt: "desc" },
         take: 5,
         select: {
           id: true,
           createdAt: true,
           status: true,
+          customerName: true,
+          phone: true,
           user: {
             select: {
               firstName: true,
@@ -341,32 +343,24 @@ function ServicePanel({
         {requests.length === 0 ? (
           <EmptyBlock>Chưa có yêu cầu dịch vụ.</EmptyBlock>
         ) : (
-          requests.map((request) => {
-            const serviceName = request.service?.name ?? "Dich vu";
-            const customerName = request.user
-              ? `${request.user.firstName} ${request.user.lastName}`.trim()
-              : "Khach hang";
-            const customerPhone = request.user?.phone;
-
-            return (
-              <article className="admin-list-item" key={request.id}>
-                <div>
-                  <h3>{serviceName}</h3>
-                  <p>
-                    {customerName || "Khach hang"}
-                    {customerPhone ? ` - ${customerPhone}` : ""}
-                  </p>
-                </div>
-                <div className="admin-list-item__meta">
-                  <StatusBadge
-                    value={request.status}
-                    labels={requestStatusLabels}
-                  />
-                  <span>{formatDate(request.createdAt)}</span>
-                </div>
-              </article>
-            );
-          })
+          requests.map((request) => (
+            <article className="admin-list-item" key={request.id}>
+              <div>
+                <h3>{request.service?.name || "Lịch hẹn bảo hành"}</h3>
+                <p>
+                  {request.customerName || (request.user ? `${request.user.firstName} ${request.user.lastName}` : "Khách vãng lai")}
+                  {(request.phone || request.user?.phone) ? ` - ${request.phone || request.user?.phone}` : ""}
+                </p>
+              </div>
+              <div className="admin-list-item__meta">
+                <StatusBadge
+                  value={request.status}
+                  labels={requestStatusLabels}
+                />
+                <span>{formatDate(request.createdAt)}</span>
+              </div>
+            </article>
+          ))
         )}
       </div>
     </section>

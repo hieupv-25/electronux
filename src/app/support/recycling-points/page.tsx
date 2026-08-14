@@ -31,7 +31,7 @@ export default function RecyclingPointsPage() {
 
                     <p>
                         Quý khách vui lòng tham khảo danh sách trung tâm tiếp nhận{" "}
-                        <a href="/support/book-service" style={{ color: "var(--elx-navy)", fontWeight: 600, textDecoration: "underline" }}>
+                        <a href="/support/warranty-appointment" style={{ color: "var(--elx-navy)", fontWeight: 600, textDecoration: "underline" }}>
                             tại đây
                         </a>.
                     </p>

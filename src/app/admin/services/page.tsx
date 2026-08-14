@@ -1,6 +1,7 @@
 import {
   createService,
-  updateServiceRequestStatus,
+  updateProductRegistrationStatus,
+  updateWarrantyAppointmentStatus,
 } from "@/app/admin/actions";
 import { AdminPageHeader, EmptyBlock, StatusBadge } from "@/components/admin/AdminUi";
 import {
@@ -16,17 +17,17 @@ const serviceTypeOptions = ["support", "paid", "warranty_extension"];
 const requestStatusOptions = ["pending", "processing", "completed", "cancelled"];
 
 async function getServicesData() {
-  const [services, requests] = await Promise.all([
+  const [services, appointments, productRegistrations] = await Promise.all([
     prisma.service.findMany({
       orderBy: { name: "asc" },
       select: {
         id: true,
         name: true,
         type: true,
-        _count: { select: { requests: true } },
+        _count: { select: { appointments: true } },
       },
     }),
-    prisma.serviceRequest.findMany({
+    prisma.warrantyAppointment.findMany({
       orderBy: { createdAt: "desc" },
       take: 80,
       include: {
@@ -46,13 +47,27 @@ async function getServicesData() {
         },
       },
     }),
+    prisma.productRegistration.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 80,
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
+    }),
   ]);
 
-  return { services, requests };
+  return { services, appointments, productRegistrations };
 }
 
 export default async function AdminServicesPage() {
-  const { services, requests } = await getServicesData();
+  const { services, appointments, productRegistrations } = await getServicesData();
 
   return (
     <>
@@ -107,7 +122,7 @@ export default async function AdminServicesPage() {
                     <p>{serviceTypeLabels[service.type]}</p>
                   </div>
                   <div className="admin-list-item__meta">
-                    <strong>{service._count.requests}</strong>
+                    <strong>{service._count.appointments}</strong>
                     <span>yêu cầu</span>
                   </div>
                 </article>
@@ -121,41 +136,39 @@ export default async function AdminServicesPage() {
         <div className="admin-panel__header admin-panel__header--loose">
           <div>
             <p className="admin-eyebrow">Yêu cầu</p>
-            <h2>{requests.length} yêu cầu gần nhất</h2>
+            <h2>{appointments.length} lịch hẹn gần nhất</h2>
           </div>
         </div>
-        {requests.length === 0 ? (
+        {appointments.length === 0 ? (
           <EmptyBlock>Chưa có yêu cầu dịch vụ nào.</EmptyBlock>
         ) : (
-          requests.map((request) => {
-            const serviceName = request.service?.name ?? "Dich vu";
-            const serviceType = request.service?.type
-              ? serviceTypeLabels[request.service.type]
-              : "Chua phan loai";
-            const customerName = request.user
-              ? `${request.user.firstName} ${request.user.lastName}`.trim()
-              : "Khach hang";
-            const customerEmail = request.user?.email ?? "Chua co email";
-            const customerPhone = request.user?.phone ?? "Chua cap nhat SDT";
-
-            return (
+          appointments.map((request) => (
             <article className="admin-record-card" key={request.id}>
               <div className="admin-record-card__header">
                 <div>
                   <p className="admin-eyebrow">
-                    {serviceName} - {serviceType}
+                    {request.service ? `${request.service.name} - ${serviceTypeLabels[request.service.type]}` : "Lịch hẹn bảo hành"}
                   </p>
                   <h3>
-                    {customerName || "Khach hang"}
+                    {request.customerName || (request.user ? `${request.user.firstName} ${request.user.lastName}` : "Khách vãng lai")}
                   </h3>
                   <span>
-                    {customerEmail} - {customerPhone} - {formatDate(request.createdAt)}
+                    {request.requestCode || request.id} - {request.email || request.user?.email || "Chưa có email"} - {request.phone || request.user?.phone || "Chưa có SĐT"} - {formatDate(request.createdAt)}
                   </span>
                 </div>
                 <StatusBadge value={request.status} labels={requestStatusLabels} />
               </div>
 
-              <form action={updateServiceRequestStatus} className="admin-edit-grid">
+              <div className="admin-list-item" style={{ marginBottom: 16 }}>
+                <div>
+                  <p><strong>Thiết bị:</strong> {request.model || "—"} / {request.serialNumber || "—"}</p>
+                  <p><strong>Địa chỉ:</strong> {[request.address, request.ward, request.district, request.city].filter(Boolean).join(", ") || "—"}</p>
+                  <p><strong>Sự cố:</strong> {request.issue || "—"}</p>
+                  <p><strong>Lịch mong muốn:</strong> {request.preferredDate ? formatDate(request.preferredDate) : "—"} {request.preferredTime || ""}</p>
+                </div>
+              </div>
+
+              <form action={updateWarrantyAppointmentStatus} className="admin-edit-grid">
                 <input name="id" type="hidden" value={request.id} />
                 <label>
                   Trạng thái
@@ -181,8 +194,59 @@ export default async function AdminServicesPage() {
                 </button>
               </form>
             </article>
-            );
-          })
+          ))
+        )}
+      </section>
+
+      <section className="admin-records">
+        <div className="admin-panel__header admin-panel__header--loose">
+          <div>
+            <p className="admin-eyebrow">Bảo hành điện tử</p>
+            <h2>{productRegistrations.length} đăng ký gần nhất</h2>
+          </div>
+        </div>
+        {productRegistrations.length === 0 ? (
+          <EmptyBlock>Chưa có đăng ký bảo hành điện tử nào.</EmptyBlock>
+        ) : (
+          productRegistrations.map((registration) => (
+            <article className="admin-record-card" key={registration.id}>
+              <div className="admin-record-card__header">
+                <div>
+                  <p className="admin-eyebrow">{registration.registrationCode}</p>
+                  <h3>{registration.customerName}</h3>
+                  <span>{registration.email} - {registration.phone} - {formatDate(registration.createdAt)}</span>
+                </div>
+                <StatusBadge value={registration.status} labels={requestStatusLabels} />
+              </div>
+
+              <div className="admin-list-item" style={{ marginBottom: 16 }}>
+                <div>
+                  <p><strong>Sản phẩm:</strong> {registration.productName || "—"}</p>
+                  <p><strong>Model / Serial:</strong> {registration.model} / {registration.serialNumber || "—"}</p>
+                  <p><strong>Ngày mua:</strong> {formatDate(registration.purchaseDate)}</p>
+                  <p><strong>Nơi mua:</strong> {registration.retailer || "—"}</p>
+                  <p><strong>Hóa đơn:</strong> {registration.invoiceUrl ? <a href={registration.invoiceUrl} target="_blank" rel="noreferrer">Xem tệp</a> : "—"}</p>
+                </div>
+              </div>
+
+              <form action={updateProductRegistrationStatus} className="admin-edit-grid">
+                <input name="id" type="hidden" value={registration.id} />
+                <label>
+                  Trạng thái
+                  <select name="status" defaultValue={registration.status}>
+                    {requestStatusOptions.map((status) => (
+                      <option key={status} value={status}>{requestStatusLabels[status]}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="admin-field-span">
+                  Ghi chú xử lý
+                  <textarea name="notes" rows={3} defaultValue={registration.notes ?? ""} placeholder="Đã kiểm tra serial và hóa đơn..." />
+                </label>
+                <button className="admin-primary-button" type="submit">Cập nhật đăng ký</button>
+              </form>
+            </article>
+          ))
         )}
       </section>
     </>

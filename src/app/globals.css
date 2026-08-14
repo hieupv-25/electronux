@@ -1065,11 +1065,9 @@ img {
 .auth-modal__branding-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(1, 30, 65, 0.2) 0%,
-    rgba(1, 30, 65, 0.7) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(1, 30, 65, 0.2) 0%,
+      rgba(1, 30, 65, 0.7) 100%);
   z-index: 1;
 }
 
@@ -1431,8 +1429,13 @@ img {
 
 /* ── Auth Animations ── */
 @keyframes authFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes dropdownSlideIn {
@@ -1451,6 +1454,7 @@ img {
     opacity: 0;
     transform: translate(-50%, -48%);
   }
+
   to {
     opacity: 1;
     transform: translate(-50%, -50%);
@@ -1458,7 +1462,9 @@ img {
 }
 
 @keyframes authSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Responsive ── */
@@ -1558,8 +1564,13 @@ img {
 }
 
 @keyframes underline-grow {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(1); }
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
 }
 
 /* =====================================================   MEGA MENU
@@ -1582,6 +1593,7 @@ img {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1679,8 +1691,13 @@ img {
 }
 
 @keyframes dim-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* ── Circular layout (Hỗ trợ style) ── */
@@ -2106,12 +2123,12 @@ img {
   margin-top: 2px;
 }
 
-.plp-checkbox input:checked + .plp-checkbox__mark {
+.plp-checkbox input:checked+.plp-checkbox__mark {
   background: var(--elx-navy);
   border-color: var(--elx-navy);
 }
 
-.plp-checkbox input:checked + .plp-checkbox__mark::after {
+.plp-checkbox input:checked+.plp-checkbox__mark::after {
   content: "";
   position: absolute;
   left: 5px;
@@ -2361,9 +2378,7 @@ img {
   color: #fff;
 }
 
-/* ============================================================
-   TOAST NOTIFICATIONS
-   ============================================================ */
+/* TOAST NOTIFICATIONS============================================================*/
 .toast-container {
   position: fixed;
   top: 20px;
@@ -2441,6 +2456,7 @@ img {
     opacity: 0;
     transform: translateX(60px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateX(0) scale(1);
@@ -2452,6 +2468,7 @@ img {
     opacity: 1;
     transform: translateX(0) scale(1);
   }
+
   to {
     opacity: 0;
     transform: translateX(60px) scale(0.95);
@@ -2464,6 +2481,7 @@ img {
     right: 12px;
     left: 12px;
   }
+
   .toast {
     min-width: auto;
     max-width: none;
