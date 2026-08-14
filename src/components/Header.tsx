@@ -82,6 +82,19 @@ export default function Header({ navItems }: HeaderProps) {
     };
   }, [authOpen]);
 
+  useEffect(() => {
+    const handleOpenAuth = (e: Event) => {
+      const customEvent = e as CustomEvent<{ view?: "login" | "register" }>;
+      setAuthView(customEvent.detail?.view || "login");
+      setAuthOpen(true);
+    };
+
+    window.addEventListener("open-auth-modal", handleOpenAuth);
+    return () => {
+      window.removeEventListener("open-auth-modal", handleOpenAuth);
+    };
+  }, []);
+
   const handleLogout = useCallback(async () => {
     setUserDropdown(false);
     await signOut({ redirect: false });
