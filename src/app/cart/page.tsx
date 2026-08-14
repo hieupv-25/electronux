@@ -40,9 +40,9 @@ export default function CartPage() {
       return acc;
     }, 0);
 
-  const subtotal = (cart?.subtotal ?? 12543000) + extraCosts;
-  const savings = cart?.savings ?? 3053000;
-  const total = (cart?.total ?? 9490000) + extraCosts;
+  const subtotal = (cart?.subtotal ?? 0) + extraCosts;
+  const savings = cart?.savings ?? 0;
+  const total = (cart?.total ?? 0) + extraCosts;
 
   return (
     <div style={{ minHeight: "100vh", background: "#fff", fontFamily: "var(--font-geist-sans), sans-serif", color: "#111827" }}>

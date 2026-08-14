@@ -45,6 +45,11 @@ enum ServiceType {
   support
 }
 
+enum ProductKind {
+  physical
+  service
+}
+
 enum RequestStatus {
   pending
   processing
@@ -140,6 +145,7 @@ model Product {
   brand               Brand?                @relation(fields: [brandId], references: [id])
   name                String
   slug                String                @unique
+  kind                ProductKind           @default(physical)
   description         String?
   specifications      Json? // VD: { "dungTich": "450L", "congSuat": "150W" }
   isFeatured          Boolean               @default(false)
@@ -157,6 +163,7 @@ model Product {
   deletedAt           DateTime? // Ẩn khỏi storefront, giữ cho kế toán
 
   @@index([categoryId])
+  @@index([kind])
 }
 
 model ProductVariant {

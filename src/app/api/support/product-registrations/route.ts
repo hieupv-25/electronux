@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
 
   const products = await prisma.product.findMany({
     where: {
+      kind: "physical",
       isActive: true,
       deletedAt: null,
       OR: [
@@ -99,7 +100,7 @@ export async function POST(req: NextRequest) {
     if (data.purchaseDate > new Date()) return NextResponse.json({ error: "Ngày mua không thể nằm trong tương lai." }, { status: 400 });
 
     const product = await prisma.product.findFirst({
-      where: { id: data.productId, isActive: true, deletedAt: null, variants: { some: { sku: data.model, isActive: true } } },
+      where: { id: data.productId, kind: "physical", isActive: true, deletedAt: null, variants: { some: { sku: data.model, isActive: true } } },
       select: { id: true, name: true },
     });
     if (!product) return NextResponse.json({ error: "Sản phẩm đã chọn không còn hợp lệ. Vui lòng tìm và chọn lại model." }, { status: 400 });

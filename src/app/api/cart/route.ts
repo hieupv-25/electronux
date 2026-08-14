@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { maintenanceServiceFallback } from "@/data/maintenanceServices";
 
 export type CartVariantSnapshot = {
   id: string;
@@ -117,6 +119,28 @@ export const DEMO_PRODUCTS: Record<string, CartVariantSnapshot> = {
   },
 };
 
+for (const service of maintenanceServiceFallback) {
+  DEMO_PRODUCTS[service.variantId] = {
+    id: service.variantId,
+    productId: `service-${service.sku}`,
+    sku: service.sku,
+    variantName: "Gói tiêu chuẩn",
+    price: service.price,
+    originalPrice: service.price,
+    discountPercentage: 0,
+    stockQuantity: 99999,
+    product: {
+      id: `service-${service.sku}`,
+      name: service.name,
+      slug: service.slug,
+      images: [{ id: `service-image-${service.sku}`, url: service.imageUrl }],
+      freeShipping: false,
+      freeInstallation: false,
+      installment0Percent: false,
+    },
+  };
+}
+
 // Global in-memory store attached to globalThis for shared access across Next.js API routes
 const memoryGlobal = globalThis as MemoryCartGlobal;
 export const memoryCarts: MemoryCartStore =
@@ -128,16 +152,7 @@ function getSessionKey(userId?: string | null, sessionId?: string | null): strin
 
 function getMemoryCart(key: string): MemoryCartItem[] {
   if (memoryCarts[key] === undefined) {
-    // Initial default demo item for a brand new session
-    memoryCarts[key] = [
-      {
-        id: "demo-item-1",
-        cartId: "demo-cart",
-        variantId: "demo-variant-1",
-        quantity: 1,
-        variant: DEMO_PRODUCTS["demo-variant-1"],
-      },
-    ];
+    memoryCarts[key] = [];
   }
   return memoryCarts[key];
 }
@@ -146,7 +161,8 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
-    const sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value || "default-session";
+    const existingSessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value;
+    const sessionId = existingSessionId || randomUUID();
     const key = getSessionKey(userId, sessionId);
 
     let items: MemoryCartItem[] = [];
@@ -224,7 +240,7 @@ export async function GET(req: NextRequest) {
     const total = items.reduce((acc, item) => acc + item.variant.price * item.quantity, 0);
     const savings = Math.max(0, subtotal - total);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       id: "cart-" + key,
       userId: userId || null,
       sessionId,
@@ -233,14 +249,18 @@ export async function GET(req: NextRequest) {
       savings,
       total,
     });
+    if (!userId && !existingSessionId) {
+      response.cookies.set("cart_session_id", sessionId, { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" });
+    }
+    return response;
   } catch (error) {
     console.error("GET /api/cart fatal error:", error);
     return NextResponse.json({
       id: "cart-fallback",
       items: getMemoryCart("default-session"),
-      subtotal: 12543000,
-      savings: 3053000,
-      total: 9490000,
+      subtotal: 0,
+      savings: 0,
+      total: 0,
     });
   }
 }
@@ -249,7 +269,8 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
-    const sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value || "default-session";
+    const existingSessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value;
+    const sessionId = existingSessionId || randomUUID();
     const key = getSessionKey(userId, sessionId);
 
     const body = (await req.json()) as { variantId?: string; quantity?: number };
@@ -327,9 +348,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const response = NextResponse.json({ success: true, message: "Sản phẩm đã được thêm vào giỏ hàng" });
-    if (sessionId && !userId) {
-      response.cookies.set("cart_session_id", sessionId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
+    const response = NextResponse.json({ success: true, message: "Đã thêm vào giỏ hàng" });
+    if (!userId && !existingSessionId) {
+      response.cookies.set("cart_session_id", sessionId, { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" });
     }
     return response;
   } catch (error) {
