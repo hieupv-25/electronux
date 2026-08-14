@@ -89,6 +89,21 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
 
   const [forgotEmail, setForgotEmail] = useState("");
 
+  const getCallbackUrl = () => {
+    if (typeof window === "undefined") {
+      return "/";
+    }
+
+    const url = new URL(window.location.href);
+    const nextUrl = url.searchParams.get("next");
+
+    if (nextUrl?.startsWith("/") && !nextUrl.startsWith("//")) {
+      return nextUrl;
+    }
+
+    return window.location.href;
+  };
+
   const resetAllFields = useCallback(() => {
     setGlobalError("");
     setRegErrors({});
@@ -134,7 +149,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
       }
 
       setLoading(true);
-      await signIn(provider, { callbackUrl: window.location.href });
+      await signIn(provider, { callbackUrl: getCallbackUrl() });
     } catch {
       showToast(`Không thể khởi tạo đăng nhập bằng ${label}. Vui lòng thử lại.`, "error");
     } finally {
@@ -145,6 +160,17 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
   const refreshSessionAndClose = async () => {
     await update();
     handleClose();
+  };
+
+  const redirectAfterAuth = () => {
+    const callbackUrl = getCallbackUrl();
+
+    if (
+      typeof window !== "undefined" &&
+      callbackUrl !== window.location.href
+    ) {
+      window.location.assign(callbackUrl);
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -167,6 +193,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
 
       await refreshSessionAndClose();
       showToast("Đăng nhập thành công! Chào mừng bạn quay trở lại.", "success");
+      redirectAfterAuth();
     } catch {
       setGlobalError("Đã xảy ra lỗi kết nối. Vui lòng thử lại.");
     } finally {
@@ -227,6 +254,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
 
       await refreshSessionAndClose();
       showToast(`Chào mừng ${regFirstName.trim()}! Tài khoản đã được tạo thành công.`, "success");
+      redirectAfterAuth();
     } catch {
       setGlobalError("Đã xảy ra lỗi kết nối. Vui lòng thử lại.");
     } finally {

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import HeroSlider from "@/components/HeroSlider";
 import ServiceBanner from "@/components/ServiceBanner";
@@ -18,7 +19,25 @@ import {
 } from "@/data/siteData";
 
 /* ── Main Page ── */
-export default function Home() {
+type HomeProps = {
+  searchParams?: Promise<{
+    authRequired?: string;
+    adminForbidden?: string;
+    view?: string;
+  }>;
+};
+
+export default async function Home({ searchParams }: HomeProps) {
+  const params = await searchParams;
+
+  if (
+    params?.authRequired !== "true" &&
+    params?.adminForbidden !== "true" &&
+    params?.view !== "customer"
+  ) {
+    redirect("/admin");
+  }
+
   return (
     <>
       <Suspense fallback={null}>

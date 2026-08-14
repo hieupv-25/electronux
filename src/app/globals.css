@@ -4263,6 +4263,11 @@ img {
   white-space: nowrap;
 }
 
+.admin-logout-button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
 .admin-ghost-link:hover {
   border-color: var(--elx-navy);
   opacity: 1;

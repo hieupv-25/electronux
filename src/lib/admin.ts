@@ -5,11 +5,11 @@ export async function requireAdminSession() {
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/?authRequired=true");
+    redirect("/?authRequired=true&next=/admin");
   }
 
   if (session.user.role !== "admin") {
-    redirect("/");
+    redirect("/?adminForbidden=true");
   }
 
   return session;
