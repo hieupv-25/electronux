@@ -6,13 +6,13 @@ import { signOut } from "next-auth/react";
 export default function AdminSessionActions() {
   return (
     <>
-      <Link className="admin-ghost-link" href="/?view=customer">
+      <Link className="admin-ghost-link" href="/customer">
         Xem website
       </Link>
       <button
         type="button"
         className="admin-ghost-link admin-logout-button"
-        onClick={() => signOut({ callbackUrl: "/?view=customer" })}
+        onClick={() => signOut({ callbackUrl: "/customer" })}
       >
         Đăng xuất
       </button>

@@ -341,24 +341,32 @@ function ServicePanel({
         {requests.length === 0 ? (
           <EmptyBlock>Chưa có yêu cầu dịch vụ.</EmptyBlock>
         ) : (
-          requests.map((request) => (
-            <article className="admin-list-item" key={request.id}>
-              <div>
-                <h3>{request.service.name}</h3>
-                <p>
-                  {request.user.firstName} {request.user.lastName}
-                  {request.user.phone ? ` - ${request.user.phone}` : ""}
-                </p>
-              </div>
-              <div className="admin-list-item__meta">
-                <StatusBadge
-                  value={request.status}
-                  labels={requestStatusLabels}
-                />
-                <span>{formatDate(request.createdAt)}</span>
-              </div>
-            </article>
-          ))
+          requests.map((request) => {
+            const serviceName = request.service?.name ?? "Dich vu";
+            const customerName = request.user
+              ? `${request.user.firstName} ${request.user.lastName}`.trim()
+              : "Khach hang";
+            const customerPhone = request.user?.phone;
+
+            return (
+              <article className="admin-list-item" key={request.id}>
+                <div>
+                  <h3>{serviceName}</h3>
+                  <p>
+                    {customerName || "Khach hang"}
+                    {customerPhone ? ` - ${customerPhone}` : ""}
+                  </p>
+                </div>
+                <div className="admin-list-item__meta">
+                  <StatusBadge
+                    value={request.status}
+                    labels={requestStatusLabels}
+                  />
+                  <span>{formatDate(request.createdAt)}</span>
+                </div>
+              </article>
+            );
+          })
         )}
       </div>
     </section>

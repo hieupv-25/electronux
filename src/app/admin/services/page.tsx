@@ -127,18 +127,29 @@ export default async function AdminServicesPage() {
         {requests.length === 0 ? (
           <EmptyBlock>Chưa có yêu cầu dịch vụ nào.</EmptyBlock>
         ) : (
-          requests.map((request) => (
+          requests.map((request) => {
+            const serviceName = request.service?.name ?? "Dich vu";
+            const serviceType = request.service?.type
+              ? serviceTypeLabels[request.service.type]
+              : "Chua phan loai";
+            const customerName = request.user
+              ? `${request.user.firstName} ${request.user.lastName}`.trim()
+              : "Khach hang";
+            const customerEmail = request.user?.email ?? "Chua co email";
+            const customerPhone = request.user?.phone ?? "Chua cap nhat SDT";
+
+            return (
             <article className="admin-record-card" key={request.id}>
               <div className="admin-record-card__header">
                 <div>
                   <p className="admin-eyebrow">
-                    {request.service.name} - {serviceTypeLabels[request.service.type]}
+                    {serviceName} - {serviceType}
                   </p>
                   <h3>
-                    {request.user.firstName} {request.user.lastName}
+                    {customerName || "Khach hang"}
                   </h3>
                   <span>
-                    {request.user.email} - {request.user.phone ?? "Chưa cập nhật SĐT"} - {formatDate(request.createdAt)}
+                    {customerEmail} - {customerPhone} - {formatDate(request.createdAt)}
                   </span>
                 </div>
                 <StatusBadge value={request.status} labels={requestStatusLabels} />
@@ -170,7 +181,8 @@ export default async function AdminServicesPage() {
                 </button>
               </form>
             </article>
-          ))
+            );
+          })
         )}
       </section>
     </>
