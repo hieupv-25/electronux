@@ -23,18 +23,20 @@ type HomeProps = {
   searchParams?: Promise<{
     authRequired?: string;
     adminForbidden?: string;
+    next?: string;
     view?: string;
   }>;
 };
 
 export default async function Home({ searchParams }: HomeProps) {
   const params = await searchParams;
+  const shouldShowCustomerPage =
+    params?.authRequired === "true" ||
+    params?.adminForbidden === "true" ||
+    params?.view === "customer" ||
+    Boolean(params?.next);
 
-  if (
-    params?.authRequired !== "true" &&
-    params?.adminForbidden !== "true" &&
-    params?.view !== "customer"
-  ) {
+  if (!shouldShowCustomerPage) {
     redirect("/admin");
   }
 

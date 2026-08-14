@@ -113,24 +113,35 @@ export default function Header({ navItems }: HeaderProps) {
   ============================================================ */
 
   useEffect(() => {
-    if (session?.user) {
+    const url = new URL(window.location.href);
+    const authRequired = url.searchParams.get("authRequired");
+    const adminForbidden = url.searchParams.get("adminForbidden");
+
+    if (authRequired !== "true" && adminForbidden !== "true") {
       return;
     }
 
-    const url = new URL(window.location.href);
-    const authRequired = url.searchParams.get("authRequired");
-
-    if (authRequired !== "true") {
+    if (authRequired === "true" && session?.user) {
       return;
     }
 
     url.searchParams.delete("authRequired");
+    url.searchParams.delete("adminForbidden");
+    url.searchParams.set("view", "customer");
 
     router.replace(url.pathname + url.search, {
       scroll: false,
     });
 
     const timer = window.setTimeout(() => {
+      if (adminForbidden === "true") {
+        showToast(
+          "Tai khoan cua ban khong co quyen truy cap trang quan tri.",
+          "error"
+        );
+        return;
+      }
+
       setAuthView("login");
       setAuthOpen(true);
 
