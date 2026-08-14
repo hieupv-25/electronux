@@ -5,26 +5,66 @@ import Link from "next/link";
 import { calcDiscountBadge, formatPrice } from "@/lib/formatPrice";
 import type { CategoryProduct } from "@/data/categories";
 import { useCart } from "./CartContext";
+import { useWishlist } from "./WishlistContext";
+
+import { ALL_CATEGORIES } from "@/lib/getCategoryData";
 
 type ProductCardProps = {
   product: CategoryProduct;
   categorySlug?: string;
 };
 
-export default function ProductCard({ product, categorySlug = "may-giat" }: ProductCardProps) {
+export default function ProductCard({ product, categorySlug }: ProductCardProps) {
+  // Infer the correct category slug if not passed or if default
+  let resolvedCategorySlug = categorySlug;
+  if (!resolvedCategorySlug) {
+    const found = ALL_CATEGORIES.find((cat) => cat.products.some((p) => p.slug === product.slug));
+    resolvedCategorySlug = found ? found.slug : "may-giat";
+  }
+
   const badge = calcDiscountBadge(product.price, product.oldPrice);
-  const detailHref = `/thiet-bi/${categorySlug}/${product.slug}`;
+  const detailHref = `/thiet-bi/${resolvedCategorySlug}/${product.slug}`;
 
   const { addToCart, adding } = useCart();
+  const { isSaved, toggleWishlist } = useWishlist();
+
   const isAddingThis = adding === product.variantId;
   const canAddToCart = Boolean(product.variantId);
+  const saved = isSaved(product.id);
+
+  const handleWishlistClick = () => {
+    void toggleWishlist({
+      id: product.id,
+      productId: product.id,
+      name: product.name,
+      slug: product.slug,
+      image: product.img,
+      price: product.price,
+      oldPrice: product.oldPrice,
+      categorySlug: resolvedCategorySlug,
+      url: detailHref,
+    });
+  };
 
   return (
     <article className="plp-card">
       <div className="plp-card__top">
         {badge && <span className="plp-card__badge">{badge}</span>}
-        <button type="button" className="plp-card__wishlist" aria-label="Thêm vào yêu thích">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <button
+          type="button"
+          className="plp-card__wishlist"
+          aria-label="Thêm vào yêu thích"
+          onClick={handleWishlistClick}
+          style={{ color: saved ? "#e3000b" : "#64748b" }}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill={saved ? "#e3000b" : "none"}
+            stroke={saved ? "#e3000b" : "currentColor"}
+            strokeWidth="2"
+          >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </button>

@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useSession } from "next-auth/react";
 import { useToast } from "./Toast";
+import { ALL_CATEGORIES } from "@/lib/getCategoryData";
 
 export type WishlistProduct = {
   id: string;
@@ -30,10 +31,13 @@ type WishlistContextType = {
   togglingId: string | null;
   isSaved: (productId: string) => boolean;
   refreshWishlist: () => Promise<void>;
-  toggleWishlist: (productId: string) => Promise<void>;
+  toggleWishlist: (productOrId: string | WishlistProduct) => Promise<void>;
+  removeItem: (productId: string) => void;
 };
 
 const WishlistContext = createContext<WishlistContextType | null>(null);
+
+const STORAGE_KEY = "electronux_wishlist_items";
 
 export function useWishlist() {
   const context = useContext(WishlistContext);
@@ -50,43 +54,77 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
-  async function parseJsonResponse(response: Response) {
-    const contentType = response.headers.get("content-type") || "";
-    const text = await response.text();
-
-    if (!text) {
-      throw new Error("Empty response from server");
-    }
-
-    if (contentType.includes("application/json")) {
-      try {
-        return JSON.parse(text);
-      } catch (error) {
-        throw new Error(`Invalid JSON response: ${error instanceof Error ? error.message : String(error)}`);
+  // Helper to resolve product details if only ID is provided
+  const findProductById = (id: string): WishlistProduct | null => {
+    for (const cat of ALL_CATEGORIES) {
+      const p = cat.products.find((prod) => prod.id === id || prod.slug === id);
+      if (p) {
+        return {
+          id: p.id,
+          productId: p.id,
+          name: p.name,
+          slug: p.slug,
+          image: p.img,
+          price: p.price,
+          oldPrice: p.oldPrice,
+          categorySlug: cat.slug,
+          url: `/thiet-bi/${cat.slug}/${p.slug}`,
+        };
       }
     }
+    return null;
+  };
 
-    throw new Error(`Unexpected response type: ${contentType} - ${text}`);
-  }
+  // Load from local storage
+  const loadLocalItems = (): WishlistProduct[] => {
+    if (typeof window === "undefined") return [];
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  // Save to local storage
+  const saveLocalItems = (newItems: WishlistProduct[]) => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newItems));
+    } catch (e) {
+      console.error("Failed to save wishlist to localStorage", e);
+    }
+  };
 
   const refreshWishlist = useCallback(async () => {
+    const local = loadLocalItems();
+
     if (!session?.user?.id) {
-      setItems([]);
+      setItems(local);
       return;
     }
 
     setLoading(true);
     try {
       const res = await fetch("/api/wishlist");
-      if (!res.ok) {
-        setItems([]);
-        return;
+      if (res.ok) {
+        const data = await res.json();
+        const apiItems: WishlistProduct[] = Array.isArray(data.items) ? data.items : [];
+        
+        // Merge local items with API items if needed
+        const combined = [...apiItems];
+        for (const loc of local) {
+          if (!combined.some((item) => item.productId === loc.productId || item.id === loc.id)) {
+            combined.push(loc);
+          }
+        }
+        setItems(combined);
+        saveLocalItems(combined);
+      } else {
+        setItems(local);
       }
-      const data = await parseJsonResponse(res);
-      setItems(Array.isArray(data.items) ? data.items : []);
-    } catch (error) {
-      console.warn("Could not load wishlist", error);
-      setItems([]);
+    } catch {
+      setItems(local);
     } finally {
       setLoading(false);
     }
@@ -101,45 +139,91 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   }, [refreshWishlist]);
 
   const toggleWishlist = useCallback(
-    async (productId: string) => {
-      if (!session?.user?.id) {
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent("open-auth-modal", { detail: { view: "login" } })
-          );
-        }
-        showToast("Vui lòng đăng nhập để lưu sản phẩm yêu thích.", "info");
-        return;
+    async (productOrId: string | WishlistProduct) => {
+      let targetProduct: WishlistProduct | null = null;
+      let targetId = "";
+
+      if (typeof productOrId === "string") {
+        targetId = productOrId;
+        targetProduct = findProductById(productOrId);
+      } else {
+        targetProduct = productOrId;
+        targetId = productOrId.productId || productOrId.id;
       }
 
-      setTogglingId(productId);
+      setTogglingId(targetId);
 
-      try {
-        const res = await fetch("/api/wishlist", {
+      const currentlySaved = items.some(
+        (item) => item.productId === targetId || item.id === targetId || item.slug === targetId
+      );
+
+      let newItems: WishlistProduct[];
+
+      if (currentlySaved) {
+        newItems = items.filter(
+          (item) => item.productId !== targetId && item.id !== targetId && item.slug !== targetId
+        );
+        showToast("Đã xóa sản phẩm khỏi danh sách yêu thích.", "info");
+      } else {
+        const itemToAdd = targetProduct || {
+          id: targetId,
+          productId: targetId,
+          name: "Sản phẩm Electrolux",
+          slug: targetId,
+          image: "/electrolux_logo.svg",
+          price: 0,
+          oldPrice: 0,
+        };
+        newItems = [itemToAdd, ...items];
+        showToast("Đã thêm sản phẩm vào danh sách yêu thích!", "success");
+      }
+
+      setItems(newItems);
+      saveLocalItems(newItems);
+
+      // If user is logged in, sync with API in background
+      if (session?.user?.id && targetId) {
+        try {
+          await fetch("/api/wishlist", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId: targetId }),
+          });
+        } catch (error) {
+          console.warn("Background API wishlist sync failed:", error);
+        }
+      }
+
+      setTogglingId(null);
+    },
+    [items, session?.user?.id, showToast]
+  );
+
+  const removeItem = useCallback(
+    (productId: string) => {
+      const updated = items.filter(
+        (item) => item.productId !== productId && item.id !== productId && item.slug !== productId
+      );
+      setItems(updated);
+      saveLocalItems(updated);
+      showToast("Đã xóa sản phẩm khỏi danh sách yêu thích.", "info");
+
+      if (session?.user?.id) {
+        void fetch("/api/wishlist", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ productId }),
         });
-
-        const data = await parseJsonResponse(res);
-        if (!res.ok) {
-          throw new Error(data?.message || "Không thể cập nhật wishlist");
-        }
-
-        showToast(data.message || "Đã cập nhật danh sách yêu thích.", "success");
-        await refreshWishlist();
-      } catch (error) {
-        console.error("Toggle wishlist failed:", error);
-        showToast(error instanceof Error ? error.message : "Lỗi cập nhật wishlist.", "error");
-      } finally {
-        setTogglingId(null);
       }
     },
-    [session?.user?.id, refreshWishlist, showToast]
+    [items, session?.user?.id, showToast]
   );
 
   const isSaved = useCallback(
-    (productId: string) => items.some((item) => item.productId === productId),
+    (productId: string) =>
+      items.some(
+        (item) => item.productId === productId || item.id === productId || item.slug === productId
+      ),
     [items]
   );
 
@@ -152,8 +236,9 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       isSaved,
       refreshWishlist,
       toggleWishlist,
+      removeItem,
     }),
-    [items, loading, togglingId, isSaved, refreshWishlist, toggleWishlist]
+    [items, loading, togglingId, isSaved, refreshWishlist, toggleWishlist, removeItem]
   );
 
   return <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>;

@@ -1095,11 +1095,11 @@ export default function Header({ navItems }: HeaderProps) {
                   <div className="mega-menu__circular">
                     {activeSection.items.map(
                       (item) => (
-                        <a
+                        <Link
                           key={
                             item.label
                           }
-                          href="#"
+                          href={categoryRoutes[item.label] ?? "#"}
                           className="mega-menu__circle-item"
                         >
                           <span className="mega-menu__circle-icon">
@@ -1113,7 +1113,7 @@ export default function Header({ navItems }: HeaderProps) {
                               item.label
                             }
                           </span>
-                        </a>
+                        </Link>
                       )
                     )}
                   </div>

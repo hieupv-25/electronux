@@ -10,6 +10,15 @@ export const categoryRoutes: Record<string, string> = {
   "Máy nước nóng": "/thiet-bi/may-nuoc-nong",
   "Máy nước nóng trực tiếp": "/thiet-bi/may-nuoc-nong",
   "Máy nước nóng gián tiếp": "/thiet-bi/may-nuoc-nong-gian-tiep",
+  "Đặt lịch sửa chữa": "/support/book-service",
+  "Đăng ký sản phẩm": "/support/warranty-registration",
+  "Gia hạn bảo hành": "/support/warranty-policy",
+  "Chính sách bảo hành": "/support/warranty-policy",
+  "Hỗ trợ khách hàng": "/support",
+  "Trung tâm hỗ trợ": "/support",
+  "Tư vấn mua hàng": "/support",
+  "Câu hỏi thường gặp": "/support/online-order-faq",
+  "Liên hệ": "/support",
 };
 
 export const hobCategory: CategoryPageData = {
