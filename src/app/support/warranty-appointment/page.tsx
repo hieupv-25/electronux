@@ -42,7 +42,7 @@ export default function WarrantyAppointmentPage() {
   return (
     <>
       <Header navItems={navItems} />
-      <main>
+      <main className="appointment-shell">
         <section className="hero">
           <div className="wrap">
             <a href="/support">← Hỗ trợ</a>
@@ -51,7 +51,7 @@ export default function WarrantyAppointmentPage() {
           </div>
         </section>
 
-        <section className="section">
+        <section className="appointment-page section">
           <div className="wrap narrow">
             {result ? (
               <div className="success">
@@ -104,7 +104,7 @@ export default function WarrantyAppointmentPage() {
         </section>
       </main>
       <Footer footerSections={footerSections} />
-      <style jsx>{styles}</style>
+      <style>{styles}</style>
     </>
   );
 }
@@ -118,5 +118,67 @@ function Check({ children, checked, onChange, required = false }: { children: Re
 }
 
 const styles = `
-  .wrap{max-width:1120px;margin:auto}.narrow{max-width:820px}.hero{background:#011e41;color:white;padding:52px 24px}.hero a{color:#bfd1e6;text-decoration:none}.hero h1{font-size:clamp(2rem,4vw,3rem);margin:18px 0 10px}.hero p{max-width:720px;line-height:1.65;color:#d7e1ec}.section{padding:54px 24px;background:#f6f7f8}.form,.success{background:white;border-radius:8px;padding:clamp(24px,5vw,48px);box-shadow:0 8px 30px rgba(1,30,65,.08)}h2{color:#011e41;margin:0 0 20px}form h2:not(:first-child){margin-top:36px}.grid{display:grid;gap:18px}.two{grid-template-columns:repeat(2,1fr)}.three{grid-template-columns:repeat(3,1fr)}.field{display:block;margin-bottom:18px}.field span{display:block;font-weight:650;color:#011e41;margin-bottom:7px}.field :global(input),.field :global(select),.field :global(textarea){width:100%;box-sizing:border-box;border:1px solid #aeb8c5;border-radius:4px;padding:12px;font:inherit;color:#011e41;background:white}.field :global(textarea){resize:vertical}.consents{border-top:1px solid #dce1e7;margin-top:28px;padding-top:22px;color:#36465a}.check-row{display:flex;gap:10px;align-items:flex-start;margin:11px 0;line-height:1.45}.check-row :global(input){margin-top:4px}.check-row :global(a){color:#011e41}.actions{display:flex;justify-content:flex-end;gap:12px;margin-top:28px}button{background:#011e41;color:white;border:2px solid #011e41;border-radius:4px;padding:12px 24px;font-weight:700;cursor:pointer}button:disabled{opacity:.6}.secondary{background:white;color:#011e41}.error{background:#fff1f1;color:#a71919;padding:12px;border-radius:4px}.honeypot{position:absolute;left:-9999px}.success{text-align:center}.success .check{width:70px;height:70px;border-radius:50%;display:grid;place-items:center;margin:0 auto 20px;background:#e5f4e9;color:#237a38;font-size:38px}.success strong{color:#011e41}@media(max-width:700px){.two,.three{grid-template-columns:1fr}.actions{flex-direction:column-reverse}.actions button{width:100%}}
+  .appointment-shell .wrap { width: 100%; max-width: 1120px; margin: 0 auto; box-sizing: border-box; }
+  .appointment-shell .hero { background: #011e41; color: #fff; padding: 52px 24px 48px; }
+  .appointment-shell .hero a { color: #c9d9eb; text-decoration: none; font-weight: 600; }
+  .appointment-shell .hero h1 { font-size: clamp(2rem, 4vw, 2.65rem); line-height: 1.15; margin: 18px 0 11px; }
+  .appointment-shell .hero p { max-width: 760px; margin: 0; line-height: 1.65; color: #dce7f3; }
+
+  .appointment-page { padding: 52px 24px 80px; background: #f4f6f8; }
+  .appointment-page .narrow { max-width: 900px; }
+  .appointment-page .form,
+  .appointment-page .success { box-sizing: border-box; background: #fff; border: 1px solid #d5dce5; border-radius: 10px; padding: 38px 42px 42px; box-shadow: 0 8px 28px rgba(1, 30, 65, .08); }
+  .appointment-page .form h2 { position: relative; color: #011e41; font-size: 1.35rem; margin: 0 0 24px; padding: 0 0 12px; border-bottom: 1px solid #dce2e8; }
+  .appointment-page .form h2::after { content: ""; position: absolute; bottom: -1px; left: 0; width: 54px; height: 3px; background: #0067b9; }
+  .appointment-page .form h2:not(:first-child) { margin-top: 38px; }
+  .appointment-page .grid { display: grid; gap: 0 22px; }
+  .appointment-page .two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .appointment-page .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .appointment-page .field { display: block; margin-bottom: 21px; }
+  .appointment-page .field > span { display: block; margin-bottom: 8px; color: #17375e; font-size: .92rem; font-weight: 700; }
+  .appointment-page .field input,
+  .appointment-page .field select,
+  .appointment-page .field textarea { width: 100%; min-height: 50px; box-sizing: border-box; border: 2px solid #aeb9c7; border-radius: 6px; padding: 12px 14px; background: #fff; color: #011e41; font: inherit; transition: border-color .18s ease, box-shadow .18s ease, background .18s ease; }
+  .appointment-page .field textarea { min-height: 132px; resize: vertical; line-height: 1.55; }
+  .appointment-page .field input::placeholder,
+  .appointment-page .field textarea::placeholder { color: #738195; opacity: 1; }
+  .appointment-page .field input:hover,
+  .appointment-page .field select:hover,
+  .appointment-page .field textarea:hover { border-color: #78879a; }
+  .appointment-page .field input:focus,
+  .appointment-page .field select:focus,
+  .appointment-page .field textarea:focus { outline: 0; border-color: #0067b9; box-shadow: 0 0 0 3px rgba(0, 103, 185, .16); background: #fbfdff; }
+  .appointment-page .consents { margin-top: 10px; padding: 22px 24px; border: 1px solid #d6dde6; border-radius: 7px; background: #f8fafc; color: #36465a; }
+  .appointment-page .consents > p { margin: 22px 0 10px; color: #17375e; font-weight: 700; }
+  .appointment-page .check-row { display: flex; gap: 11px; align-items: flex-start; margin: 12px 0; line-height: 1.5; }
+  .appointment-page .check-row input { width: 19px; height: 19px; margin: 2px 0 0; flex: 0 0 19px; accent-color: #011e41; }
+  .appointment-page .check-row a { color: #011e41; font-weight: 700; }
+  .appointment-page .actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; }
+  .appointment-page button { min-width: 170px; min-height: 50px; padding: 11px 25px; border: 2px solid #011e41; border-radius: 5px; background: #011e41; color: #fff; font-weight: 750; cursor: pointer; transition: background .18s ease, border-color .18s ease; }
+  .appointment-page button:hover:not(:disabled) { background: #06376e; border-color: #06376e; }
+  .appointment-page button:focus-visible { outline: 3px solid rgba(0, 103, 185, .3); outline-offset: 2px; }
+  .appointment-page button:disabled { opacity: .5; cursor: not-allowed; }
+  .appointment-page .secondary { background: #fff; color: #011e41; }
+  .appointment-page .secondary:hover:not(:disabled) { color: #fff; }
+  .appointment-page .error { margin: 22px 0 0; padding: 14px 16px; border: 1px solid #f4a9ae; border-left: 5px solid #b91c1c; border-radius: 6px; background: #fff1f2; color: #991b1b; font-weight: 600; }
+  .appointment-page .honeypot { position: absolute; left: -9999px; }
+  .appointment-page .success { text-align: center; }
+  .appointment-page .success h2 { color: #011e41; margin: 0 0 16px; }
+  .appointment-page .success p { color: #46576b; line-height: 1.6; }
+  .appointment-page .success .check { width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 22px; background: #e5f4e9; color: #237a38; font-size: 40px; }
+  .appointment-page .success strong { color: #011e41; }
+
+  @media (max-width: 760px) {
+    .appointment-shell .hero { padding: 38px 20px 34px; }
+    .appointment-shell .hero h1 { font-size: 1.8rem; }
+    .appointment-page { padding: 34px 14px 56px; }
+    .appointment-page .form,
+    .appointment-page .success { padding: 27px 18px 30px; border-radius: 8px; }
+    .appointment-page .two,
+    .appointment-page .three { grid-template-columns: 1fr; }
+    .appointment-page .form h2:not(:first-child) { margin-top: 30px; }
+    .appointment-page .consents { padding: 19px 16px; }
+    .appointment-page .actions { flex-direction: column-reverse; }
+    .appointment-page .actions button { width: 100%; }
+  }
 `;
