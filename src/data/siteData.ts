@@ -270,10 +270,9 @@ export const megaMenu: Record<string, MegaMenuSection> = {
   "Dịch vụ": {
     layout: "circular",
     items: [
-      { label: "Dịch vụ bảo dưỡng", icon: "tools", href: "/support/maintenance" },
-      { label: "Sửa chữa giá cố định", icon: "toolbox", href: "/support/fixed-price-repair" },
-      { label: "Gia hạn bảo hành", icon: "shield", href: "/support/warranty-extension" },
-      { label: "Đặt lịch sửa chữa", icon: "calendar", href: "/support/book-service" },
+      { label: "Dịch vụ bảo dưỡng", icon: "tools", href: "/services/maintenance" },
+      { label: "Sửa chữa giá cố định", icon: "toolbox", href: "/services/fixed-price-repair" },
+      { label: "Gia hạn bảo hành", icon: "shield", href: "/services/warranty-extension" },
     ],
   },
   "Hỗ trợ": {
@@ -283,7 +282,8 @@ export const megaMenu: Record<string, MegaMenuSection> = {
       { label: "Chính sách bảo hành", icon: "doc", href: "/support/warranty-policy" },
       { label: "Xử lý sự cố", icon: "toolbox", href: "/support/troubleshooting" },
       { label: "Câu hỏi thường gặp", icon: "clipboard", href: "/support/online-order-faq" },
-      { label: "Đăng ký bảo hành", icon: "shield", href: "/support/warranty-registration" },
+      { label: "Đăng ký sản phẩm", icon: "shield", href: "/support/product-registration" },
+      { label: "Đặt lịch bảo hành", icon: "calendar", href: "/support/warranty-appointment" },
       { label: "Liên hệ", icon: "phoneCircle", href: "/support" },
     ],
   },

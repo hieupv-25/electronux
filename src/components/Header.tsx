@@ -43,7 +43,7 @@ type HeaderProps = {
 function getNavHref(item: string) {
   const routes: Record<string, string> = {
     "Sản phẩm": "/thiet-bi/may-giat",
-    "Dịch vụ": "/support",
+    "Dịch vụ": "/services",
     "Hỗ trợ": "/support",
     "Khuyến mại": "/khuyen-mai",
     "Blog": "/blog",

@@ -114,7 +114,7 @@ export default function FixedPriceRepairPage() {
                                     {pkg.name}
                                 </h3>
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", paddingTop: 8 }}>
-                                    <a href="/support/book-service" style={{
+                                    <a href="/support/warranty-appointment" style={{
                                         background: "var(--elx-navy)", color: "#fff", padding: "8px 20px",
                                         borderRadius: 4, fontWeight: 700, fontSize: "0.85rem", textDecoration: "none",
                                         display: "inline-flex", alignItems: "center", gap: 6,
@@ -138,7 +138,7 @@ export default function FixedPriceRepairPage() {
                     <p style={{ color: "#4a5a72", fontSize: "0.95rem", marginBottom: 24 }}>
                         Đặt lịch hẹn ngay hôm nay để kỹ thuật viên Electrolux đến sửa chữa tại nhà với giá cố định, không phát sinh chi phí.
                     </p>
-                    <a href="/support/book-service" style={{
+                    <a href="/support/warranty-appointment" style={{
                         display: "inline-block", background: "var(--elx-navy)", color: "#fff",
                         padding: "14px 36px", borderRadius: 4, fontWeight: 700, fontSize: "1rem", textDecoration: "none",
                     }}>

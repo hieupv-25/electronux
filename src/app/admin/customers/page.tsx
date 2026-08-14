@@ -29,7 +29,8 @@ async function getCustomersData() {
       _count: {
         select: {
           orders: true,
-          serviceRequests: true,
+          warrantyAppointments: true,
+          productRegistrations: true,
           reviews: true,
         },
       },
@@ -115,7 +116,7 @@ export default async function AdminCustomersPage() {
                           {customer._count.orders} đơn hàng
                         </span>
                         <span className="admin-table__secondary">
-                          {customer._count.serviceRequests} dịch vụ - {customer._count.reviews} đánh giá
+                          {customer._count.warrantyAppointments} lịch hẹn - {customer._count.productRegistrations} sản phẩm - {customer._count.reviews} đánh giá
                         </span>
                       </td>
                       <td className="admin-table__strong">

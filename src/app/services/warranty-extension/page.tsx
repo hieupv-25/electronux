@@ -130,7 +130,7 @@ export default function WarrantyExtensionPage() {
                             Hãy đăng ký bảo hành điện tử trước khi mua gia hạn bảo hành để đảm bảo quyền lợi của bạn.
                         </p>
                         <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
-                            <a href="/support/warranty-registration" style={{
+                            <a href="/support/product-registration" style={{
                                 background: "var(--elx-navy)", color: "#fff", padding: "12px 28px",
                                 borderRadius: 4, fontWeight: 700, fontSize: "0.95rem", textDecoration: "none",
                             }}>

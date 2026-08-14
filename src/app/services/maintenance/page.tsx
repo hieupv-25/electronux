@@ -90,7 +90,7 @@ export default function MaintenancePage() {
                                 </h3>
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto", paddingTop: 8 }}>
                                     <span style={{ fontSize: "1.3rem", fontWeight: 800, color: "var(--elx-navy)" }}>{pkg.price}</span>
-                                    <a href="/support/book-service" style={{
+                                    <a href="/support/warranty-appointment" style={{
                                         background: "var(--elx-navy)", color: "#fff", padding: "8px 20px",
                                         borderRadius: 4, fontWeight: 700, fontSize: "0.85rem", textDecoration: "none",
                                         display: "inline-flex", alignItems: "center", gap: 6,
@@ -112,7 +112,7 @@ export default function MaintenancePage() {
                         Lưu ý: Giá dịch vụ đã bao gồm công lao động và hóa chất vệ sinh. Phụ kiện thay thế (nếu cần) sẽ được báo giá riêng.
                         Dịch vụ được thực hiện bởi kỹ thuật viên Electrolux chính hãng.
                     </p>
-                    <a href="/support/book-service" style={{
+                    <a href="/support/warranty-appointment" style={{
                         display: "inline-block", background: "var(--elx-navy)", color: "#fff",
                         padding: "14px 36px", borderRadius: 4, fontWeight: 700, fontSize: "1rem", textDecoration: "none",
                     }}>
