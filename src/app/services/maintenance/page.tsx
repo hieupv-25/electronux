@@ -44,7 +44,7 @@ async function getMaintenanceServices(): Promise<MaintenanceServiceItem[]> {
         name: product.name,
         slug: product.slug,
         price: Number(variant.price),
-        imageUrl: product.images[0]?.url || "/icon-washing-machine.svg",
+        imageUrl: product.images[0]?.url || "/dichvubaoduong.jpg",
       }];
     });
 
