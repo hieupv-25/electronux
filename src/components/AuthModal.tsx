@@ -21,6 +21,16 @@ type EyeButtonProps = {
 
 const credentialErrorMessage = "Email hoặc mật khẩu không đúng.";
 
+const customerCallbackUrl = "/?view=customer";
+
+type CallbackUrlOptions = {
+  customerFallbackForAdmin?: boolean;
+};
+
+function isAdminCallbackUrl(value: string) {
+  return value === "/admin" || value.startsWith("/admin/") || value.startsWith("/admin?");
+}
+
 function EyeButton({ show, onToggle }: EyeButtonProps) {
   return (
     <button
@@ -89,7 +99,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
 
   const [forgotEmail, setForgotEmail] = useState("");
 
-  const getCallbackUrl = () => {
+  const getCallbackUrl = (options: CallbackUrlOptions = {}) => {
     if (typeof window === "undefined") {
       return "/";
     }
@@ -98,7 +108,16 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
     const nextUrl = url.searchParams.get("next");
 
     if (nextUrl?.startsWith("/") && !nextUrl.startsWith("//")) {
+      if (options.customerFallbackForAdmin && isAdminCallbackUrl(nextUrl)) {
+        return customerCallbackUrl;
+      }
+
       return nextUrl;
+    }
+
+    const currentPath = `${url.pathname}${url.search}`;
+    if (options.customerFallbackForAdmin && isAdminCallbackUrl(currentPath)) {
+      return customerCallbackUrl;
     }
 
     return window.location.href;
@@ -149,7 +168,9 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
       }
 
       setLoading(true);
-      await signIn(provider, { callbackUrl: getCallbackUrl() });
+      await signIn(provider, {
+        callbackUrl: getCallbackUrl({ customerFallbackForAdmin: true }),
+      });
     } catch {
       showToast(`Không thể khởi tạo đăng nhập bằng ${label}. Vui lòng thử lại.`, "error");
     } finally {
@@ -158,12 +179,13 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
   };
 
   const refreshSessionAndClose = async () => {
-    await update();
+    const nextSession = await update();
     handleClose();
+    return nextSession;
   };
 
-  const redirectAfterAuth = () => {
-    const callbackUrl = getCallbackUrl();
+  const redirectAfterAuth = (options: CallbackUrlOptions = {}) => {
+    const callbackUrl = getCallbackUrl(options);
 
     if (
       typeof window !== "undefined" &&
@@ -191,9 +213,11 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
         return;
       }
 
-      await refreshSessionAndClose();
+      const nextSession = await refreshSessionAndClose();
       showToast("Đăng nhập thành công! Chào mừng bạn quay trở lại.", "success");
-      redirectAfterAuth();
+      redirectAfterAuth({
+        customerFallbackForAdmin: nextSession?.user?.role !== "admin",
+      });
     } catch {
       setGlobalError("Đã xảy ra lỗi kết nối. Vui lòng thử lại.");
     } finally {
@@ -254,7 +278,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }: Pr
 
       await refreshSessionAndClose();
       showToast(`Chào mừng ${regFirstName.trim()}! Tài khoản đã được tạo thành công.`, "success");
-      redirectAfterAuth();
+      redirectAfterAuth({ customerFallbackForAdmin: true });
     } catch {
       setGlobalError("Đã xảy ra lỗi kết nối. Vui lòng thử lại.");
     } finally {
