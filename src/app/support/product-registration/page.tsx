@@ -118,6 +118,127 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function Check({ checked, onChange, children }: { checked: boolean; onChange: (value: boolean) => void; children: React.ReactNode }) { return <label className="check"><input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)}/><span>{children}</span></label>; }
 
 const styles = `
-  .registration-shell .hero{background:#011e41;color:white;padding:48px 30px 40px}.registration-shell .hero>div{max-width:1100px;margin:auto}.registration-shell .hero a{color:#a0c0e0;text-decoration:none}.registration-shell .hero h1{font-size:2rem;margin:16px 0 10px}.registration-shell .hero p{color:#ccd6e8;margin-bottom:0}
-  .registration-page{padding:56px 24px 72px}.registration-page .form-wrap{width:100%;max-width:760px;margin:0 auto}.registration-page .steps{display:flex;justify-content:center;align-items:center;margin-bottom:48px}.registration-page .step-item{display:flex;align-items:center}.registration-page .step-item>div{display:flex;flex-direction:column;align-items:center;gap:7px}.registration-page .step-item b{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#e0e6ed;color:#7a8a9c}.registration-page .step-item b.active{background:#011e41;color:white}.registration-page .step-item span{font-size:.82rem;color:#7a8a9c;white-space:nowrap}.registration-page .step-item span.current{color:#011e41;font-weight:700}.registration-page .step-item i{width:92px;height:2px;background:#e0e6ed;margin:0 12px 25px}.registration-page .step-item i.done{background:#011e41}.registration-page .pane{width:100%}.registration-page .pane h2{color:#011e41;font-size:1.4rem;margin:0 0 8px}.registration-page .intro{color:#526174;margin:0 0 24px}.registration-page .pane label>span,.registration-page .field>span{display:block;margin-bottom:7px;font-weight:650;color:#011e41;font-size:.9rem}.registration-page .pane input,.registration-page .pane select{width:100%;min-height:48px;box-sizing:border-box;padding:12px 15px;border:1px solid #b9c2cd;border-radius:4px;font:inherit;color:#011e41;background:white}.registration-page .pane input:focus,.registration-page .pane select:focus{outline:2px solid rgba(1,30,65,.15);border-color:#011e41}.registration-page .model-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:stretch}.registration-page .pane button,.registration-page .success button,.registration-page .success .outline{min-height:48px;background:#011e41;color:white;border:2px solid #011e41;padding:11px 24px;border-radius:4px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}.registration-page .pane button:disabled{opacity:.5;cursor:not-allowed}.registration-page .next{width:100%;margin-top:26px}.registration-page .results{display:grid;gap:9px;margin-top:14px}.registration-page .results button{display:grid;grid-template-columns:125px minmax(0,1fr);text-align:left;gap:15px;background:white;color:#011e41;border:1px solid #c7d0db;white-space:normal;justify-content:stretch}.registration-page .results button:hover{border-color:#011e41;background:#f6f8fa}.registration-page .results button span{font-weight:400}.registration-page .selected{background:#eef4fb;border-left:4px solid #011e41;padding:15px 17px;margin-top:18px}.registration-page .selected span,.registration-page .selected b{display:block}.registration-page .selected p{margin:5px 0 0}.registration-page .grid{display:grid;gap:0 20px}.registration-page .two{grid-template-columns:1fr 1fr}.registration-page .field{display:block;margin-bottom:19px}.registration-page .button-row{display:flex;gap:12px;margin-top:28px}.registration-page .button-row>*{flex:1}.registration-page .button-row .outline,.registration-page .success .outline{background:white;color:#011e41}.registration-page .summary{border:1px solid #d8dee6;border-radius:8px;padding:26px 28px}.registration-page .summary h3{color:#011e41;margin-top:0}.registration-page .summary h3:nth-of-type(2){margin-top:24px}.registration-page .summary p{color:#3f4e60;margin:10px 0}.registration-page .consents{margin-top:24px}.registration-page .check{display:flex;gap:11px;align-items:flex-start;margin:13px 0;line-height:1.5;color:#3f4e60}.registration-page .check input{width:17px;min-height:auto;margin:3px 0 0;flex:0 0 17px}.registration-page .check a{color:#011e41;font-weight:700}.registration-page .marketing{display:flex;gap:24px;flex-wrap:wrap}.registration-page .error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;padding:13px 16px;border-radius:6px;margin-bottom:24px}.registration-page .uploaded{color:#237a38;font-weight:700}.registration-page .honeypot{position:absolute;left:-9999px}.registration-page .success{text-align:center;padding:42px 24px}.registration-page .success-icon{width:80px;height:80px;border-radius:50%;background:#e8f5e9;color:#2e7d32;display:grid;place-items:center;margin:0 auto 24px;font-size:40px}.registration-page .success h2,.registration-page .success>strong{color:#011e41}.registration-page .code{display:inline-flex;flex-direction:column;background:#eef4fb;border:1px solid #c5d8ef;border-radius:8px;padding:16px 32px;margin:24px}.registration-page .code span{font-size:.78rem;text-transform:uppercase;color:#7a8a9c}.registration-page .code b{color:#011e41;font-size:1.45rem;letter-spacing:2px;margin-top:5px}@media(max-width:700px){.registration-page{padding:38px 18px 56px}.registration-page .step-item i{width:28px;margin-inline:6px}.registration-page .step-item span{font-size:.67rem}.registration-page .two{grid-template-columns:1fr}.registration-page .model-row{grid-template-columns:1fr}.registration-page .button-row{flex-direction:column-reverse}.registration-page .marketing{flex-direction:column;gap:0}.registration-page .results button{grid-template-columns:1fr;gap:3px}.registration-page .code{margin-inline:0}.registration-page .success{padding-inline:0}}
+  .registration-shell .hero {
+    background: #011e41;
+    color: #fff;
+    padding: 52px 30px 46px;
+  }
+  .registration-shell .hero > div { max-width: 1100px; margin: auto; }
+  .registration-shell .hero a { color: #c9d9eb; text-decoration: none; font-weight: 600; }
+  .registration-shell .hero h1 { font-size: clamp(2rem, 4vw, 2.65rem); margin: 18px 0 10px; line-height: 1.15; }
+  .registration-shell .hero p { max-width: 720px; color: #dce7f3; margin: 0; line-height: 1.6; }
+
+  .registration-page { padding: 52px 24px 80px; background: #f4f6f8; }
+  .registration-page .form-wrap { width: 100%; max-width: 820px; margin: 0 auto; }
+  .registration-page .steps { display: flex; justify-content: center; align-items: center; margin: 0 auto 34px; }
+  .registration-page .step-item { display: flex; align-items: center; }
+  .registration-page .step-item > div { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .registration-page .step-item b { width: 42px; height: 42px; border: 2px solid #cbd4de; border-radius: 50%; display: grid; place-items: center; background: #fff; color: #64748b; }
+  .registration-page .step-item b.active { border-color: #011e41; background: #011e41; color: #fff; }
+  .registration-page .step-item span { font-size: .82rem; color: #687789; white-space: nowrap; }
+  .registration-page .step-item span.current { color: #011e41; font-weight: 750; }
+  .registration-page .step-item i { width: 100px; height: 2px; background: #cbd4de; margin: 0 14px 26px; }
+  .registration-page .step-item i.done { background: #011e41; }
+
+  .registration-page .pane,
+  .registration-page .success {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 36px 40px 40px;
+    border: 1px solid #d5dce5;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 8px 28px rgba(1, 30, 65, .08);
+  }
+  .registration-page .pane h2 { color: #011e41; font-size: 1.55rem; margin: 0 0 10px; }
+  .registration-page .intro { color: #526174; margin: 0 0 28px; line-height: 1.55; }
+  .registration-page .pane label > span,
+  .registration-page .field > span { display: block; margin-bottom: 8px; font-weight: 700; color: #17375e; font-size: .92rem; }
+  .registration-page .pane input,
+  .registration-page .pane select {
+    width: 100%;
+    min-height: 50px;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 2px solid #aeb9c7;
+    border-radius: 6px;
+    background: #fff;
+    color: #011e41;
+    font: inherit;
+    transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+  }
+  .registration-page .pane input::placeholder { color: #738195; opacity: 1; }
+  .registration-page .pane input:hover,
+  .registration-page .pane select:hover { border-color: #78879a; }
+  .registration-page .pane input:focus,
+  .registration-page .pane select:focus { outline: 0; border-color: #0067b9; box-shadow: 0 0 0 3px rgba(0, 103, 185, .16); background: #fbfdff; }
+  .registration-page .pane input[type="file"] { min-height: 54px; padding: 8px; background: #f8fafc; }
+  .registration-page .pane input[type="file"]::file-selector-button { height: 34px; margin-right: 12px; padding: 0 14px; border: 1px solid #8795a8; border-radius: 4px; background: #fff; color: #011e41; font-weight: 700; cursor: pointer; }
+  .registration-page .model-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: stretch; }
+  .registration-page .pane button,
+  .registration-page .success button,
+  .registration-page .success .outline { min-height: 50px; background: #011e41; color: #fff; border: 2px solid #011e41; padding: 11px 25px; border-radius: 5px; font-weight: 750; cursor: pointer; text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; }
+  .registration-page .pane button:hover:not(:disabled),
+  .registration-page .success button:hover { background: #06376e; border-color: #06376e; }
+  .registration-page .pane button:focus-visible,
+  .registration-page .success a:focus-visible { outline: 3px solid rgba(0, 103, 185, .3); outline-offset: 2px; }
+  .registration-page .pane button:disabled { opacity: .45; cursor: not-allowed; }
+  .registration-page .next { width: 100%; margin-top: 28px; }
+  .registration-page .results { display: grid; gap: 10px; margin-top: 16px; }
+  .registration-page .results button { display: grid; grid-template-columns: 125px minmax(0, 1fr); text-align: left; gap: 15px; background: #fff; color: #011e41; border: 2px solid #c7d0db; white-space: normal; justify-content: stretch; }
+  .registration-page .results button:hover { border-color: #011e41; background: #f3f7fb; }
+  .registration-page .results button span { font-weight: 400; }
+  .registration-page .selected { background: #edf6ff; border: 1px solid #b6d3ee; border-left: 5px solid #0067b9; border-radius: 4px; padding: 16px 18px; margin-top: 18px; }
+  .registration-page .selected span,
+  .registration-page .selected b { display: block; }
+  .registration-page .selected span { color: #526174; font-size: .84rem; margin-bottom: 4px; }
+  .registration-page .selected p { margin: 5px 0 0; color: #334155; }
+  .registration-page .grid { display: grid; gap: 0 22px; }
+  .registration-page .two { grid-template-columns: 1fr 1fr; }
+  .registration-page .field { display: block; margin-bottom: 21px; }
+  .registration-page .button-row { display: flex; gap: 12px; margin-top: 30px; }
+  .registration-page .button-row > * { flex: 1; }
+  .registration-page .button-row .outline,
+  .registration-page .success .outline { background: #fff; color: #011e41; }
+  .registration-page .button-row .outline:hover { color: #fff; }
+  .registration-page .summary { border: 1px solid #ccd5df; border-radius: 7px; padding: 26px 28px; background: #f8fafc; }
+  .registration-page .summary h3 { color: #011e41; margin: 0 0 12px; padding-bottom: 9px; border-bottom: 1px solid #dce2e8; }
+  .registration-page .summary h3:nth-of-type(2) { margin-top: 26px; }
+  .registration-page .summary p { color: #3f4e60; margin: 10px 0; }
+  .registration-page .consents { margin-top: 26px; padding: 20px 22px; border: 1px solid #d8dee6; border-radius: 7px; }
+  .registration-page .check { display: flex; gap: 11px; align-items: flex-start; margin: 13px 0; line-height: 1.5; color: #3f4e60; }
+  .registration-page .check input { width: 19px; height: 19px; min-height: auto; margin: 2px 0 0; flex: 0 0 19px; accent-color: #011e41; }
+  .registration-page .check a { color: #011e41; font-weight: 700; }
+  .registration-page .marketing { display: flex; gap: 24px; flex-wrap: wrap; }
+  .registration-page .error { background: #fff1f2; border: 1px solid #f4a9ae; border-left: 5px solid #b91c1c; color: #991b1b; padding: 14px 16px; border-radius: 6px; margin-bottom: 22px; font-weight: 600; }
+  .registration-page .uploaded { color: #237a38; font-weight: 700; }
+  .registration-page .honeypot { position: absolute; left: -9999px; }
+  .registration-page .success { text-align: center; }
+  .registration-page .success-icon { width: 80px; height: 80px; border-radius: 50%; background: #e8f5e9; color: #2e7d32; display: grid; place-items: center; margin: 0 auto 24px; font-size: 40px; }
+  .registration-page .success h2,
+  .registration-page .success > strong { color: #011e41; }
+  .registration-page .code { display: inline-flex; flex-direction: column; background: #eef4fb; border: 1px solid #c5d8ef; border-radius: 8px; padding: 16px 32px; margin: 24px; }
+  .registration-page .code span { font-size: .78rem; text-transform: uppercase; color: #7a8a9c; }
+  .registration-page .code b { color: #011e41; font-size: 1.45rem; letter-spacing: 2px; margin-top: 5px; }
+
+  @media (max-width: 700px) {
+    .registration-shell .hero { padding: 38px 20px 34px; }
+    .registration-shell .hero h1 { font-size: 1.8rem; }
+    .registration-page { padding: 34px 14px 56px; }
+    .registration-page .steps { margin-bottom: 26px; }
+    .registration-page .step-item b { width: 36px; height: 36px; }
+    .registration-page .step-item i { width: 24px; margin-inline: 5px; margin-bottom: 24px; }
+    .registration-page .step-item span { max-width: 78px; font-size: .66rem; text-align: center; white-space: normal; line-height: 1.25; }
+    .registration-page .pane,
+    .registration-page .success { padding: 26px 18px 30px; border-radius: 8px; }
+    .registration-page .two,
+    .registration-page .model-row { grid-template-columns: 1fr; }
+    .registration-page .model-row { gap: 10px; }
+    .registration-page .button-row { flex-direction: column-reverse; }
+    .registration-page .marketing { flex-direction: column; gap: 0; }
+    .registration-page .results button { grid-template-columns: 1fr; gap: 3px; }
+    .registration-page .summary,
+    .registration-page .consents { padding: 20px 16px; }
+    .registration-page .code { margin-inline: 0; padding-inline: 20px; }
+  }
 `;
