@@ -65,16 +65,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, registrationCode: createReferenceCode("ELX") });
     }
 
+    const legacyFullName = `${cleanText(body.lastName, 80)} ${cleanText(body.firstName, 80)}`.trim();
     const data = {
       productId: cleanText(body.productId, 64),
       productName: cleanText(body.productName, 200),
       model: cleanText(body.model, 100),
       pnc: cleanText(body.pnc, 100),
       customerType: body.customerType === "business" ? "business" : "individual",
-      salutation: cleanText(body.salutation, 30),
-      firstName: cleanText(body.firstName, 80),
-      lastName: cleanText(body.lastName, 80),
-      dateOfBirth: body.dateOfBirth ? parseDate(body.dateOfBirth) : null,
+      fullName: cleanText(body.fullName, 160) || legacyFullName,
       phone: cleanText(body.phone, 30),
       email: normalizeEmail(body.email),
       serialNumber: cleanText(body.serialNumber, 100),
@@ -89,7 +87,7 @@ export async function POST(req: NextRequest) {
       warrantyConsent: body.warrantyConsent === true,
     };
 
-    if (!data.productId || !data.model || !data.productName || !data.firstName || !data.lastName || !data.phone || !data.email || !data.purchaseDate) {
+    if (!data.productId || !data.model || !data.productName || !data.fullName || !data.phone || !data.email || !data.purchaseDate) {
       return NextResponse.json({ error: "Vui lòng chọn sản phẩm và điền đầy đủ các trường bắt buộc." }, { status: 400 });
     }
     if (!data.privacyConsent || !data.warrantyConsent) {
@@ -116,11 +114,11 @@ export async function POST(req: NextRequest) {
         model: data.model,
         pnc: data.pnc || data.model,
         customerType: data.customerType,
-        salutation: data.salutation || null,
-        customerName: `${data.lastName} ${data.firstName}`,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        dateOfBirth: data.dateOfBirth,
+        salutation: null,
+        customerName: data.fullName,
+        firstName: null,
+        lastName: null,
+        dateOfBirth: null,
         phone: data.phone,
         email: data.email,
         serialNumber: data.serialNumber || null,
@@ -140,7 +138,7 @@ export async function POST(req: NextRequest) {
     const mailConfig = getMailConfig();
     if (mailConfig) {
       const transporter = nodemailer.createTransport({ service: "gmail", auth: { user: mailConfig.user, pass: mailConfig.pass } });
-      const fullName = `${data.lastName} ${data.firstName}`;
+      const fullName = data.fullName;
       const [customerResult] = await Promise.allSettled([
         transporter.sendMail({
           from: `"Electrolux Việt Nam" <${mailConfig.user}>`,
