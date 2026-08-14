@@ -1,20 +1,41 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import ServiceBanner from "@/components/ServiceBanner";
 import Breadcrumb from "@/components/Breadcrumb";
 import CategoryHero from "@/components/CategoryHero";
 import CategoryListing from "@/components/category/CategoryListing";
 import Footer from "@/components/Footer";
-import { dehumidifierCategory } from "@/data/categories";
+import { getCategoryBySlug, ALL_CATEGORIES } from "@/lib/getCategoryData";
 import { navItems, services, footerSections } from "@/data/siteData";
 
-export const metadata: Metadata = {
-  title: dehumidifierCategory.title,
-  description: dehumidifierCategory.description,
-};
+interface PageProps {
+  params: Promise<{ categorySlug: string }>;
+}
 
-export default function MayHutAmPage() {
-  const category = dehumidifierCategory;
+export async function generateStaticParams() {
+  return ALL_CATEGORIES.map((cat) => ({
+    categorySlug: cat.slug,
+  }));
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { categorySlug } = await params;
+  const category = getCategoryBySlug(categorySlug);
+  if (!category) return { title: "Danh mục không tồn tại | Electrolux Việt Nam" };
+  return {
+    title: `${category.title}`,
+    description: category.description,
+  };
+}
+
+export default async function CategoryPage({ params }: PageProps) {
+  const { categorySlug } = await params;
+  const category = getCategoryBySlug(categorySlug);
+
+  if (!category) {
+    notFound();
+  }
 
   return (
     <>
