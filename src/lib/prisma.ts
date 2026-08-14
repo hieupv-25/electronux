@@ -8,7 +8,7 @@ const globalForPrisma = globalThis as unknown as {
 import pg from "pg";
 
 function createPrismaClient() {
-  const rawUrl = process.env.DIRECT_URL ?? process.env.DATABASE_URL!;
+  const rawUrl = process.env.DIRECT_URL ?? process.env.DATABASE_URL ?? "";
   const connectionString = rawUrl.replace(/[?&]sslmode=[^&]+/g, "");
   const pool = new pg.Pool({
     connectionString,

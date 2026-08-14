@@ -161,17 +161,25 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
-    const existingSessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value;
-    const sessionId = existingSessionId || randomUUID();
-    const key = getSessionKey(userId, sessionId);
+
+    if (!userId) {
+      return NextResponse.json({
+        id: "cart-guest",
+        userId: null,
+        items: [],
+        subtotal: 0,
+        savings: 0,
+        total: 0,
+      });
+    }
 
     let items: MemoryCartItem[] = [];
     let dbFound = false;
 
     // Try DB first
     try {
-      const dbCart = await prisma.cart.findFirst({
-        where: userId ? { userId } : { sessionId },
+      let dbCart = await prisma.cart.findFirst({
+        where: { userId },
         include: {
           items: {
             include: {
@@ -186,6 +194,25 @@ export async function GET(req: NextRequest) {
           },
         },
       });
+
+      if (!dbCart) {
+        dbCart = await prisma.cart.create({
+          data: { userId },
+          include: {
+            items: {
+              include: {
+                variant: {
+                  include: {
+                    product: {
+                      include: { images: { orderBy: { order: "asc" } } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
 
       if (dbCart) {
         dbFound = true;
@@ -227,7 +254,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (!dbFound || items.length === 0) {
-      const memItems = getMemoryCart(key);
+      const memItems = getMemoryCart(userId);
       if (memItems && memItems.length > 0) {
         items = memItems;
       }
@@ -240,24 +267,19 @@ export async function GET(req: NextRequest) {
     const total = items.reduce((acc, item) => acc + item.variant.price * item.quantity, 0);
     const savings = Math.max(0, subtotal - total);
 
-    const response = NextResponse.json({
-      id: "cart-" + key,
-      userId: userId || null,
-      sessionId,
+    return NextResponse.json({
+      id: "cart-" + userId,
+      userId,
       items,
       subtotal,
       savings,
       total,
     });
-    if (!userId && !existingSessionId) {
-      response.cookies.set("cart_session_id", sessionId, { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" });
-    }
-    return response;
   } catch (error) {
     console.error("GET /api/cart fatal error:", error);
     return NextResponse.json({
-      id: "cart-fallback",
-      items: getMemoryCart("default-session"),
+      id: "cart-empty",
+      items: [],
       subtotal: 0,
       savings: 0,
       total: 0,
@@ -269,9 +291,13 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
-    const existingSessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value;
-    const sessionId = existingSessionId || randomUUID();
-    const key = getSessionKey(userId, sessionId);
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized", message: "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng" },
+        { status: 401 }
+      );
+    }
 
     const body = (await req.json()) as { variantId?: string; quantity?: number };
     const { variantId, quantity = 1 } = body;
@@ -283,11 +309,11 @@ export async function POST(req: NextRequest) {
     // Try DB first
     try {
       let cart = await prisma.cart.findFirst({
-        where: userId ? { userId } : { sessionId: sessionId! },
+        where: { userId },
       });
       if (!cart) {
         cart = await prisma.cart.create({
-          data: userId ? { userId } : { sessionId: sessionId! },
+          data: { userId },
         });
       }
 
@@ -314,7 +340,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Always update memory store as fallback
-    const memCart = getMemoryCart(key);
+    const memCart = getMemoryCart(userId);
     const existingIndex = memCart.findIndex((i) => i.variantId === variantId);
     if (existingIndex > -1) {
       memCart[existingIndex].quantity += Number(quantity);
@@ -341,34 +367,35 @@ export async function POST(req: NextRequest) {
 
       memCart.push({
         id: "item-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7),
-        cartId: "cart-" + key,
+        cartId: "cart-" + userId,
         variantId,
         quantity: Number(quantity),
         variant: variantObj,
       });
     }
 
-    const response = NextResponse.json({ success: true, message: "Đã thêm vào giỏ hàng" });
-    if (!userId && !existingSessionId) {
-      response.cookies.set("cart_session_id", sessionId, { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" });
-    }
-    return response;
+    return NextResponse.json({ success: true, message: "Sản phẩm đã được thêm vào giỏ hàng" });
   } catch (error) {
     console.error("POST /api/cart error:", error);
-    return NextResponse.json({ success: true, message: "Đã thêm vào giỏ hàng" });
+    return NextResponse.json(
+      { success: false, message: "Lỗi server khi thêm vào giỏ hàng" },
+      { status: 500 }
+    );
   }
 }
 
-export async function DELETE(req: NextRequest) {
+export async function DELETE() {
   try {
     const session = await auth();
     const userId = session?.user?.id;
-    const sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value;
-    const key = getSessionKey(userId, sessionId);
+
+    if (!userId) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
 
     try {
       const cart = await prisma.cart.findFirst({
-        where: userId ? { userId } : { sessionId: sessionId || "" },
+        where: { userId },
       });
       if (cart) {
         await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
@@ -377,11 +404,11 @@ export async function DELETE(req: NextRequest) {
       console.warn("DB clear cart error:", e);
     }
 
-    memoryCarts[key] = [];
+    memoryCarts[userId] = [];
 
     return NextResponse.json({ success: true, message: "Đã xóa toàn bộ giỏ hàng" });
   } catch (error) {
     console.error("DELETE /api/cart error:", error);
-    return NextResponse.json({ success: true, message: "Đã xóa toàn bộ giỏ hàng" });
+    return NextResponse.json({ success: false, message: "Đã xóa toàn bộ giỏ hàng" });
   }
 }

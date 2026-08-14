@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { useCart } from "@/components/CartContext";
 import CheckoutModal from "@/components/CheckoutModal";
 
@@ -11,7 +12,8 @@ function fmt(n: number) {
 }
 
 export default function CartPage() {
-  const { cart, updateQty, removeItem, clearCart, loading } = useCart();
+  const { data: session } = useSession();
+  const { cart, updateQty, removeItem, addToCart, clearCart, loading } = useCart();
   const [couponCode, setCouponCode] = useState("");
   const [showExtraServices, setShowExtraServices] = useState(true);
   const [warrantyYears, setWarrantyYears] = useState("2");
@@ -20,7 +22,7 @@ export default function CartPage() {
   const [addedAddons, setAddedAddons] = useState<Record<string, boolean>>({});
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
-  const items = cart?.items ?? [];
+  const items = session?.user ? (cart?.items ?? []) : [];
 
   const toggleAddon = (id: string) => {
     setAddedAddons((prev) => {
@@ -31,14 +33,16 @@ export default function CartPage() {
 
   // Calculate extra costs (warranty, addons)
   const extraCosts =
-    (addedWarranty ? 1820000 : 0) +
-    Object.entries(addedAddons).reduce((acc, [id, added]) => {
-      if (!added) return acc;
-      if (id === "dem") return acc + 166000;
-      if (id === "gia") return acc + 2028000;
-      if (id === "chande") return acc + 450000;
-      return acc;
-    }, 0);
+    items.length > 0
+      ? (addedWarranty ? 1820000 : 0) +
+        Object.entries(addedAddons).reduce((acc, [id, added]) => {
+          if (!added) return acc;
+          if (id === "dem") return acc + 166000;
+          if (id === "gia") return acc + 2028000;
+          if (id === "chande") return acc + 450000;
+          return acc;
+        }, 0)
+      : 0;
 
   const subtotal = (cart?.subtotal ?? 0) + extraCosts;
   const savings = cart?.savings ?? 0;
@@ -106,7 +110,33 @@ export default function CartPage() {
       <main style={{ display: "grid", gridTemplateColumns: "1fr 420px", minHeight: "calc(100vh - 120px)" }}>
         {/* ── LEFT COLUMN ── */}
         <div style={{ padding: "40px 60px 80px 80px" }}>
-          {items.length === 0 ? (
+          {!session?.user ? (
+            <div style={{ padding: "60px 0", textAlign: "center" }}>
+              <h2 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: 12 }}>Vui lòng đăng nhập</h2>
+              <p style={{ color: "#6b7280", marginBottom: 24 }}>Bạn cần đăng nhập để xem và quản lý giỏ hàng của mình.</p>
+              <button
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.dispatchEvent(
+                      new CustomEvent("open-auth-modal", { detail: { view: "login" } })
+                    );
+                  }
+                }}
+                style={{
+                  background: "#001e38",
+                  color: "#fff",
+                  padding: "12px 28px",
+                  borderRadius: 6,
+                  border: "none",
+                  fontWeight: 600,
+                  fontSize: "1rem",
+                  cursor: "pointer",
+                }}
+              >
+                Đăng nhập ngay
+              </button>
+            </div>
+          ) : items.length === 0 ? (
             <div style={{ padding: "60px 0", textAlign: "center" }}>
               <h2 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: 12 }}>Giỏ hàng của bạn đang trống</h2>
               <p style={{ color: "#6b7280", marginBottom: 24 }}>Hãy chọn sản phẩm bạn yêu thích để thêm vào giỏ hàng.</p>

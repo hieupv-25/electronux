@@ -7,8 +7,10 @@ export async function PUT(req: NextRequest) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
-    const sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value;
-    const key = userId || sessionId || "default-session";
+
+    if (!userId) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
 
     const body = await req.json();
     const { itemId, quantity } = body;
@@ -36,13 +38,13 @@ export async function PUT(req: NextRequest) {
     }
 
     // Always update memory store
-    if (memoryCarts[key]) {
-      const idx = memoryCarts[key].findIndex((i) => i.id === itemId || i.variantId === itemId);
+    if (memoryCarts[userId]) {
+      const idx = memoryCarts[userId].findIndex((i) => i.id === itemId || i.variantId === itemId);
       if (idx > -1) {
         if (qty <= 0) {
-          memoryCarts[key].splice(idx, 1);
+          memoryCarts[userId].splice(idx, 1);
         } else {
-          memoryCarts[key][idx].quantity = qty;
+          memoryCarts[userId][idx].quantity = qty;
         }
       }
     }
@@ -50,7 +52,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ success: true, message: "Cập nhật giỏ hàng thành công" });
   } catch (error) {
     console.error("PUT /api/cart/items error:", error);
-    return NextResponse.json({ success: true, message: "Cập nhật giỏ hàng thành công" });
+    return NextResponse.json({ success: false, message: "Cập nhật giỏ hàng thất bại" }, { status: 500 });
   }
 }
 
@@ -58,8 +60,10 @@ export async function DELETE(req: NextRequest) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
-    const sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value;
-    const key = userId || sessionId || "default-session";
+
+    if (!userId) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
 
     const { searchParams } = new URL(req.url);
     const itemId = searchParams.get("id");
@@ -78,13 +82,13 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Always update memory store
-    if (memoryCarts[key]) {
-      memoryCarts[key] = memoryCarts[key].filter((i) => i.id !== itemId && i.variantId !== itemId);
+    if (memoryCarts[userId]) {
+      memoryCarts[userId] = memoryCarts[userId].filter((i) => i.id !== itemId && i.variantId !== itemId);
     }
 
     return NextResponse.json({ success: true, message: "Đã xóa sản phẩm khỏi giỏ hàng" });
   } catch (error) {
     console.error("DELETE /api/cart/items error:", error);
-    return NextResponse.json({ success: true, message: "Đã xóa sản phẩm khỏi giỏ hàng" });
+    return NextResponse.json({ success: false, message: "Xóa sản phẩm thất bại" }, { status: 500 });
   }
 }
