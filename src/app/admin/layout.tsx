@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import AdminSessionActions from "@/components/admin/AdminSessionActions";
 import AdminNav from "@/components/admin/AdminNav";
 import { requireAdminSession } from "@/lib/admin";
 
@@ -10,7 +11,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   return (
     <main className="admin-shell">
       <aside className="admin-sidebar" aria-label="Admin navigation">
-        <Link className="admin-brand" href="/">
+        <Link className="admin-brand" href="/admin">
           <span className="admin-brand__mark">E</span>
           <span>
             <strong>Electrolux</strong>
@@ -31,9 +32,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <h1>Electrolux Việt Nam</h1>
           </div>
           <div className="admin-topbar__actions">
-            <Link className="admin-ghost-link" href="/">
-              Xem website
-            </Link>
+            <AdminSessionActions />
             <div className="admin-user-pill">
               <span>{adminName || "Admin"}</span>
               <strong>{session.user.email}</strong>
