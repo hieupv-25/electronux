@@ -24,7 +24,7 @@ export default function CartPage() {
 
   const items = session?.user ? (cart?.items ?? []) : [];
 
-  const toggleAddon = (id: string, price: number) => {
+  const toggleAddon = (id: string) => {
     setAddedAddons((prev) => {
       const isAdded = !!prev[id];
       return { ...prev, [id]: !isAdded };
@@ -370,7 +370,7 @@ export default function CartPage() {
                                 </div>
                                 <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                                   <button
-                                    onClick={() => toggleAddon("dem", 166000)}
+                                    onClick={() => toggleAddon("dem")}
                                     style={{ border: "1px solid #001e38", background: addedAddons["dem"] ? "#001e38" : "#fff", color: addedAddons["dem"] ? "#fff" : "#001e38", borderRadius: 4, padding: "4px 12px", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}
                                   >
                                     {addedAddons["dem"] ? "ĐÃ THÊM" : "THÊM"}
@@ -391,7 +391,7 @@ export default function CartPage() {
                                 </div>
                                 <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                                   <button
-                                    onClick={() => toggleAddon("gia", 2028000)}
+                                    onClick={() => toggleAddon("gia")}
                                     style={{ border: "1px solid #001e38", background: addedAddons["gia"] ? "#001e38" : "#fff", color: addedAddons["gia"] ? "#fff" : "#001e38", borderRadius: 4, padding: "4px 12px", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}
                                   >
                                     {addedAddons["gia"] ? "ĐÃ THÊM" : "THÊM"}
@@ -412,7 +412,7 @@ export default function CartPage() {
                                 </div>
                                 <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                                   <button
-                                    onClick={() => toggleAddon("chande", 450000)}
+                                    onClick={() => toggleAddon("chande")}
                                     style={{ border: "1px solid #001e38", background: addedAddons["chande"] ? "#001e38" : "#fff", color: addedAddons["chande"] ? "#fff" : "#001e38", borderRadius: 4, padding: "4px 12px", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}
                                   >
                                     {addedAddons["chande"] ? "ĐÃ THÊM" : "THÊM"}

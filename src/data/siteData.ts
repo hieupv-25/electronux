@@ -1,8 +1,6 @@
-/* ── Supabase Storage base URL ── */
 export const STORAGE_URL =
   "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products";
 
-/* ── Hero slider data ── */
 export const heroSlides = [
   {
     img: `${STORAGE_URL}/heroes/hero-banner-1.jpg`,
@@ -41,77 +39,99 @@ export const heroSlides = [
   },
 ];
 
-/* ── Service banner (below header) ── */
 export const services = [
   { icon: "/icon-free-shipping.svg", text: "Miễn phí vận chuyển" },
   { icon: "/icon-free-install.svg", text: "Miễn phí lắp đặt" },
   { icon: "/icon-installment.svg", text: "Trả góp 0%" },
 ];
 
-/* ── Product categories ── */
 export const categories = [
-  { icon: "/icon-washing-machine.svg", name: "Máy giặt" },
-  { icon: "/icon-dryer.svg", name: "Máy sấy quần áo" },
-  { icon: "/icon-fridge.svg", name: "Tủ lạnh" },
-  { icon: "/icon-hob.svg", name: "Bếp nấu" },
-  { icon: "/icon-air-purifier.svg", name: "Máy lọc không khí" },
-  { icon: "/icon-dehumidifier.svg", name: "Máy hút ẩm" },
-  { icon: "/icon-vacuum.svg", name: "Máy hút bụi" },
-  { icon: "/icon-dishwasher.svg", name: "Máy rửa bát" },
-  { icon: "/icon-oven.svg", name: "Lò nướng" },
-  { icon: "/icon-hood.svg", name: "Máy hút mùi" },
-  { icon: "/icon-rice-cooker.svg", name: "Nồi cơm điện" },
-  { icon: "/icon-kettle.svg", name: "Bình đun siêu tốc" },
-  { icon: "/icon-blender.svg", name: "Máy xay sinh tố" },
-  { icon: "/icon-water-dispenser.svg", name: "Cây nước nóng lạnh" },
-  { icon: "/icon-iron.svg", name: "Bàn ủi" },
-  { icon: "/icon-water-heater.svg", name: "Máy nước nóng" },
+  { icon: "/icon-washing-machine.svg", name: "Máy giặt", href: "/thiet-bi/may-giat" },
+  { icon: "/icon-dryer.svg", name: "Máy sấy quần áo", href: "/thiet-bi/may-say" },
+  { icon: "/icon-fridge.svg", name: "Tủ lạnh", href: "/thiet-bi/tu-lanh" },
+  { icon: "/icon-hob.svg", name: "Bếp nấu", href: "/thiet-bi/bep-nau" },
+  { icon: "/icon-air-purifier.svg", name: "Máy lọc không khí", href: "/thiet-bi/may-loc-khong-khi" },
+  { icon: "/icon-dehumidifier.svg", name: "Máy hút ẩm", href: "/thiet-bi/may-hut-am" },
+  { icon: "/icon-rice-cooker.svg", name: "Nồi cơm điện", href: "/thiet-bi/noi-com-dien" },
+  { icon: "/icon-blender.svg", name: "Máy xay sinh tố", href: "/thiet-bi/may-xay-sinh-to" },
+  { icon: "/icon-water-heater.svg", name: "Máy nước nóng", href: "/thiet-bi/may-nuoc-nong" },
 ];
 
-/* ── Best-seller products ── */
-export const products = [
+export const featuredProducts = [
   {
+    id: "home-1",
     variantId: "bdd9f65d-b6f8-4dac-9e90-e8df342452e0",
+    slug: "ewf1023p5wc",
     img: `${STORAGE_URL}/items/product-1.jpg`,
     name: "Máy giặt cửa trước 10kg UltimateCare 300",
     sku: "EWF1023P5WC",
-    price: "9.990.000₫",
-    oldPrice: "12.990.000₫",
-    badge: "GIẢM 23%",
+    price: 9990000,
+    oldPrice: 12990000,
+    features: ["Giặt nhanh 45 phút", "Công nghệ HygienicCare"],
+    filters: ["may-giat-10kg"],
+    color: "trang",
+    capacity: 10,
+    freeShipping: true,
+    freeInstallation: true,
+    installment0Percent: true,
   },
   {
+    id: "home-2",
     variantId: "77d21379-3912-46e1-a807-70265907814b",
+    slug: "ewf9023p5wc",
     img: `${STORAGE_URL}/items/product-2.jpg`,
     name: "Máy giặt cửa trước 9kg UltimateCare 500",
     sku: "EWF9023P5WC",
-    price: "11.490.000₫",
-    oldPrice: "14.490.000₫",
-    badge: "GIẢM 21%",
+    price: 11490000,
+    oldPrice: 14490000,
+    features: ["AI SensorWash", "Giặt hơi nước VapourCare"],
+    filters: ["may-giat-9kg"],
+    color: "trang",
+    capacity: 9,
+    freeShipping: true,
+    freeInstallation: true,
+    installment0Percent: true,
   },
   {
+    id: "home-3",
     variantId: "504826ae-ab11-4ccf-ac52-55a7e7115a6e",
+    slug: "ewf9023p5sc",
     img: `${STORAGE_URL}/items/product-3.jpg`,
     name: "Máy giặt cửa trước 9kg UltimateCare 500",
     sku: "EWF9023P5SC",
-    price: "12.990.000₫",
-    oldPrice: "15.990.000₫",
-    badge: "GIẢM 19%",
+    price: 12990000,
+    oldPrice: 15990000,
+    features: ["UltraMix hòa tan chất giặt", "Lồng giặt Lily"],
+    filters: ["may-giat-9kg"],
+    color: "xam-den",
+    capacity: 9,
+    freeShipping: true,
+    freeInstallation: true,
+    installment0Percent: true,
   },
   {
+    id: "home-4",
     variantId: "d4a794c0-8505-4c2c-b374-a84f54e962e1",
+    slug: "edv804h3wc",
     img: `${STORAGE_URL}/items/product-4.jpg`,
     name: "Máy sấy cửa trước 8kg UltimateCare 300",
     sku: "EDV804H3WC",
-    price: "8.990.000₫",
-    oldPrice: "11.490.000₫",
-    badge: "GIẢM 22%",
+    price: 8990000,
+    oldPrice: 11490000,
+    features: ["Sấy cảm biến Smart Sensor", "Chống nhăn Easy Iron"],
+    filters: ["may-say-8kg"],
+    color: "trang",
+    capacity: 8,
+    freeShipping: true,
+    freeInstallation: true,
+    installment0Percent: true,
   },
 ];
 
-/* ── Header navigation items ── */
+export const products = featuredProducts;
+
 export const navItems = ["Sản phẩm", "Dịch vụ", "Hỗ trợ", "Khuyến mại", "Blog"];
 
-/* ── Footer link sections ── */
 export const footerSections = [
   {
     title: "Sản phẩm",
@@ -121,7 +141,10 @@ export const footerSections = [
       "Tủ lạnh",
       "Bếp nấu",
       "Máy lọc không khí",
-      "Máy hút bụi",
+      "Máy hút ẩm",
+      "Nồi cơm điện",
+      "Máy xay sinh tố",
+      "Máy nước nóng",
     ],
   },
   {
@@ -140,7 +163,6 @@ export const footerSections = [
   },
 ];
 
-/* ── Popular search tags (used in header search dropdown) ── */
 export const popularSearchTags = [
   "tủ lạnh",
   "máy giặt",
@@ -151,9 +173,7 @@ export const popularSearchTags = [
   "máy sấy quần áo",
 ];
 
-/* ── Promo bento grid (ảnh + thẻ nền tối + 2 ảnh nhỏ + 1 ảnh full-width) ── */
 export const promoBento = {
-  // Hàng 1: ảnh bên trái + thẻ chữ nền tối bên phải
   row1: {
     image: {
       img: `${STORAGE_URL}/banners/ultimatecare.png`,
@@ -167,7 +187,6 @@ export const promoBento = {
       href: "#",
     },
   },
-  // Hàng 2: 2 ảnh có chữ, kích thước nhỏ hơn
   row2: [
     {
       img: `${STORAGE_URL}/banners/warranty.jpg`,
@@ -186,7 +205,6 @@ export const promoBento = {
       href: "#",
     },
   ],
-  // Hàng 3: 1 ảnh full-width
   row3: {
     img: `${STORAGE_URL}/banners/blog-banner.jpg`,
     title: "Gói đăng ký định kỳ hiện đã có",
@@ -194,5 +212,83 @@ export const promoBento = {
       "Tận hưởng những lợi ích của Gói đăng ký hiện tại: giao hàng miễn phí và giảm giá cho các sản phẩm được chọn.",
     cta: "Tìm hiểu thêm",
     href: "#",
+  },
+};
+
+type MegaMenuCategory = {
+  title: string;
+  icon: string;
+  items: string[];
+};
+
+type MegaMenuCircleItem = {
+  label: string;
+  icon: string;
+  href?: string;
+};
+
+type MegaMenuSection =
+  | {
+    layout: "default";
+    categories: MegaMenuCategory[];
+  }
+  | {
+    layout: "circular";
+    items: MegaMenuCircleItem[];
+  };
+
+export const megaMenu: Record<string, MegaMenuSection> = {
+  "Sản phẩm": {
+    layout: "default",
+    categories: [
+      {
+        title: "Chăm sóc quần áo",
+        icon: "shirt",
+        items: ["Máy giặt", "Máy sấy quần áo"],
+      },
+      {
+        title: "Thiết bị nhà bếp",
+        icon: "kitchen",
+        items: ["Tủ lạnh", "Bếp nấu"],
+      },
+      {
+        title: "Gia dụng nhỏ",
+        icon: "blender",
+        items: ["Nồi cơm điện", "Máy xay sinh tố"],
+      },
+      {
+        title: "Không khí và nước",
+        icon: "airPurifier",
+        items: ["Máy lọc không khí", "Máy hút ẩm", "Máy nước nóng"],
+      },
+    ],
+  },
+  "Dịch vụ": {
+    layout: "circular",
+    items: [
+      { label: "Dịch vụ bảo dưỡng", icon: "tools", href: "/services/maintenance" },
+      { label: "Sửa chữa giá cố định", icon: "toolbox", href: "/services/fixed-price-repair" },
+      { label: "Gia hạn bảo hành", icon: "shield", href: "/services/warranty-extension" },
+    ],
+  },
+  "Hỗ trợ": {
+    layout: "circular",
+    items: [
+      { label: "Trung tâm hỗ trợ", icon: "tools", href: "/support" },
+      { label: "Chính sách bảo hành", icon: "doc", href: "/support/warranty-policy" },
+      { label: "Xử lý sự cố", icon: "toolbox", href: "/support/troubleshooting" },
+      { label: "Câu hỏi thường gặp", icon: "clipboard", href: "/support/online-order-faq" },
+      { label: "Đăng ký sản phẩm", icon: "shield", href: "/support/product-registration" },
+      { label: "Đặt lịch bảo hành", icon: "calendar", href: "/support/warranty-appointment" },
+      { label: "Liên hệ", icon: "phoneCircle", href: "/support" },
+    ],
+  },
+  "Khuyến mại": {
+    layout: "circular",
+    items: [
+      { label: "Ưu đãi đang diễn ra", icon: "tag", href: "/khuyen-mai" },
+      { label: "Quà tặng", icon: "gift", href: "/khuyen-mai" },
+      { label: "Trả góp 0%", icon: "clipboard", href: "/khuyen-mai" },
+    ],
   },
 };

@@ -1,112 +1,156 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { maintenanceServiceFallback } from "@/data/maintenanceServices";
 
-const prod1 = {
-  id: "bdd9f65d-b6f8-4dac-9e90-e8df342452e0",
-  productId: "6fd27012-4a75-4f41-b5cc-b2c790ed971c",
-  sku: "EWF1023P5WC",
-  variantName: "Trắng - 10kg",
-  price: 9990000,
-  originalPrice: 12990000,
-  discountPercentage: 23,
-  stockQuantity: 10,
+export type CartVariantSnapshot = {
+  id: string;
+  productId: string;
+  sku: string;
+  variantName: string | null;
+  price: number;
+  originalPrice: number;
+  discountPercentage: number;
+  stockQuantity: number;
   product: {
-    id: "6fd27012-4a75-4f41-b5cc-b2c790ed971c",
-    name: "Máy giặt cửa trước 10kg UltimateCare 300",
-    slug: "may-giat-cua-truoc-10kg-ultimatecare-300",
-    images: [{ id: "img-3", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg" }],
-    freeShipping: true,
-    freeInstallation: true,
-    installment0Percent: true,
+    id: string;
+    name: string;
+    slug: string;
+    images: { id: string; url: string }[];
+    freeShipping: boolean;
+    freeInstallation: boolean;
+    installment0Percent: boolean;
+  };
+};
+
+export type MemoryCartItem = {
+  id: string;
+  cartId: string;
+  variantId: string;
+  quantity: number;
+  variant: CartVariantSnapshot;
+};
+
+type MemoryCartStore = Record<string, MemoryCartItem[]>;
+type MemoryCartGlobal = typeof globalThis & {
+  __memoryCarts?: MemoryCartStore;
+};
+
+export const DEMO_PRODUCTS: Record<string, CartVariantSnapshot> = {
+  "demo-variant-1": {
+    id: "demo-variant-1",
+    productId: "demo-product-1",
+    sku: "EWF9023P5WC",
+    variantName: "Trắng - 9kg",
+    price: 9490000,
+    originalPrice: 12543000,
+    discountPercentage: 24,
+    stockQuantity: 10,
+    product: {
+      id: "demo-product-1",
+      name: "Máy giặt cửa ngang Electrolux 9kg UltimateCare 500 trắng",
+      slug: "may-giat-cua-ngang-electrolux-9kg-ultimatecare-500-trang",
+      images: [
+        { id: "img-1", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-2.jpg" },
+        { id: "img-2", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg" }
+      ],
+      freeShipping: true,
+      freeInstallation: true,
+      installment0Percent: true,
+    },
+  },
+  "demo-variant-2": {
+    id: "demo-variant-2",
+    productId: "demo-product-2",
+    sku: "EWF1023P5WC",
+    variantName: "Trắng - 10kg",
+    price: 9990000,
+    originalPrice: 12990000,
+    discountPercentage: 23,
+    stockQuantity: 10,
+    product: {
+      id: "demo-product-2",
+      name: "Máy giặt cửa trước 10kg UltimateCare 300",
+      slug: "may-giat-cua-truoc-10kg-ultimatecare-300",
+      images: [{ id: "img-3", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg" }],
+      freeShipping: true,
+      freeInstallation: true,
+      installment0Percent: true,
+    },
+  },
+  "demo-variant-3": {
+    id: "demo-variant-3",
+    productId: "demo-product-3",
+    sku: "EWF9023P5SC",
+    variantName: "Xám - 9kg",
+    price: 12990000,
+    originalPrice: 15990000,
+    discountPercentage: 19,
+    stockQuantity: 10,
+    product: {
+      id: "demo-product-3",
+      name: "Máy giặt cửa trước 9kg UltimateCare 500 xám",
+      slug: "may-giat-cua-truoc-9kg-ultimatecare-500-xam",
+      images: [{ id: "img-4", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-3.jpg" }],
+      freeShipping: true,
+      freeInstallation: true,
+      installment0Percent: true,
+    },
+  },
+  "demo-variant-4": {
+    id: "demo-variant-4",
+    productId: "demo-product-4",
+    sku: "EDV804H3WC",
+    variantName: "Trắng - 8kg",
+    price: 8990000,
+    originalPrice: 11490000,
+    discountPercentage: 22,
+    stockQuantity: 10,
+    product: {
+      id: "demo-product-4",
+      name: "Máy sấy cửa trước 8kg UltimateCare 300",
+      slug: "may-say-cua-truoc-8kg-ultimatecare-300",
+      images: [{ id: "img-5", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-4.jpg" }],
+      freeShipping: true,
+      freeInstallation: true,
+      installment0Percent: true,
+    },
   },
 };
 
-const prod2 = {
-  id: "77d21379-3912-46e1-a807-70265907814b",
-  productId: "5015f6d5-8c48-4f0a-af00-07675fcad3bf",
-  sku: "EWF9023P5WC",
-  variantName: "Trắng - 9kg",
-  price: 9490000,
-  originalPrice: 12543000,
-  discountPercentage: 24,
-  stockQuantity: 10,
-  product: {
-    id: "5015f6d5-8c48-4f0a-af00-07675fcad3bf",
-    name: "Máy giặt cửa ngang Electrolux 9kg UltimateCare 500 trắng",
-    slug: "may-giat-cua-ngang-electrolux-9kg-ultimatecare-500-trang",
-    images: [
-      { id: "img-1", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-2.jpg" },
-      { id: "img-2", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg" }
-    ],
-    freeShipping: true,
-    freeInstallation: true,
-    installment0Percent: true,
-  },
-};
-
-const prod3 = {
-  id: "504826ae-ab11-4ccf-ac52-55a7e7115a6e",
-  productId: "5561f754-568b-43cb-9a25-4b0a0331c668",
-  sku: "EWF9023P5SC",
-  variantName: "Xám - 9kg",
-  price: 12990000,
-  originalPrice: 15990000,
-  discountPercentage: 19,
-  stockQuantity: 10,
-  product: {
-    id: "5561f754-568b-43cb-9a25-4b0a0331c668",
-    name: "Máy giặt cửa trước 9kg UltimateCare 500 xám",
-    slug: "may-giat-cua-truoc-9kg-ultimatecare-500-xam",
-    images: [{ id: "img-4", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-3.jpg" }],
-    freeShipping: true,
-    freeInstallation: true,
-    installment0Percent: true,
-  },
-};
-
-const prod4 = {
-  id: "d4a794c0-8505-4c2c-b374-a84f54e962e1",
-  productId: "b078ab43-ce1f-4a8f-add4-ac3e9d682d07",
-  sku: "EDV804H3WC",
-  variantName: "Trắng - 8kg",
-  price: 8990000,
-  originalPrice: 11490000,
-  discountPercentage: 22,
-  stockQuantity: 10,
-  product: {
-    id: "b078ab43-ce1f-4a8f-add4-ac3e9d682d07",
-    name: "Máy sấy cửa trước 8kg UltimateCare 300",
-    slug: "may-say-cua-truoc-8kg-ultimatecare-300",
-    images: [{ id: "img-5", url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-4.jpg" }],
-    freeShipping: true,
-    freeInstallation: true,
-    installment0Percent: true,
-  },
-};
-
-export const DEMO_PRODUCTS: Record<string, any> = {
-  "demo-variant-1": prod2,
-  "demo-variant-2": prod1,
-  "demo-variant-3": prod3,
-  "demo-variant-4": prod4,
-  "bdd9f65d-b6f8-4dac-9e90-e8df342452e0": prod1,
-  "77d21379-3912-46e1-a807-70265907814b": prod2,
-  "504826ae-ab11-4ccf-ac52-55a7e7115a6e": prod3,
-  "d4a794c0-8505-4c2c-b374-a84f54e962e1": prod4,
-};
+for (const service of maintenanceServiceFallback) {
+  DEMO_PRODUCTS[service.variantId] = {
+    id: service.variantId,
+    productId: `service-${service.sku}`,
+    sku: service.sku,
+    variantName: "Gói tiêu chuẩn",
+    price: service.price,
+    originalPrice: service.price,
+    discountPercentage: 0,
+    stockQuantity: 99999,
+    product: {
+      id: `service-${service.sku}`,
+      name: service.name,
+      slug: service.slug,
+      images: [{ id: `service-image-${service.sku}`, url: service.imageUrl }],
+      freeShipping: false,
+      freeInstallation: false,
+      installment0Percent: false,
+    },
+  };
+}
 
 // Global in-memory store attached to globalThis for shared access across Next.js API routes
-if (!(globalThis as any).__memoryCarts) {
-  (globalThis as any).__memoryCarts = {};
-}
-export const memoryCarts: Record<string, any[]> = (globalThis as any).__memoryCarts;
+const memoryGlobal = globalThis as MemoryCartGlobal;
+export const memoryCarts: MemoryCartStore =
+  memoryGlobal.__memoryCarts ?? (memoryGlobal.__memoryCarts = {});
 
 function getSessionKey(userId?: string | null, sessionId?: string | null): string {
   return userId || sessionId || "default-session";
 }
 
-function getMemoryCart(key: string) {
+function getMemoryCart(key: string): MemoryCartItem[] {
   if (memoryCarts[key] === undefined) {
     memoryCarts[key] = [];
   }
@@ -129,7 +173,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    let items: any[] = [];
+    let items: MemoryCartItem[] = [];
     let dbFound = false;
 
     // Try DB first
@@ -255,7 +299,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
+    const body = (await req.json()) as { variantId?: string; quantity?: number };
     const { variantId, quantity = 1 } = body;
 
     if (!variantId) {
@@ -301,7 +345,7 @@ export async function POST(req: NextRequest) {
     if (existingIndex > -1) {
       memCart[existingIndex].quantity += Number(quantity);
     } else {
-      const variantObj = DEMO_PRODUCTS[variantId] || {
+      const variantObj: CartVariantSnapshot = DEMO_PRODUCTS[variantId] || {
         id: variantId,
         productId: "p-" + variantId,
         sku: "SKU-" + variantId,

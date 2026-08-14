@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-
-if (!(globalThis as any).__memoryCarts) {
-  (globalThis as any).__memoryCarts = {};
-}
-const memoryCarts: Record<string, any[]> = (globalThis as any).__memoryCarts;
+import { memoryCarts } from "../route";
 
 export async function PUT(req: NextRequest) {
   try {
@@ -36,7 +32,7 @@ export async function PUT(req: NextRequest) {
             data: { quantity: qty },
           });
         }
-      } catch (e) {
+      } catch {
         // quiet catch
       }
     }
@@ -80,7 +76,7 @@ export async function DELETE(req: NextRequest) {
     if (!itemId.startsWith("demo-") && !itemId.startsWith("item-")) {
       try {
         await prisma.cartItem.delete({ where: { id: itemId } });
-      } catch (e) {
+      } catch {
         // quiet catch
       }
     }

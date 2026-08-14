@@ -90,7 +90,7 @@ export default function TroubleshootingPage() {
                                 <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
                                     {cat.items.map((item, ii) => (
                                         <li key={ii}>
-                                            <a href="#" style={{
+                                            <a href="#common-issues" style={{
                                                 display: "flex", alignItems: "center", justifyContent: "space-between",
                                                 padding: "12px 20px", color: "var(--elx-navy)", textDecoration: "none",
                                                 fontSize: "0.95rem", borderBottom: "1px solid var(--elx-border)",
@@ -114,7 +114,7 @@ export default function TroubleshootingPage() {
             </section>
 
             {/* FAQ */}
-            <section style={{ padding: "56px 30px" }}>
+            <section id="common-issues" style={{ padding: "56px 30px", scrollMarginTop: 90 }}>
                 <div style={{ maxWidth: 1100, margin: "0 auto" }}>
                     <h2 style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--elx-navy)", marginBottom: 32, textAlign: "center" }}>
                         Lỗi thường gặp
@@ -148,7 +148,7 @@ export default function TroubleshootingPage() {
                     <a href="tel:1800588899" style={{ background: "var(--elx-navy)", color: "#fff", padding: "12px 28px", borderRadius: 4, fontWeight: 700, textDecoration: "none", fontSize: "0.95rem" }}>
                         Gọi 1800 588 899
                     </a>
-                    <a href="/support/book-service" style={{ border: "2px solid var(--elx-navy)", color: "var(--elx-navy)", padding: "12px 28px", borderRadius: 4, fontWeight: 700, textDecoration: "none", fontSize: "0.95rem" }}>
+                    <a href="/support/warranty-appointment" style={{ border: "2px solid var(--elx-navy)", color: "var(--elx-navy)", padding: "12px 28px", borderRadius: 4, fontWeight: 700, textDecoration: "none", fontSize: "0.95rem" }}>
                         Đặt hẹn kỹ thuật viên
                     </a>
                 </div>

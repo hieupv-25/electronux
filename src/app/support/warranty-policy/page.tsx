@@ -99,7 +99,7 @@ export default function WarrantyPolicyPage() {
                             <li>Không áp dụng cho sản phẩm sử dụng mục đích kinh doanh.</li>
                         </ul>
                         <div style={{ marginTop: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
-                            <a href="/support/warranty-registration" style={{ background: "var(--elx-navy)", color: "#fff", padding: "10px 24px", borderRadius: 4, fontWeight: 700, textDecoration: "none", fontSize: "0.9rem" }}>
+                            <a href="/support/product-registration" style={{ background: "var(--elx-navy)", color: "#fff", padding: "10px 24px", borderRadius: 4, fontWeight: 700, textDecoration: "none", fontSize: "0.9rem" }}>
                                 Đăng ký bảo hành
                             </a>
                             <a href="tel:1800588899" style={{ border: "2px solid var(--elx-navy)", color: "var(--elx-navy)", padding: "10px 24px", borderRadius: 4, fontWeight: 700, textDecoration: "none", fontSize: "0.9rem" }}>
