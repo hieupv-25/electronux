@@ -7,6 +7,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type FormEvent,
   type ReactNode,
 } from "react";
 import { useSession, signOut } from "next-auth/react";
@@ -40,16 +41,25 @@ type HeaderProps = {
   navItems: string[];
 };
 
+type SearchSuggestion = {
+  id: string;
+  name: string;
+  sku: string;
+  image: string;
+  categoryName: string;
+  href: string;
+};
+
 function getNavHref(item: string) {
-  if (item === "Hỗ trợ") {
-    return "/support";
-  }
+  const routes: Record<string, string> = {
+    "Sản phẩm": "/thiet-bi/may-giat",
+    "Dịch vụ": "/services",
+    "Hỗ trợ": "/support",
+    "Khuyến mại": "/khuyen-mai",
+    "Blog": "/blog",
+  };
 
-  if (item === "Blog") {
-    return "/blog";
-  }
-
-  return "#";
+  return routes[item] ?? "#";
 }
 
 /* ============================================================
@@ -92,6 +102,8 @@ export default function Header({ navItems }: HeaderProps) {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchSuggestions, setSearchSuggestions] = useState<SearchSuggestion[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const [authOpen, setAuthOpen] = useState(false);
   const [authView, setAuthView] = useState<"login" | "register">("login");
@@ -113,24 +125,35 @@ export default function Header({ navItems }: HeaderProps) {
   ============================================================ */
 
   useEffect(() => {
-    if (session?.user) {
+    const url = new URL(window.location.href);
+    const authRequired = url.searchParams.get("authRequired");
+    const adminForbidden = url.searchParams.get("adminForbidden");
+
+    if (authRequired !== "true" && adminForbidden !== "true") {
       return;
     }
 
-    const url = new URL(window.location.href);
-    const authRequired = url.searchParams.get("authRequired");
-
-    if (authRequired !== "true") {
+    if (authRequired === "true" && session?.user) {
       return;
     }
 
     url.searchParams.delete("authRequired");
+    url.searchParams.delete("adminForbidden");
+    url.searchParams.set("view", "customer");
 
     router.replace(url.pathname + url.search, {
       scroll: false,
     });
 
     const timer = window.setTimeout(() => {
+      if (adminForbidden === "true") {
+        showToast(
+          "Tai khoan cua ban khong co quyen truy cap trang quan tri.",
+          "error"
+        );
+        return;
+      }
+
       setAuthView("login");
       setAuthOpen(true);
 
@@ -176,6 +199,36 @@ export default function Header({ navItems }: HeaderProps) {
     };
   }, []);
 
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (!searchOpen || query.length < 2) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=6`, {
+          signal: controller.signal,
+        });
+        const data = await response.json();
+        if (response.ok) setSearchSuggestions(data.results ?? []);
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          setSearchSuggestions([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) setSearchLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchOpen, searchQuery]);
+
   /* ============================================================
      CLICK OUTSIDE USER DROPDOWN
   ============================================================ */
@@ -220,6 +273,19 @@ export default function Header({ navItems }: HeaderProps) {
       document.body.style.overflow = "";
     };
   }, [authOpen]);
+
+  useEffect(() => {
+    const handleOpenAuth = (e: Event) => {
+      const customEvent = e as CustomEvent<{ view?: "login" | "register" }>;
+      setAuthView(customEvent.detail?.view || "login");
+      setAuthOpen(true);
+    };
+
+    window.addEventListener("open-auth-modal", handleOpenAuth);
+    return () => {
+      window.removeEventListener("open-auth-modal", handleOpenAuth);
+    };
+  }, []);
 
   /* ============================================================
      LOGOUT
@@ -301,6 +367,19 @@ export default function Header({ navItems }: HeaderProps) {
     leaveTimer.current = setTimeout(() => {
       setActiveNav(null);
     }, 120);
+  };
+
+  const submitSearch = (query = searchQuery) => {
+    const normalizedQuery = query.trim();
+    if (normalizedQuery.length < 2) return;
+    setSearchOpen(false);
+    setSearchSuggestions([]);
+    router.push(`/search?q=${encodeURIComponent(normalizedQuery)}`);
+  };
+
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    submitSearch();
   };
 
   const activeSection = activeNav
@@ -437,7 +516,8 @@ export default function Header({ navItems }: HeaderProps) {
           ================================================== */}
 
           {searchOpen ? (
-            <div
+            <form
+              onSubmit={handleSearchSubmit}
               className="search-bar-enter"
               style={{
                 flex: 1,
@@ -475,11 +555,15 @@ export default function Header({ navItems }: HeaderProps) {
                 type="text"
                 placeholder="Tìm kiếm"
                 value={searchQuery}
-                onChange={(e) =>
-                  setSearchQuery(
-                    e.target.value
-                  )
-                }
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSearchQuery(value);
+                  if (value.trim().length < 2) {
+                    setSearchSuggestions([]);
+                    setSearchLoading(false);
+                  }
+                }}
+                aria-label="Từ khóa tìm kiếm"
                 style={{
                   flex: 1,
                   border: "none",
@@ -494,6 +578,7 @@ export default function Header({ navItems }: HeaderProps) {
 
               {searchQuery && (
                 <button
+                  type="button"
                   onClick={() =>
                     setSearchQuery("")
                   }
@@ -510,7 +595,7 @@ export default function Header({ navItems }: HeaderProps) {
                   ×
                 </button>
               )}
-            </div>
+            </form>
           ) : (
             /* ==================================================
                DESKTOP NAVIGATION
@@ -540,12 +625,15 @@ export default function Header({ navItems }: HeaderProps) {
                       "nowrap",
                   }}
                 >
-                  <a
+                  <Link
                     href={getNavHref(item)}
                     className={`nav-link${activeNav === item
                       ? " nav-link--active"
                       : ""
                       }`}
+                    onClick={() =>
+                      setActiveNav(null)
+                    }
                     style={{
                       padding:
                         "24px 25px",
@@ -567,7 +655,7 @@ export default function Header({ navItems }: HeaderProps) {
                     {activeNav === item && (
                       <span className="nav-link__underline" />
                     )}
-                  </a>
+                  </Link>
                 </div>
               ))}
             </nav>
@@ -597,6 +685,8 @@ export default function Header({ navItems }: HeaderProps) {
 
                 if (searchOpen) {
                   setSearchQuery("");
+                  setSearchSuggestions([]);
+                  setSearchLoading(false);
                 }
               }}
               style={{
@@ -900,7 +990,7 @@ export default function Header({ navItems }: HeaderProps) {
             }`}
         >
           {navItems.map((item) => (
-            <a
+            <Link
               key={item}
               href={getNavHref(item)}
               onClick={() =>
@@ -908,7 +998,7 @@ export default function Header({ navItems }: HeaderProps) {
               }
             >
               {item}
-            </a>
+            </Link>
           ))}
 
           {!session?.user && (
@@ -952,54 +1042,52 @@ export default function Header({ navItems }: HeaderProps) {
                 "0 6px 20px rgba(0,0,0,0.08)",
             }}
           >
-            <p
-              style={{
-                fontWeight: 700,
-                fontSize: "1.1rem",
-                color:
-                  "var(--elx-navy)",
-                marginBottom: 10,
-              }}
-            >
-              Tìm kiếm phổ biến
-            </p>
-
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 8,
-              }}
-            >
-              {popularSearchTags.map(
-                (tag) => (
-                  <button
-                    key={tag}
-                    onClick={() =>
-                      setSearchQuery(tag)
-                    }
-                    style={{
-                      background:
-                        "#f4f6f8",
-                      border:
-                        "1px solid #e0e4ea",
-                      borderRadius: 20,
-                      padding:
-                        "6px 15px",
-                      fontSize:
-                        "1.075rem",
-                      color:
-                        "var(--elx-navy)",
-                      cursor:
-                        "pointer",
-                      fontWeight: 500,
+            {searchQuery.trim() ? (
+              <div className="header-search-results">
+                <div className="header-search-results__title">
+                  <strong>Gợi ý sản phẩm</strong>
+                  {searchLoading && <span>Đang tìm...</span>}
+                </div>
+                {!searchLoading && searchQuery.trim().length < 2 && (
+                  <p className="header-search-results__empty">Nhập thêm ít nhất 1 ký tự để tìm kiếm.</p>
+                )}
+                {!searchLoading && searchQuery.trim().length >= 2 && searchSuggestions.length === 0 && (
+                  <p className="header-search-results__empty">Không tìm thấy sản phẩm phù hợp.</p>
+                )}
+                {searchSuggestions.map((product) => (
+                  <Link
+                    className="header-search-result"
+                    href={product.href}
+                    key={product.id}
+                    onClick={() => {
+                      setSearchOpen(false);
+                      setSearchSuggestions([]);
                     }}
                   >
-                    {tag}
+                    <Image src={product.image} alt="" width={58} height={58} />
+                    <span>
+                      <b>{product.name}</b>
+                      <small>{product.sku} · {product.categoryName}</small>
+                    </span>
+                    <i aria-hidden="true">→</i>
+                  </Link>
+                ))}
+                {searchQuery.trim().length >= 2 && (
+                  <button className="header-search-view-all" type="button" onClick={() => submitSearch()}>
+                    Xem tất cả kết quả cho “{searchQuery.trim()}”
                   </button>
-                )
-              )}
-            </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <p className="header-search-popular-title">Tìm kiếm phổ biến</p>
+                <div className="header-search-tags">
+                  {popularSearchTags.map((tag) => (
+                    <button key={tag} type="button" onClick={() => submitSearch(tag)}>{tag}</button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -1061,6 +1149,11 @@ export default function Header({ navItems }: HeaderProps) {
                                         href
                                       }
                                       className="mega-menu__item"
+                                      onClick={() =>
+                                        setActiveNav(
+                                          null
+                                        )
+                                      }
                                     >
                                       {
                                         sub
@@ -1088,8 +1181,15 @@ export default function Header({ navItems }: HeaderProps) {
                           key={
                             item.label
                           }
-                          href={categoryRoutes[item.label] ?? "#"}
+                          href={
+                            item.href ?? categoryRoutes[item.label] ?? "#"
+                          }
                           className="mega-menu__circle-item"
+                          onClick={() =>
+                            setActiveNav(
+                              null
+                            )
+                          }
                         >
                           <span className="mega-menu__circle-icon">
                             {MENU_ICONS[
@@ -1129,6 +1229,8 @@ export default function Header({ navItems }: HeaderProps) {
           onClick={() => {
             setSearchOpen(false);
             setSearchQuery("");
+            setSearchSuggestions([]);
+            setSearchLoading(false);
           }}
         />
       )}

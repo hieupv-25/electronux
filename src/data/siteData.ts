@@ -60,7 +60,7 @@ export const categories = [
 export const featuredProducts = [
   {
     id: "home-1",
-    variantId: "demo-variant-1",
+    variantId: "bdd9f65d-b6f8-4dac-9e90-e8df342452e0",
     slug: "ewf1023p5wc",
     img: `${STORAGE_URL}/items/product-1.jpg`,
     name: "Máy giặt cửa trước 10kg UltimateCare 300",
@@ -77,7 +77,7 @@ export const featuredProducts = [
   },
   {
     id: "home-2",
-    variantId: "demo-variant-2",
+    variantId: "77d21379-3912-46e1-a807-70265907814b",
     slug: "ewf9023p5wc",
     img: `${STORAGE_URL}/items/product-2.jpg`,
     name: "Máy giặt cửa trước 9kg UltimateCare 500",
@@ -94,7 +94,7 @@ export const featuredProducts = [
   },
   {
     id: "home-3",
-    variantId: "demo-variant-3",
+    variantId: "504826ae-ab11-4ccf-ac52-55a7e7115a6e",
     slug: "ewf9023p5sc",
     img: `${STORAGE_URL}/items/product-3.jpg`,
     name: "Máy giặt cửa trước 9kg UltimateCare 500",
@@ -111,7 +111,7 @@ export const featuredProducts = [
   },
   {
     id: "home-4",
-    variantId: "demo-variant-4",
+    variantId: "d4a794c0-8505-4c2c-b374-a84f54e962e1",
     slug: "edv804h3wc",
     img: `${STORAGE_URL}/items/product-4.jpg`,
     name: "Máy sấy cửa trước 8kg UltimateCare 300",
@@ -224,17 +224,18 @@ type MegaMenuCategory = {
 type MegaMenuCircleItem = {
   label: string;
   icon: string;
+  href?: string;
 };
 
 type MegaMenuSection =
   | {
-      layout: "default";
-      categories: MegaMenuCategory[];
-    }
+    layout: "default";
+    categories: MegaMenuCategory[];
+  }
   | {
-      layout: "circular";
-      items: MegaMenuCircleItem[];
-    };
+    layout: "circular";
+    items: MegaMenuCircleItem[];
+  };
 
 export const megaMenu: Record<string, MegaMenuSection> = {
   "Sản phẩm": {
@@ -265,27 +266,29 @@ export const megaMenu: Record<string, MegaMenuSection> = {
   "Dịch vụ": {
     layout: "circular",
     items: [
-      { label: "Đặt lịch sửa chữa", icon: "calendar" },
-      { label: "Đăng ký sản phẩm", icon: "clipboard" },
-      { label: "Gia hạn bảo hành", icon: "shield" },
-      { label: "Tư vấn mua hàng", icon: "phoneCircle" },
+      { label: "Dịch vụ bảo dưỡng", icon: "tools", href: "/services/maintenance" },
+      { label: "Sửa chữa giá cố định", icon: "toolbox", href: "/services/fixed-price-repair" },
+      { label: "Gia hạn bảo hành", icon: "shield", href: "/services/warranty-extension" },
     ],
   },
   "Hỗ trợ": {
     layout: "circular",
     items: [
-      { label: "Trung tâm hỗ trợ", icon: "tools" },
-      { label: "Chính sách bảo hành", icon: "doc" },
-      { label: "Câu hỏi thường gặp", icon: "toolbox" },
-      { label: "Liên hệ", icon: "phoneCircle" },
+      { label: "Trung tâm hỗ trợ", icon: "tools", href: "/support" },
+      { label: "Chính sách bảo hành", icon: "doc", href: "/support/warranty-policy" },
+      { label: "Xử lý sự cố", icon: "toolbox", href: "/support/troubleshooting" },
+      { label: "Câu hỏi thường gặp", icon: "clipboard", href: "/support/online-order-faq" },
+      { label: "Đăng ký sản phẩm", icon: "shield", href: "/support/product-registration" },
+      { label: "Đặt lịch bảo hành", icon: "calendar", href: "/support/warranty-appointment" },
+      { label: "Liên hệ", icon: "phoneCircle", href: "/support" },
     ],
   },
   "Khuyến mại": {
     layout: "circular",
     items: [
-      { label: "Ưu đãi đang diễn ra", icon: "tag" },
-      { label: "Quà tặng", icon: "gift" },
-      { label: "Trả góp 0%", icon: "clipboard" },
+      { label: "Ưu đãi đang diễn ra", icon: "tag", href: "/khuyen-mai" },
+      { label: "Quà tặng", icon: "gift", href: "/khuyen-mai" },
+      { label: "Trả góp 0%", icon: "clipboard", href: "/khuyen-mai" },
     ],
   },
 };

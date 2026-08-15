@@ -438,7 +438,7 @@ export async function createService(formData: FormData) {
   revalidatePath("/admin/services");
 }
 
-export async function updateServiceRequestStatus(formData: FormData) {
+export async function updateWarrantyAppointmentStatus(formData: FormData) {
   await requireAdminSession();
 
   const id = getFormString(formData, "id");
@@ -450,7 +450,31 @@ export async function updateServiceRequestStatus(formData: FormData) {
     "pending"
   ) as RequestStatus;
 
-  await prisma.serviceRequest.update({
+  await prisma.warrantyAppointment.update({
+    where: { id },
+    data: {
+      status,
+      notes: getFormOptionalString(formData, "notes"),
+    },
+  });
+
+  revalidatePath("/admin/services");
+  revalidatePath("/admin");
+}
+
+export async function updateProductRegistrationStatus(formData: FormData) {
+  await requireAdminSession();
+
+  const id = getFormString(formData, "id");
+  if (!id) return;
+
+  const status = getEnumValue(
+    requestStatuses,
+    getFormString(formData, "status"),
+    "pending"
+  ) as RequestStatus;
+
+  await prisma.productRegistration.update({
     where: { id },
     data: {
       status,

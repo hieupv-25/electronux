@@ -34,8 +34,8 @@ async function getAdminDashboardData() {
       prisma.order.count({ where: { deletedAt: null } }),
       prisma.order.count({ where: { deletedAt: null, status: "pending" } }),
       prisma.user.count({ where: { deletedAt: null, role: "customer" } }),
-      prisma.serviceRequest.count(),
-      prisma.serviceRequest.count({ where: { status: "pending" } }),
+      prisma.warrantyAppointment.count(),
+      prisma.warrantyAppointment.count({ where: { status: "pending" } }),
       prisma.order.aggregate({
         where: { deletedAt: null, paymentStatus: "paid" },
         _sum: { totalAmount: true },
@@ -80,13 +80,15 @@ async function getAdminDashboardData() {
           },
         },
       }),
-      prisma.serviceRequest.findMany({
+      prisma.warrantyAppointment.findMany({
         orderBy: { createdAt: "desc" },
         take: 5,
         select: {
           id: true,
           createdAt: true,
           status: true,
+          customerName: true,
+          phone: true,
           user: {
             select: {
               firstName: true,
@@ -344,10 +346,10 @@ function ServicePanel({
           requests.map((request) => (
             <article className="admin-list-item" key={request.id}>
               <div>
-                <h3>{request.service.name}</h3>
+                <h3>{request.service?.name || "Lịch hẹn bảo hành"}</h3>
                 <p>
-                  {request.user.firstName} {request.user.lastName}
-                  {request.user.phone ? ` - ${request.user.phone}` : ""}
+                  {request.customerName || (request.user ? `${request.user.firstName} ${request.user.lastName}` : "Khách vãng lai")}
+                  {(request.phone || request.user?.phone) ? ` - ${request.phone || request.user?.phone}` : ""}
                 </p>
               </div>
               <div className="admin-list-item__meta">

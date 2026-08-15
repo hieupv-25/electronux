@@ -1,11 +1,10 @@
 "use client";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, type ReactNode } from "react";
 import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { navItems, footerSections } from "@/data/siteData";
 import { ALL_CATEGORIES } from "@/lib/getCategoryData";
-
 /* ─── Device categories ─── */
 interface DeviceCategory {
     icon: string;
@@ -92,15 +91,25 @@ const buildSupportProducts = (): SupportProduct[] => {
 };
 
 /* ─── Quick links ─── */
+function QuickIcon({ type }: { type: "tool" | "bag" | "doc" | "shield" | "calendar" | "recycle" }) {
+  const paths: Record<string, ReactNode> = {
+    tool: <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.8-3.8a6 6 0 01-8 8l-6.9 6.9a2.1 2.1 0 01-3-3l6.9-6.9a6 6 0 018-8z" />,
+    bag: <><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 01-8 0"/></>,
+    doc: <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M12 12v6M9 15h6"/></>,
+    shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>,
+    calendar: <><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01"/></>,
+    recycle: <><path d="M7.5 7.5L12 2l4.5 5.5M16.5 7.5L21 16h-5M16 16l-4 6-4-6M8 16H3l4.5-8.5"/></>,
+  };
+  return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">{paths[type]}</svg>;
+}
 const quickLinks = [
-    { icon: "❓", label: "Xử lý sự cố và câu hỏi thường gặp", href: "/support/troubleshooting" },
-    { icon: "🛒", label: "Câu hỏi thường gặp về đơn hàng trực tuyến", href: "/support/online-order-faq" },
-    { icon: "📋", label: "Đăng kí bảo hành điện tử", href: "/support/warranty-registration" },
-    { icon: "🛡️", label: "Điều khoản và điều kiện bảo hành sản phẩm", href: "/support/warranty-policy" },
-    { icon: "🔧", label: "Đặt hẹn dịch vụ", href: "/support/book-service" },
-    { icon: "♻️", label: "Điểm tiếp nhận sản phẩm thải bỏ", href: "/support/recycling-points" },
+  { type: "tool" as const, label: "Xử lý sự cố và câu hỏi thường gặp", href: "/support/troubleshooting" },
+  { type: "bag" as const, label: "Câu hỏi về đơn hàng trực tuyến", href: "/support/online-order-faq" },
+  { type: "doc" as const, label: "Đăng ký bảo hành điện tử", href: "/support/product-registration" },
+  { type: "shield" as const, label: "Điều khoản và điều kiện bảo hành", href: "/support/warranty-policy" },
+  { type: "calendar" as const, label: "Đặt lịch hẹn bảo hành", href: "/support/warranty-appointment" },
+  { type: "recycle" as const, label: "Điểm tiếp nhận sản phẩm thải bỏ", href: "/support/recycling-points" },
 ];
-
 /* ─── FAQ data ─── */
 const faqs: { q: string; a: React.ReactNode }[] = [
     {
@@ -189,73 +198,12 @@ const faqs: { q: string; a: React.ReactNode }[] = [
             </span>
         ),
     },
-];
-
-/* ─── Support channels ─── */
-const supportChannels = [
-    {
-        icon: (
-            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="1.5">
-                <rect x="2" y="3" width="20" height="18" rx="2" />
-                <path d="M8 3v4M16 3v4M2 9h20" />
-                <path d="M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-        ),
-        title: "Mạng xã hội",
-        desc: "Kết nối với chúng tôi trong hôm nay để cập nhật thông tin mới nhất",
-        links: [
-            { label: "FACEBOOK", href: "#" },
-            { label: "ZALO", href: "#" },
-            { label: "INSTAGRAM", href: "#" },
-            { label: "TIKTOK", href: "#" },
-        ],
-    },
-    {
-        icon: (
-            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="1.5">
-                <rect x="2" y="4" width="20" height="16" rx="2" />
-                <path d="M2 4l10 9 10-9" />
-            </svg>
-        ),
-        title: "Email",
-        desc: "Chia sẻ thắc mắc của bạn bất cứ lúc nào",
-        links: [{ label: "GỬI EMAIL NGAY", href: "mailto:vncare@electrolux.com" }],
-    },
-    {
-        icon: (
-            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="1.5">
-                <rect x="5" y="2" width="14" height="20" rx="2" />
-                <path d="M12 17h.01" strokeWidth="2" strokeLinecap="round" />
-                <path d="M9 6h6M9 10h6M9 14h4" strokeLinecap="round" />
-            </svg>
-        ),
-        title: "Gọi tổng đài Electrolux",
-        desc: "Số điện thoại bảo hành và tư vấn chính hãng duy nhất của Electrolux\nThứ hai đến thứ sáu: 8:00 – 18:00\nThứ bảy: 8:00 – 17:00",
-        links: [{ label: "1800 588 899", href: "tel:1800588899" }],
-    },
-    {
-        icon: (
-            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="1.5">
-                <path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z" />
-                <circle cx="12" cy="10" r="3" />
-            </svg>
-        ),
-        title: "Đặt lịch hẹn bảo hành",
-        desc: "Yêu cầu bảo hành hoặc hỗ trợ các dịch vụ khác",
-        links: [{ label: "ĐẶT HẸN NGAY", href: "#" }],
-    },
-    {
-        icon: (
-            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="1.5">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <path d="M3 9h18M9 21V9" />
-                <rect x="13" y="13" width="5" height="5" rx="0.5" />
-            </svg>
-        ),
-        title: "Trung tâm bảo hành Electrolux",
-        desc: "Danh sách trung tâm bảo hành và chăm sóc khách hàng Electrolux toàn quốc",
-        links: [{ label: "TÌM KIẾM NGAY", href: "#" }],
-    },
+const channels = [
+  { title: "Mạng xã hội", desc: "Kết nối với chúng tôi để cập nhật thông tin mới nhất", links: [["FACEBOOK", "https://www.facebook.com/electroluxvietnam/"], ["ZALO", "https://zalo.me/3940082846017430673"], ["INSTAGRAM", "https://www.instagram.com/electroluxvn/"], ["TIKTOK", "https://www.tiktok.com/@electrolux.vietnam"]] },
+  { title: "Email", desc: "Chia sẻ thắc mắc của bạn bất cứ lúc nào", links: [["GỬI EMAIL NGAY", "mailto:vncare@electrolux.com"]] },
+  { title: "Gọi tổng đài Electrolux", desc: "Số điện thoại bảo hành và tư vấn chính hãng\nThứ hai đến thứ sáu: 8:00 – 18:00\nThứ bảy: 8:00 – 17:00", links: [["1800 588 899", "tel:1800588899"]] },
+  { title: "Đặt lịch hẹn bảo hành", desc: "Yêu cầu bảo hành và hỗ trợ kỹ thuật cho thiết bị", links: [["ĐẶT HẸN NGAY", "/support/warranty-appointment"]] },
+  { title: "Dịch vụ Electrolux", desc: "Bảo dưỡng, sửa chữa giá cố định và gia hạn bảo hành", links: [["XEM DỊCH VỤ", "/services"]] },
 ];
 
 /* ─── Main Support Page Component ─── */
@@ -1028,7 +976,7 @@ export default function SupportPage() {
                                 style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 0", borderBottom: "1px solid var(--elx-border)", color: "var(--elx-navy)", textDecoration: "none", fontWeight: 500, fontSize: "1rem", gap: 12 }}
                             >
                                 <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                                    <span style={{ fontSize: "1.3rem" }}>{link.icon}</span>
+                                    <QuickIcon type={link.type} />
                                     {link.label}
                                 </span>
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2">
@@ -1149,4 +1097,3 @@ export default function SupportPage() {
         </>
     );
 }
-

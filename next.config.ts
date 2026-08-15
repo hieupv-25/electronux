@@ -20,6 +20,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      { source: "/support/maintenance", destination: "/services/maintenance", permanent: true },
+      { source: "/support/fixed-price-repair", destination: "/services/fixed-price-repair", permanent: true },
+      { source: "/support/warranty-extension", destination: "/services/warranty-extension", permanent: true },
+      { source: "/support/book-service", destination: "/support/warranty-appointment", permanent: true },
+      { source: "/support/warranty-registration", destination: "/support/product-registration", permanent: true },
+      { source: "/support/track", destination: "/support", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

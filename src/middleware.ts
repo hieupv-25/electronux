@@ -19,13 +19,16 @@ export async function middleware(request: NextRequest) {
     // Redirect to home page with authRequired flag
     const redirectUrl = new URL("/", request.url);
     redirectUrl.searchParams.set("authRequired", "true");
+    redirectUrl.searchParams.set("next", pathname + request.nextUrl.search);
     return NextResponse.redirect(redirectUrl);
   }
 
   // Admin routes — check role (preparation for future)
   if (pathname.startsWith("/admin") && token) {
     if (token.role !== "admin") {
-      return NextResponse.redirect(new URL("/", request.url));
+      const redirectUrl = new URL("/", request.url);
+      redirectUrl.searchParams.set("adminForbidden", "true");
+      return NextResponse.redirect(redirectUrl);
     }
   }
 

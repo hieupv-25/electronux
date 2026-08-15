@@ -6,6 +6,7 @@ import {
   useCallback,
   useEffect,
 } from "react";
+import { useSession } from "next-auth/react";
 import { useToast } from "./Toast";
 
 /* ── Types ── */
@@ -70,6 +71,7 @@ export function useCart() {
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const { data: session } = useSession();
   const { showToast } = useToast();
   const [cart, setCart] = useState<CartData | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -77,6 +79,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [adding, setAdding] = useState<string | null>(null);
 
   const refreshCart = useCallback(async () => {
+    if (!session?.user?.id) {
+      setCart({
+        id: "cart-guest",
+        items: [],
+        subtotal: 0,
+        savings: 0,
+        total: 0,
+      });
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/cart");
@@ -89,7 +103,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [session?.user?.id]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -99,10 +113,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return () => {
       window.clearTimeout(timer);
     };
-  }, [refreshCart]);
+  }, [session?.user?.id, refreshCart]);
 
   const addToCart = useCallback(
     async (variantId: string, quantity = 1) => {
+      if (!session?.user?.id) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("open-auth-modal", { detail: { view: "login" } })
+          );
+        }
+        showToast("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.", "info");
+        return;
+      }
+
       setAdding(variantId);
       setIsOpen(true);
       try {
@@ -116,7 +140,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           showToast(data.message || "Đã thêm vào giỏ hàng ✓", "success");
           await refreshCart();
         } else {
-          showToast("Không thể thêm sản phẩm", "error");
+          showToast(data.message || "Không thể thêm sản phẩm", "error");
         }
       } catch {
         showToast("Lỗi kết nối", "error");
@@ -124,11 +148,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setAdding(null);
       }
     },
-    [showToast, refreshCart]
+    [session?.user?.id, showToast, refreshCart]
   );
 
   const updateQty = useCallback(
     async (itemId: string, quantity: number) => {
+      if (!session?.user?.id) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("open-auth-modal", { detail: { view: "login" } })
+          );
+        }
+        showToast("Vui lòng đăng nhập để thao tác với giỏ hàng.", "info");
+        return;
+      }
+
       // Optimistically update React state immediately
       setCart((prev) => {
         if (!prev) return null;
@@ -162,11 +196,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         refreshCart();
       }
     },
-    [showToast, refreshCart]
+    [session?.user?.id, showToast, refreshCart]
   );
 
   const removeItem = useCallback(
     async (itemId: string) => {
+      if (!session?.user?.id) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("open-auth-modal", { detail: { view: "login" } })
+          );
+        }
+        showToast("Vui lòng đăng nhập để thao tác với giỏ hàng.", "info");
+        return;
+      }
+
       // Optimistically update React state immediately
       setCart((prev) => {
         if (!prev) return null;
@@ -190,10 +234,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         refreshCart();
       }
     },
-    [showToast, refreshCart]
+    [session?.user?.id, showToast, refreshCart]
   );
 
   const clearCart = useCallback(async () => {
+    if (!session?.user?.id) {
+      setCart(null);
+      return;
+    }
+
     // Optimistically update React state immediately
     setCart((prev) => (prev ? { ...prev, items: [], subtotal: 0, total: 0, savings: 0 } : null));
 
@@ -203,10 +252,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       showToast("Lỗi xóa giỏ hàng", "error");
       refreshCart();
     }
-  }, [showToast, refreshCart]);
+  }, [session?.user?.id, showToast, refreshCart]);
 
   const count =
-    cart?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
+    session?.user?.id
+      ? cart?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0
+      : 0;
 
   return (
     <CartContext.Provider

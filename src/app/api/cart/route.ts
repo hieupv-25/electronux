@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { maintenanceServiceFallback } from "@/data/maintenanceServices";
 
 export type CartVariantSnapshot = {
   id: string;
@@ -117,6 +119,28 @@ export const DEMO_PRODUCTS: Record<string, CartVariantSnapshot> = {
   },
 };
 
+for (const service of maintenanceServiceFallback) {
+  DEMO_PRODUCTS[service.variantId] = {
+    id: service.variantId,
+    productId: `service-${service.sku}`,
+    sku: service.sku,
+    variantName: "Gói tiêu chuẩn",
+    price: service.price,
+    originalPrice: service.price,
+    discountPercentage: 0,
+    stockQuantity: 99999,
+    product: {
+      id: `service-${service.sku}`,
+      name: service.name,
+      slug: service.slug,
+      images: [{ id: `service-image-${service.sku}`, url: service.imageUrl }],
+      freeShipping: false,
+      freeInstallation: false,
+      installment0Percent: false,
+    },
+  };
+}
+
 // Global in-memory store attached to globalThis for shared access across Next.js API routes
 const memoryGlobal = globalThis as MemoryCartGlobal;
 export const memoryCarts: MemoryCartStore =
@@ -128,16 +152,7 @@ function getSessionKey(userId?: string | null, sessionId?: string | null): strin
 
 function getMemoryCart(key: string): MemoryCartItem[] {
   if (memoryCarts[key] === undefined) {
-    // Initial default demo item for a brand new session
-    memoryCarts[key] = [
-      {
-        id: "demo-item-1",
-        cartId: "demo-cart",
-        variantId: "demo-variant-1",
-        quantity: 1,
-        variant: DEMO_PRODUCTS["demo-variant-1"],
-      },
-    ];
+    memoryCarts[key] = [];
   }
   return memoryCarts[key];
 }
@@ -146,16 +161,25 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
-    const sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value || "default-session";
-    const key = getSessionKey(userId, sessionId);
+
+    if (!userId) {
+      return NextResponse.json({
+        id: "cart-guest",
+        userId: null,
+        items: [],
+        subtotal: 0,
+        savings: 0,
+        total: 0,
+      });
+    }
 
     let items: MemoryCartItem[] = [];
     let dbFound = false;
 
     // Try DB first
     try {
-      const dbCart = await prisma.cart.findFirst({
-        where: userId ? { userId } : { sessionId },
+      let dbCart = await prisma.cart.findFirst({
+        where: { userId },
         include: {
           items: {
             include: {
@@ -170,6 +194,25 @@ export async function GET(req: NextRequest) {
           },
         },
       });
+
+      if (!dbCart) {
+        dbCart = await prisma.cart.create({
+          data: { userId },
+          include: {
+            items: {
+              include: {
+                variant: {
+                  include: {
+                    product: {
+                      include: { images: { orderBy: { order: "asc" } } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
 
       if (dbCart) {
         dbFound = true;
@@ -211,7 +254,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (!dbFound || items.length === 0) {
-      const memItems = getMemoryCart(key);
+      const memItems = getMemoryCart(userId);
       if (memItems && memItems.length > 0) {
         items = memItems;
       }
@@ -225,9 +268,8 @@ export async function GET(req: NextRequest) {
     const savings = Math.max(0, subtotal - total);
 
     return NextResponse.json({
-      id: "cart-" + key,
-      userId: userId || null,
-      sessionId,
+      id: "cart-" + userId,
+      userId,
       items,
       subtotal,
       savings,
@@ -236,11 +278,11 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("GET /api/cart fatal error:", error);
     return NextResponse.json({
-      id: "cart-fallback",
-      items: getMemoryCart("default-session"),
-      subtotal: 12543000,
-      savings: 3053000,
-      total: 9490000,
+      id: "cart-empty",
+      items: [],
+      subtotal: 0,
+      savings: 0,
+      total: 0,
     });
   }
 }
@@ -249,8 +291,13 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
-    const sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value || "default-session";
-    const key = getSessionKey(userId, sessionId);
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized", message: "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng" },
+        { status: 401 }
+      );
+    }
 
     const body = (await req.json()) as { variantId?: string; quantity?: number };
     const { variantId, quantity = 1 } = body;
@@ -262,11 +309,11 @@ export async function POST(req: NextRequest) {
     // Try DB first
     try {
       let cart = await prisma.cart.findFirst({
-        where: userId ? { userId } : { sessionId: sessionId! },
+        where: { userId },
       });
       if (!cart) {
         cart = await prisma.cart.create({
-          data: userId ? { userId } : { sessionId: sessionId! },
+          data: { userId },
         });
       }
 
@@ -293,7 +340,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Always update memory store as fallback
-    const memCart = getMemoryCart(key);
+    const memCart = getMemoryCart(userId);
     const existingIndex = memCart.findIndex((i) => i.variantId === variantId);
     if (existingIndex > -1) {
       memCart[existingIndex].quantity += Number(quantity);
@@ -320,34 +367,35 @@ export async function POST(req: NextRequest) {
 
       memCart.push({
         id: "item-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7),
-        cartId: "cart-" + key,
+        cartId: "cart-" + userId,
         variantId,
         quantity: Number(quantity),
         variant: variantObj,
       });
     }
 
-    const response = NextResponse.json({ success: true, message: "Sản phẩm đã được thêm vào giỏ hàng" });
-    if (sessionId && !userId) {
-      response.cookies.set("cart_session_id", sessionId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
-    }
-    return response;
+    return NextResponse.json({ success: true, message: "Sản phẩm đã được thêm vào giỏ hàng" });
   } catch (error) {
     console.error("POST /api/cart error:", error);
-    return NextResponse.json({ success: true, message: "Đã thêm vào giỏ hàng" });
+    return NextResponse.json(
+      { success: false, message: "Lỗi server khi thêm vào giỏ hàng" },
+      { status: 500 }
+    );
   }
 }
 
-export async function DELETE(req: NextRequest) {
+export async function DELETE() {
   try {
     const session = await auth();
     const userId = session?.user?.id;
-    const sessionId = req.headers.get("x-session-id") || req.cookies.get("cart_session_id")?.value;
-    const key = getSessionKey(userId, sessionId);
+
+    if (!userId) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
 
     try {
       const cart = await prisma.cart.findFirst({
-        where: userId ? { userId } : { sessionId: sessionId || "" },
+        where: { userId },
       });
       if (cart) {
         await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
@@ -356,11 +404,11 @@ export async function DELETE(req: NextRequest) {
       console.warn("DB clear cart error:", e);
     }
 
-    memoryCarts[key] = [];
+    memoryCarts[userId] = [];
 
     return NextResponse.json({ success: true, message: "Đã xóa toàn bộ giỏ hàng" });
   } catch (error) {
     console.error("DELETE /api/cart error:", error);
-    return NextResponse.json({ success: true, message: "Đã xóa toàn bộ giỏ hàng" });
+    return NextResponse.json({ success: false, message: "Đã xóa toàn bộ giỏ hàng" });
   }
 }
