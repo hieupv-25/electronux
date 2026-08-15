@@ -1,12 +1,18 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useMemo } from "react";
 import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { navItems, footerSections } from "@/data/siteData";
+import { ALL_CATEGORIES } from "@/lib/getCategoryData";
 
 /* ─── Device categories ─── */
-const deviceCategories = [
+interface DeviceCategory {
+    icon: string;
+    label: string;
+}
+
+const deviceCategories: DeviceCategory[] = [
     { icon: "/icon-washing-machine.svg", label: "Máy giặt" },
     { icon: "/icon-dryer.svg", label: "Máy sấy" },
     { icon: "/icon-fridge.svg", label: "Tủ lạnh" },
@@ -15,7 +21,75 @@ const deviceCategories = [
     { icon: "/icon-dishwasher.svg", label: "Máy rửa bát" },
     { icon: "/icon-oven.svg", label: "Lò nướng" },
     { icon: "/icon-hood.svg", label: "Máy hút mùi" },
+    { icon: "/icon-water-heater-instant.svg", label: "Bình nước nóng trực tiếp" },
 ];
+
+/* ─── Support Products Interface ─── */
+interface SupportProduct {
+    id: string;
+    category: string;
+    sku: string;
+    pnc: string;
+    name: string;
+    img: string;
+}
+
+// Generate realistic support products using real images from database (ALL_CATEGORIES)
+const buildSupportProducts = (): SupportProduct[] => {
+    const list: SupportProduct[] = [];
+
+    // 1. Water Heater products with real product images
+    const waterHeaters: SupportProduct[] = [
+        { id: "sp-wh-1", category: "Bình nước nóng trực tiếp", sku: "EWE351BADW", pnc: "956002371", name: "Máy nước nóng công suất 3500W EWE351BADW", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
+        { id: "sp-wh-2", category: "Bình nước nóng trực tiếp", sku: "EWE351HB-DWS1", pnc: "956002372", name: "Máy nước nóng công suất 3500W", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
+        { id: "sp-wh-3", category: "Bình nước nóng trực tiếp", sku: "EWE351LB-DAX1", pnc: "956002373", name: "Máy nước nóng ComfortFlow™ 700 - Vàng đồng", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
+        { id: "sp-wh-4", category: "Bình nước nóng trực tiếp", sku: "EWE351LB-DAX2", pnc: "956002374", name: "Máy nước nóng ComfortFlow™ 700 - Vàng đồng", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
+        { id: "sp-wh-5", category: "Bình nước nóng trực tiếp", sku: "EWE451GX-DWB", pnc: "956002375", name: "Máy nước nóng công suất 4500W - Trắng & Xanh", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
+        { id: "sp-wh-6", category: "Bình nước nóng trực tiếp", sku: "EWE451GX-DWR", pnc: "956002376", name: "Máy nước nóng công suất 4500W - Trắng & Đỏ", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
+        { id: "sp-wh-7", category: "Bình nước nóng trực tiếp", sku: "EWE451KB-DWG2", pnc: "956002377", name: "Máy nước nóng trực tiếp", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
+        { id: "sp-wh-8", category: "Bình nước nóng trực tiếp", sku: "EWE451KX-DWB2", pnc: "956002378", name: "Máy nước nóng ComfortFlow™ 500", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
+        { id: "sp-wh-9", category: "Bình nước nóng trực tiếp", sku: "EWE451LB-DPX2", pnc: "956002379", name: "Máy nước nóng ComfortFlow™ 700", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
+        { id: "sp-wh-10", category: "Bình nước nóng trực tiếp", sku: "EWE451MB-DST2", pnc: "956002380", name: "Máy nước nóng ComfortFlow™ 800", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
+        { id: "sp-wh-11", category: "Bình nước nóng trực tiếp", sku: "EWE451PX-DWX6", pnc: "956002381", name: "Máy nước nóng trực tiếp 4500W", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
+        { id: "sp-wh-12", category: "Bình nước nóng trực tiếp", sku: "EWE451QB-W4", pnc: "956002382", name: "Máy nước nóng trực tiếp", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
+    ];
+    list.push(...waterHeaters);
+
+    // 2. Add real products from ALL_CATEGORIES in database
+    ALL_CATEGORIES.forEach((catData) => {
+        let catLabel = catData.name;
+        if (catData.slug === "may-giat") catLabel = "Máy giặt";
+        else if (catData.slug === "may-say") catLabel = "Máy sấy";
+        else if (catData.slug === "tu-lanh") catLabel = "Tủ lạnh";
+        else if (catData.slug === "bep-nau") catLabel = "Bếp nấu";
+        else if (catData.slug === "may-loc-khong-khi") catLabel = "Máy lọc không khí";
+        else if (catData.slug === "may-nuoc-nong" || catData.slug === "may-nuoc-nong-gian-tiep") catLabel = "Bình nước nóng trực tiếp";
+
+        catData.products.forEach((p, idx) => {
+            list.push({
+                id: `db-prod-${p.id}`,
+                category: catLabel,
+                sku: p.sku || `SKU-${idx + 100}`,
+                pnc: `9149${Math.floor(10000 + Math.random() * 90000)}`,
+                name: p.name,
+                img: p.img,
+            });
+        });
+    });
+
+    // 3. Fallback items for categories without direct database entries (Máy rửa bát, Lò nướng, Máy hút mùi)
+    const fallbackOtherCategories: SupportProduct[] = [
+        { id: "sp-dw-1", category: "Máy rửa bát", sku: "ESF5512LOX", pnc: "911516101", name: "Máy rửa bát độc lập Series 300", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/hero-may-giat.jpg" },
+        { id: "sp-dw-2", category: "Máy rửa bát", sku: "EDF4430OW", pnc: "911516102", name: "Máy rửa bát âm tủ Series 500", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/hero-may-giat.jpg" },
+        { id: "sp-ov-1", category: "Lò nướng", sku: "EOB3400BOX", pnc: "944064101", name: "Lò nướng âm tủ 70L Series 300", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/KIS87553IT.jpg" },
+        { id: "sp-ov-2", category: "Lò nướng", sku: "EOT3805K", pnc: "944064102", name: "Lò nướng thùng 38L", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/ETIS457CGB.jpg" },
+        { id: "sp-hd-1", category: "Máy hút mùi", sku: "EFC926SA", pnc: "942001101", name: "Máy hút mùi ống khói 90cm", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/KIS87553IT.jpg" },
+        { id: "sp-hd-2", category: "Máy hút mùi", sku: "EFT739X", pnc: "942001102", name: "Máy hút mùi cổ điển 70cm", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/ETIS453CGA.jpg" },
+    ];
+    list.push(...fallbackOtherCategories);
+
+    return list;
+};
 
 /* ─── Quick links ─── */
 const quickLinks = [
@@ -27,7 +101,7 @@ const quickLinks = [
     { icon: "♻️", label: "Điểm tiếp nhận sản phẩm thải bỏ", href: "/support/recycling-points" },
 ];
 
-/* ─── FAQ data (answer as JSX node) ─── */
+/* ─── FAQ data ─── */
 const faqs: { q: string; a: React.ReactNode }[] = [
     {
         q: "Làm sao để tôi đăng ký bảo hành sản phẩm mới?",
@@ -184,31 +258,194 @@ const supportChannels = [
     },
 ];
 
-/* ─── Component ─── */
+/* ─── Main Support Page Component ─── */
 export default function SupportPage() {
     const [openFaq, setOpenFaq] = useState<number | null>(null);
     const [modelQuery, setModelQuery] = useState("");
+
+    // Build real products list from DB
+    const supportProductsData = useMemo(() => buildSupportProducts(), []);
+
+    // Navigation & View States: 'categories' | 'products' | 'product_detail' | 'register' | 'registered_success'
+    const [viewState, setViewState] = useState<"categories" | "products" | "product_detail" | "register" | "registered_success">("categories");
+    const [selectedCategory, setSelectedCategory] = useState<string>("Bình nước nóng trực tiếp");
+    const [selectedProduct, setSelectedProduct] = useState<SupportProduct | null>(supportProductsData[1] || supportProductsData[0]);
+
+    // Registration Form State
+    const [formData, setFormData] = useState({
+        email: "",
+        customerType: "ca-nhan", // "ca-nhan" | "doanh-nghiep"
+        salutation: "Ông",
+        firstName: "",
+        lastName: "",
+        dob: "",
+        phone: "",
+        serialNumber: "",
+        purchaseDate: "",
+        invoiceFile: null as File | null,
+        optCall: false,
+        optSms: false,
+        optEmail: false,
+        optPromotions: false,
+        optPrivacyPolicy: false,
+        optWarrantyTerms: false,
+        recaptchaChecked: false,
+    });
+    const [registrationId, setRegistrationId] = useState("");
+    const [formError, setFormError] = useState("");
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Filter products based on active category or search query
+    const getFilteredProducts = () => {
+        if (modelQuery.trim() !== "") {
+            const q = modelQuery.trim().toLowerCase();
+            return supportProductsData.filter(
+                (p) => p.sku.toLowerCase().includes(q) || p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
+            );
+        }
+        return supportProductsData.filter((p) => p.category === selectedCategory);
+    };
+
+    const handleSearchSubmit = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        if (modelQuery.trim() !== "") {
+            const matches = getFilteredProducts();
+            if (matches.length === 1) {
+                setSelectedProduct(matches[0]);
+                setViewState("product_detail");
+            } else {
+                setViewState("products");
+            }
+        }
+    };
+
+    const handleSelectCategory = (catLabel: string) => {
+        setSelectedCategory(catLabel);
+        setModelQuery("");
+        setViewState("products");
+        window.scrollTo({ top: 400, behavior: "smooth" });
+    };
+
+    const handleSelectProduct = (product: SupportProduct) => {
+        setSelectedProduct(product);
+        setViewState("product_detail");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    const handleResetForm = () => {
+        setFormData({
+            email: "",
+            customerType: "ca-nhan",
+            salutation: "Ông",
+            firstName: "",
+            lastName: "",
+            dob: "",
+            phone: "",
+            serialNumber: "",
+            purchaseDate: "",
+            invoiceFile: null,
+            optCall: false,
+            optSms: false,
+            optEmail: false,
+            optPromotions: false,
+            optPrivacyPolicy: false,
+            optWarrantyTerms: false,
+            recaptchaChecked: false,
+        });
+        setFormError("");
+    };
+
+    const handleRegisterSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setFormError("");
+        if (!formData.email) {
+            setFormError("Vui lòng nhập Email của bạn");
+            return;
+        }
+        if (!formData.firstName || !formData.lastName) {
+            setFormError("Vui lòng nhập Tên và Họ của bạn");
+            return;
+        }
+        if (!formData.phone) {
+            setFormError("Vui lòng nhập Số điện thoại di động");
+            return;
+        }
+        if (!formData.purchaseDate) {
+            setFormError("Vui lòng chọn Ngày mua hàng");
+            return;
+        }
+        if (!formData.optPrivacyPolicy) {
+            setFormError("Vui lòng đồng ý với Chính Sách Bảo Mật");
+            return;
+        }
+        if (!formData.optWarrantyTerms) {
+            setFormError("Vui lòng đồng ý với Điều khoản và điều kiện bảo hành");
+            return;
+        }
+        if (!formData.recaptchaChecked) {
+            setFormError("Vui lòng xác nhận bạn không phải là người máy (reCAPTCHA)");
+            return;
+        }
+
+        const generatedId = "REG-" + Math.floor(10000000 + Math.random() * 90000000);
+        setRegistrationId(generatedId);
+
+        // Save registered product to localStorage so it appears in Account -> Registered Products page
+        if (typeof window !== "undefined" && selectedProduct) {
+            const newRegistration = {
+                id: generatedId,
+                registrationId: generatedId,
+                productName: selectedProduct.name,
+                sku: selectedProduct.sku,
+                pnc: selectedProduct.pnc,
+                img: selectedProduct.img,
+                category: selectedCategory,
+                serialNumber: formData.serialNumber || "ELX" + Math.floor(100000 + Math.random() * 900000),
+                purchaseDate: formData.purchaseDate,
+                registeredAt: new Date().toISOString(),
+                status: "Đang bảo hành",
+                warrantyMonths: 24,
+                customerName: `${formData.salutation} ${formData.lastName} ${formData.firstName}`,
+                customerEmail: formData.email,
+                customerPhone: formData.phone,
+            };
+
+            try {
+                const existingRaw = localStorage.getItem("electrolux_registered_products");
+                const existingList = existingRaw ? JSON.parse(existingRaw) : [];
+                const updatedList = [newRegistration, ...existingList];
+                localStorage.setItem("electrolux_registered_products", JSON.stringify(updatedList));
+            } catch (err) {
+                console.error("Lỗi khi lưu sản phẩm đã đăng ký vào localStorage:", err);
+            }
+        }
+
+        setViewState("registered_success");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    const filteredProducts = getFilteredProducts();
 
     return (
         <>
             <Header navItems={navItems} />
 
             {/* ── Page Title ── */}
-            <section style={{ textAlign: "center", padding: "48px 20px 32px", borderBottom: "1px solid var(--elx-border)" }}>
+            <section style={{ textAlign: "center", padding: "40px 20px 24px", borderBottom: "1px solid var(--elx-border)" }}>
                 <h1 style={{ fontSize: "2.2rem", fontWeight: 700, color: "var(--elx-navy)", margin: 0 }}>
                     Hỗ trợ sản phẩm
                 </h1>
             </section>
 
-            {/* ── Model Search Banner ── */}
-            <section style={{ background: "var(--elx-navy)", color: "#fff", padding: "48px 20px" }}>
+            {/* ── Model Search Banner (Always visible or customizable) ── */}
+            <section style={{ background: "var(--elx-navy)", color: "#fff", padding: "44px 20px" }}>
                 <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 40 }}>
                     {/* Left */}
                     <div>
                         <h2 style={{ fontSize: "1.75rem", fontWeight: 700, lineHeight: 1.35, marginBottom: 20 }}>
                             Tìm kiếm hỗ trợ cho model<br />sản phẩm của bạn
                         </h2>
-                        <div style={{ display: "flex", alignItems: "center", background: "#fff", borderRadius: 4, overflow: "hidden", border: "1px solid #ccc" }}>
+                        <form onSubmit={handleSearchSubmit} style={{ display: "flex", alignItems: "center", background: "#fff", borderRadius: 4, overflow: "hidden", border: "1px solid #ccc" }}>
                             <input
                                 type="text"
                                 placeholder="Nhập vào số model. Eg ER123456"
@@ -216,25 +453,25 @@ export default function SupportPage() {
                                 onChange={(e) => setModelQuery(e.target.value)}
                                 style={{ flex: 1, border: "none", outline: "none", padding: "12px 16px", fontSize: "1rem", color: "#333", background: "transparent" }}
                             />
-                            <button style={{ background: "none", border: "none", cursor: "pointer", padding: "0 16px", color: "#555" }}>
+                            <button type="submit" style={{ background: "none", border: "none", cursor: "pointer", padding: "0 16px", color: "#555" }}>
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
                                 </svg>
                             </button>
-                        </div>
+                        </form>
                         <a href="#" style={{ display: "inline-block", marginTop: 10, fontSize: "0.9rem", color: "#ccd6e8", textDecoration: "underline" }}>
                             Tôi tìm số model sản phẩm của mình bằng cách nào?
                         </a>
                     </div>
                     {/* Divider */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, color: "#a0b4cc" }}>
-                        <div style={{ width: 1, height: 80, background: "#3a5a7c" }} />
+                        <div style={{ width: 1, height: 70, background: "#3a5a7c" }} />
                         <span style={{ fontSize: "0.9rem" }}>Hoặc</span>
-                        <div style={{ width: 1, height: 80, background: "#3a5a7c" }} />
+                        <div style={{ width: 1, height: 70, background: "#3a5a7c" }} />
                     </div>
                     {/* Right: QR */}
                     <div>
-                        <svg width="80" height="80" viewBox="0 0 100 100" fill="none" style={{ marginBottom: 16 }}>
+                        <svg width="72" height="72" viewBox="0 0 100 100" fill="none" style={{ marginBottom: 12 }}>
                             <rect x="2" y="2" width="40" height="40" rx="4" stroke="#fff" strokeWidth="4" fill="none" />
                             <rect x="14" y="14" width="16" height="16" fill="#fff" />
                             <rect x="58" y="2" width="40" height="40" rx="4" stroke="#fff" strokeWidth="4" fill="none" />
@@ -245,37 +482,539 @@ export default function SupportPage() {
                             <rect x="58" y="74" width="10" height="10" fill="#fff" /><rect x="74" y="74" width="10" height="10" fill="#fff" />
                             <rect x="90" y="74" width="10" height="10" fill="#fff" /><rect x="90" y="58" width="10" height="10" fill="#fff" />
                         </svg>
-                        <p style={{ fontSize: "1rem", lineHeight: 1.5, fontWeight: 500, marginBottom: 10 }}>
+                        <p style={{ fontSize: "0.98rem", lineHeight: 1.5, fontWeight: 500, marginBottom: 8 }}>
                             Quét mã QR bằng điện thoại để tìm kiếm thông tin hỗ trợ
                         </p>
-                        <a href="#" style={{ fontSize: "0.9rem", color: "#ccd6e8", textDecoration: "underline" }}>
+                        <a href="#" style={{ fontSize: "0.88rem", color: "#ccd6e8", textDecoration: "underline" }}>
                             Tôi tìm mã QR trên sản phẩm của mình bằng cách nào?
                         </a>
                     </div>
                 </div>
             </section>
 
-            {/* ── Device Category Picker ── */}
-            <section style={{ padding: "56px 20px", textAlign: "center" }}>
-                <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-                    <h2 style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--elx-navy)", marginBottom: 40 }}>
-                        Bạn cần trợ giúp cho thiết bị nào?
-                    </h2>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
-                        {deviceCategories.map((d, i) => (
-                            <a
-                                key={i} href="#"
-                                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "28px 16px", border: "1px solid var(--elx-border)", borderRadius: 8, color: "var(--elx-navy)", fontWeight: 600, fontSize: "1rem", textDecoration: "none", transition: "all 0.2s" }}
-                                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--elx-navy)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(0,44,91,0.12)"; }}
-                                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--elx-border)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
-                            >
-                                <Image src={d.icon} alt={d.label} width={56} height={56} style={{ objectFit: "contain" }} />
-                                <span>{d.label}</span>
-                            </a>
-                        ))}
+
+            {/* ── STEP 1: CATEGORY SELECTION (HÌNH 1) ── */}
+            {viewState === "categories" && (
+                <section style={{ padding: "56px 20px", textAlign: "center" }}>
+                    <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+                        <h2 style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--elx-navy)", marginBottom: 40 }}>
+                            Bạn cần trợ giúp cho thiết bị nào?
+                        </h2>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
+                            {deviceCategories.map((d, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => handleSelectCategory(d.label)}
+                                    style={{
+                                        display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "28px 16px",
+                                        border: "1px solid var(--elx-border)", borderRadius: 8, background: "#fff",
+                                        color: "var(--elx-navy)", fontWeight: 600, fontSize: "1rem", cursor: "pointer", transition: "all 0.2s"
+                                    }}
+                                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--elx-navy)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(0,44,91,0.12)"; }}
+                                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--elx-border)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+                                >
+                                    <Image src={d.icon} alt={d.label} width={56} height={56} style={{ objectFit: "contain" }} />
+                                    <span>{d.label}</span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            )}
+
+
+            {/* ── STEP 2: PRODUCTS LIST FOR SELECTED CATEGORY (HÌNH 2) ── */}
+            {viewState === "products" && (
+                <section style={{ padding: "48px 20px", background: "#fff" }}>
+                    <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+                        <h2 style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--elx-navy)", textAlign: "center", marginBottom: 28 }}>
+                            Bạn cần trợ giúp cho thiết bị nào?
+                        </h2>
+
+                        {/* Back button & Selected Category badge */}
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginBottom: 40 }}>
+                            <button
+                                onClick={() => { setViewState("categories"); setModelQuery(""); }}
+                                style={{ background: "none", border: "none", color: "var(--elx-navy)", fontWeight: 600, fontSize: "0.95rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
+                            >
+                                ↩ Quay lại
+                            </button>
+                            <div style={{ background: "var(--elx-navy)", color: "#fff", padding: "8px 20px", borderRadius: 4, fontWeight: 700, fontSize: "0.95rem" }}>
+                                {modelQuery ? `Kết quả tìm kiếm: "${modelQuery}"` : selectedCategory}
+                            </div>
+                        </div>
+
+                        {/* Product Grid */}
+                        {filteredProducts.length === 0 ? (
+                            <div style={{ textAlign: "center", padding: "40px 0", color: "#666" }}>
+                                Không tìm thấy sản phẩm phù hợp. Vui lòng thử tìm kiếm lại.
+                            </div>
+                        ) : (
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "24px 16px" }}>
+                                {filteredProducts.map((prod) => (
+                                    <div
+                                        key={prod.id}
+                                        onClick={() => handleSelectProduct(prod)}
+                                        style={{
+                                            border: "1px solid #e2e8f0", borderRadius: 8, padding: "16px 12px", background: "#fff",
+                                            display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
+                                            cursor: "pointer", transition: "all 0.2s ease"
+                                        }}
+                                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--elx-navy)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 12px rgba(0,44,91,0.1)"; }}
+                                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#e2e8f0"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+                                    >
+                                        <div style={{ width: "100%", height: 110, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+                                            <Image src={prod.img} alt={prod.name} width={70} height={70} style={{ objectFit: "contain" }} />
+                                        </div>
+                                        <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--elx-navy)", marginBottom: 4 }}>
+                                            {prod.sku}
+                                        </span>
+                                        <span style={{ fontSize: "0.8rem", color: "#334155", lineHeight: 1.35, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                                            {prod.name}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </section>
+            )}
+
+
+            {/* ── STEP 3: PRODUCT SUPPORT DETAILS CARD (HÌNH 3) ── */}
+            {viewState === "product_detail" && selectedProduct && (
+                <section style={{ padding: "60px 20px", background: "#fff", minHeight: 420 }}>
+                    <div style={{ maxWidth: 900, margin: "0 auto", display: "grid", gridTemplateColumns: "320px 1fr", gap: 48, alignItems: "center" }}>
+                        {/* Left image */}
+                        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: 20 }}>
+                            <Image src={selectedProduct.img} alt={selectedProduct.name} width={240} height={240} style={{ objectFit: "contain" }} />
+                        </div>
+                        {/* Right Details */}
+                        <div>
+                            <h2 style={{ fontSize: "1.9rem", fontWeight: 700, color: "var(--elx-navy)", marginTop: 0, marginBottom: 24, lineHeight: 1.3 }}>
+                                Hỗ trợ: {selectedProduct.name}
+                            </h2>
+                            <p style={{ fontSize: "1.05rem", color: "var(--elx-navy)", fontWeight: 500, margin: "0 0 10px" }}>
+                                <strong>Mã sản phẩm:</strong> {selectedProduct.sku}
+                            </p>
+                            <p style={{ fontSize: "1.05rem", color: "var(--elx-navy)", fontWeight: 500, margin: "0 0 32px" }}>
+                                PNC: {selectedProduct.pnc}
+                            </p>
+                            <button
+                                onClick={() => setViewState("register")}
+                                style={{
+                                    background: "var(--elx-navy)", color: "#fff", border: "none",
+                                    padding: "14px 36px", fontSize: "1rem", fontWeight: 700,
+                                    letterSpacing: "0.5px", cursor: "pointer", borderRadius: 2,
+                                    boxShadow: "0 2px 8px rgba(0,44,91,0.2)"
+                                }}
+                            >
+                                ĐĂNG KÝ SẢN PHẨM
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            )}
+
+
+            {/* ── STEP 4: PRODUCT WARRANTY REGISTRATION FORM (HÌNH 4 & HÌNH 5) ── */}
+            {viewState === "register" && selectedProduct && (
+                <section style={{ padding: "48px 20px", background: "#fff" }}>
+                    <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "300px 1fr", gap: 48 }}>
+
+                        {/* Left Column: Product Summary */}
+                        <div style={{ borderRight: "1px solid #e2e8f0", paddingRight: 24 }}>
+                            <button
+                                onClick={() => setViewState("product_detail")}
+                                style={{ background: "none", border: "none", color: "var(--elx-navy)", fontWeight: 600, fontSize: "0.9rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, padding: 0, marginBottom: 28 }}
+                            >
+                                ↩ Quay lại
+                            </button>
+                            <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
+                                <Image src={selectedProduct.img} alt={selectedProduct.name} width={180} height={180} style={{ objectFit: "contain" }} />
+                            </div>
+                            <p style={{ fontSize: "0.95rem", color: "var(--elx-navy)", margin: "0 0 8px", fontWeight: 600 }}>
+                                Mã model: <strong>{selectedProduct.sku}</strong>
+                            </p>
+                            <p style={{ fontSize: "0.95rem", color: "var(--elx-navy)", margin: 0, fontWeight: 600 }}>
+                                Số PNC: <strong>{selectedProduct.pnc}</strong>
+                            </p>
+                        </div>
+
+                        {/* Right Column: Form */}
+                        <div>
+                            <form onSubmit={handleRegisterSubmit} style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+
+                                {/* Form Error Banner if any */}
+                                {formError && (
+                                    <div style={{ background: "#fee2e2", border: "1px solid #f87171", color: "#991b1b", padding: "12px 16px", borderRadius: 4, fontSize: "0.92rem", fontWeight: 600 }}>
+                                        {formError}
+                                    </div>
+                                )}
+
+                                {/* Section 1: Thông tin của bạn */}
+                                <div>
+                                    <h2 style={{ fontSize: "1.6rem", fontWeight: 700, color: "var(--elx-navy)", margin: "0 0 24px" }}>
+                                        Thông tin của bạn
+                                    </h2>
+
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                                        <div>
+                                            <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "#334155", marginBottom: 6 }}>
+                                                Email*
+                                            </label>
+                                            <input
+                                                type="email"
+                                                placeholder="Email"
+                                                value={formData.email}
+                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                style={{ width: "100%", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: 4, fontSize: "0.95rem", outline: "none" }}
+                                            />
+                                        </div>
+
+                                        {/* Radio buttons */}
+                                        <div style={{ display: "flex", gap: 32, margin: "4px 0" }}>
+                                            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.95rem", color: "#334155", cursor: "pointer" }}>
+                                                <input
+                                                    type="radio"
+                                                    name="custType"
+                                                    checked={formData.customerType === "ca-nhan"}
+                                                    onChange={() => setFormData({ ...formData, customerType: "ca-nhan" })}
+                                                />
+                                                Cá nhân
+                                            </label>
+                                            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.95rem", color: "#334155", cursor: "pointer" }}>
+                                                <input
+                                                    type="radio"
+                                                    name="custType"
+                                                    checked={formData.customerType === "doanh-nghiep"}
+                                                    onChange={() => setFormData({ ...formData, customerType: "doanh-nghiep" })}
+                                                />
+                                                Doanh nghiệp
+                                            </label>
+                                        </div>
+
+                                        {/* Danh xưng */}
+                                        <div>
+                                            <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "#334155", marginBottom: 6 }}>
+                                                Danh xưng*
+                                            </label>
+                                            <select
+                                                value={formData.salutation}
+                                                onChange={(e) => setFormData({ ...formData, salutation: e.target.value })}
+                                                style={{ width: "100%", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: 4, fontSize: "0.95rem", outline: "none", background: "#fff" }}
+                                            >
+                                                <option value="Ông">Ông</option>
+                                                <option value="Bà">Bà</option>
+                                                <option value="Cô">Cô</option>
+                                                <option value="Anh">Anh</option>
+                                                <option value="Chị">Chị</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Tên & Họ */}
+                                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                                            <div>
+                                                <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "#334155", marginBottom: 6 }}>
+                                                    Tên*
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Tên"
+                                                    value={formData.firstName}
+                                                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                                    style={{ width: "100%", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: 4, fontSize: "0.95rem", outline: "none" }}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "#334155", marginBottom: 6 }}>
+                                                    Họ*
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Họ"
+                                                    value={formData.lastName}
+                                                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                                    style={{ width: "100%", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: 4, fontSize: "0.95rem", outline: "none" }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Ngày sinh */}
+                                        <div>
+                                            <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "#334155", marginBottom: 6 }}>
+                                                Ngày sinh (không bắt buộc)
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={formData.dob}
+                                                onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                                                style={{ width: "100%", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: 4, fontSize: "0.95rem", outline: "none" }}
+                                            />
+                                        </div>
+
+                                        {/* Số điện thoại di động */}
+                                        <div>
+                                            <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "#334155", marginBottom: 6 }}>
+                                                Số điện thoại di động*
+                                            </label>
+                                            <div style={{ display: "flex", gap: 8 }}>
+                                                <div style={{ display: "flex", alignItems: "center", gap: 6, border: "1px solid #cbd5e1", borderRadius: 4, padding: "0 12px", background: "#f8fafc", fontSize: "0.9rem", fontWeight: 600, color: "#334155" }}>
+                                                    <span>🇻🇳</span> VN
+                                                </div>
+                                                <input
+                                                    type="tel"
+                                                    placeholder="+84 | Số điện thoại"
+                                                    value={formData.phone}
+                                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                                    style={{ flex: 1, padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: 4, fontSize: "0.95rem", outline: "none" }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{ height: 1, background: "#e2e8f0" }} />
+
+                                {/* Section 2: Thông tin mua hàng */}
+                                <div>
+                                    <h2 style={{ fontSize: "1.6rem", fontWeight: 700, color: "var(--elx-navy)", margin: "0 0 24px" }}>
+                                        Thông tin mua hàng
+                                    </h2>
+
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                                        <div>
+                                            <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "#334155", marginBottom: 6 }}>
+                                                Số serial (không bắt buộc)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="Số serial"
+                                                value={formData.serialNumber}
+                                                onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
+                                                style={{ width: "100%", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: 4, fontSize: "0.95rem", outline: "none" }}
+                                            />
+                                            <a href="#" style={{ display: "inline-block", marginTop: 6, fontSize: "0.85rem", color: "var(--elx-navy)", textDecoration: "underline", fontWeight: 600 }}>
+                                                Làm thế nào để tìm số serial?
+                                            </a>
+                                        </div>
+
+                                        <div>
+                                            <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "#334155", marginBottom: 6 }}>
+                                                Ngày mua hàng*
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={formData.purchaseDate}
+                                                onChange={(e) => setFormData({ ...formData, purchaseDate: e.target.value })}
+                                                style={{ width: "100%", padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: 4, fontSize: "0.95rem", outline: "none" }}
+                                            />
+                                        </div>
+
+                                        <p style={{ fontSize: "0.85rem", color: "#64748b", lineHeight: 1.5, margin: 0, fontStyle: "italic" }}>
+                                            *Lưu ý: Electrolux sẽ không xuất chứng nhận bảo hành trong quy trình này. Vui lòng giữ lại hóa đơn mua hàng trực tuyến để làm bằng chứng bảo hành trong tương lai.
+                                        </p>
+
+                                        {/* Upload file */}
+                                        <div>
+                                            <input
+                                                type="file"
+                                                ref={fileInputRef}
+                                                style={{ display: "none" }}
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        setFormData({ ...formData, invoiceFile: e.target.files[0] });
+                                                    }
+                                                }}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                style={{
+                                                    background: "#fff", border: "1px solid var(--elx-navy)", color: "var(--elx-navy)",
+                                                    padding: "10px 20px", fontWeight: 700, fontSize: "0.9rem", borderRadius: 4, cursor: "pointer"
+                                                }}
+                                            >
+                                                + {formData.invoiceFile ? formData.invoiceFile.name : "TẢI TẬP TIN LÊN"}
+                                            </button>
+                                            <p style={{ fontSize: "0.8rem", color: "#64748b", marginTop: 8, lineHeight: 1.4 }}>
+                                                Ảnh chụp hóa đơn phải có đầy đủ ngày mua hàng, tên cửa hàng, số model, giá. Chỉ hỗ trợ PDF, png hoặc jpg có dung lượng dưới 5MB.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{ height: 1, background: "#e2e8f0" }} />
+
+                                {/* Section 3: Đồng ý nhận nội dung tiếp thị */}
+                                <div>
+                                    <h2 style={{ fontSize: "1.6rem", fontWeight: 700, color: "var(--elx-navy)", margin: "0 0 16px" }}>
+                                        Đồng ý nhận nội dung tiếp thị
+                                    </h2>
+                                    <p style={{ fontSize: "0.9rem", color: "#334155", marginBottom: 16 }}>
+                                        Tôi muốn nhận thông tin tiếp thị thông qua các phương thức liên lạc dưới đây vào số điện thoại và/hoặc địa chỉ email của tôi:
+                                    </p>
+
+                                    <div style={{ display: "flex", gap: 32, marginBottom: 20 }}>
+                                        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.9rem", color: "#334155", cursor: "pointer" }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.optCall}
+                                                onChange={(e) => setFormData({ ...formData, optCall: e.target.checked })}
+                                            />
+                                            Gọi điện thoại
+                                        </label>
+                                        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.9rem", color: "#334155", cursor: "pointer" }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.optSms}
+                                                onChange={(e) => setFormData({ ...formData, optSms: e.target.checked })}
+                                            />
+                                            Tin nhắn SMS
+                                        </label>
+                                        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.9rem", color: "#334155", cursor: "pointer" }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.optEmail}
+                                                onChange={(e) => setFormData({ ...formData, optEmail: e.target.checked })}
+                                            />
+                                            Email
+                                        </label>
+                                    </div>
+
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                                        <label style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: "0.88rem", color: "#334155", cursor: "pointer", lineHeight: 1.5 }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.optPromotions}
+                                                onChange={(e) => setFormData({ ...formData, optPromotions: e.target.checked })}
+                                                style={{ marginTop: 3 }}
+                                            />
+                                            Cập nhật cho tôi về tin tức và các ưu đãi độc quyền
+                                        </label>
+
+                                        <label style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: "0.88rem", color: "#334155", cursor: "pointer", lineHeight: 1.5 }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.optPrivacyPolicy}
+                                                onChange={(e) => setFormData({ ...formData, optPrivacyPolicy: e.target.checked })}
+                                                style={{ marginTop: 3 }}
+                                            />
+                                            <span>
+                                                Tôi xác nhận rằng tôi đã đọc, hiểu và đồng ý với toàn bộ{" "}
+                                                <a href="#" style={{ color: "var(--elx-navy)", fontWeight: 700, textDecoration: "underline" }}>
+                                                    Chính Sách Bảo Mật
+                                                </a>{" "}
+                                                bao gồm cả cách thức dữ liệu cá nhân của tôi có thể được thu thập, sử dụng và tiết lộ bởi Công Ty TNHH Electrolux Việt Nam và các công ty có liên quan của Công Ty TNHH Electrolux Việt Nam theo quy định tại Chính Sách Bảo Mật.*
+                                            </span>
+                                        </label>
+
+                                        <label style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: "0.88rem", color: "#334155", cursor: "pointer", lineHeight: 1.5 }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.optWarrantyTerms}
+                                                onChange={(e) => setFormData({ ...formData, optWarrantyTerms: e.target.checked })}
+                                                style={{ marginTop: 3 }}
+                                            />
+                                            <span>
+                                                Tôi đồng ý về{" "}
+                                                <a href="#" style={{ color: "var(--elx-navy)", fontWeight: 700, textDecoration: "underline" }}>
+                                                    Điều khoản và điều kiện bảo hành*
+                                                </a>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* reCAPTCHA Widget Simulation */}
+                                <div style={{ background: "#f9f9f9", border: "1px solid #d3d3d3", borderRadius: 4, padding: "12px 16px", display: "inline-flex", alignItems: "center", justifyContent: "space-between", width: 300 }}>
+                                    <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer", fontSize: "0.9rem", color: "#222" }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.recaptchaChecked}
+                                            onChange={(e) => setFormData({ ...formData, recaptchaChecked: e.target.checked })}
+                                            style={{ width: 24, height: 24 }}
+                                        />
+                                        <span>Tôi không phải là người máy</span>
+                                    </label>
+                                    <div style={{ textAlign: "center" }}>
+                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" strokeWidth="2">
+                                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                                        </svg>
+                                        <span style={{ display: "block", fontSize: "0.6rem", color: "#666" }}>reCAPTCHA</span>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
+                                    <button
+                                        type="button"
+                                        onClick={handleResetForm}
+                                        style={{
+                                            flex: 1, padding: "14px 24px", background: "#fff", border: "1px solid var(--elx-navy)",
+                                            color: "var(--elx-navy)", fontWeight: 700, fontSize: "0.95rem", letterSpacing: "0.5px", cursor: "pointer"
+                                        }}
+                                    >
+                                        NHẬP LẠI
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        style={{
+                                            flex: 1, padding: "14px 24px", background: "var(--elx-navy)", border: "none",
+                                            color: "#fff", fontWeight: 700, fontSize: "0.95rem", letterSpacing: "0.5px", cursor: "pointer"
+                                        }}
+                                    >
+                                        ĐĂNG KÝ
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+            )}
+
+
+            {/* ── STEP 5: REGISTRATION SUCCESS SCREEN ── */}
+            {viewState === "registered_success" && (
+                <section style={{ padding: "64px 20px", background: "#fff", textAlign: "center" }}>
+                    <div style={{ maxWidth: 640, margin: "0 auto", padding: "40px 24px", border: "1px solid #e2e8f0", borderRadius: 8, boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
+                        <div style={{ width: 72, height: 72, background: "#dcfce7", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                        </div>
+                        <h2 style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--elx-navy)", margin: "0 0 12px" }}>
+                            Đăng ký bảo hành thành công!
+                        </h2>
+                        <p style={{ fontSize: "1rem", color: "#475569", marginBottom: 24 }}>
+                            Cảm ơn quý khách <strong>{formData.salutation} {formData.lastName} {formData.firstName}</strong> đã đăng ký bảo hành cho sản phẩm <strong>{selectedProduct?.name} ({selectedProduct?.sku})</strong>.
+                        </p>
+
+                        <div style={{ background: "#f8fafc", border: "1px border var(--elx-navy)", borderRadius: 6, padding: "16px 24px", marginBottom: 28 }}>
+                            <span style={{ fontSize: "0.85rem", color: "#64748b", textTransform: "uppercase", letterSpacing: 1, fontWeight: 600 }}>Mã đăng ký bảo hành của bạn</span>
+                            <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--elx-navy)", letterSpacing: 2, marginTop: 4 }}>
+                                {registrationId}
+                            </div>
+                        </div>
+
+                        <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+                            <button
+                                onClick={() => setViewState("categories")}
+                                style={{ padding: "12px 24px", background: "none", border: "2px solid var(--elx-navy)", color: "var(--elx-navy)", fontWeight: 700, borderRadius: 4, cursor: "pointer" }}
+                            >
+                                Về trang Hỗ trợ
+                            </button>
+                            <button
+                                onClick={() => setViewState("register")}
+                                style={{ padding: "12px 24px", background: "var(--elx-navy)", border: "none", color: "#fff", fontWeight: 700, borderRadius: 4, cursor: "pointer" }}
+                            >
+                                Đăng ký sản phẩm khác
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            )}
+
 
             {/* ── Quick Links ── */}
             <section style={{ padding: "56px 20px", background: "#f7f9fb", borderTop: "1px solid var(--elx-border)", borderBottom: "1px solid var(--elx-border)" }}>
@@ -334,8 +1073,6 @@ export default function SupportPage() {
                             )}
                         </div>
                     ))}
-
-
                 </div>
             </section>
 
@@ -412,3 +1149,4 @@ export default function SupportPage() {
         </>
     );
 }
+
