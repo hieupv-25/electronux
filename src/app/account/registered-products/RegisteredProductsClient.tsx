@@ -1,12 +1,47 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AccountSidebar from "@/components/AccountSidebar";
 import { navItems, footerSections } from "@/data/siteData";
 
+interface RegisteredProductItem {
+  id: string;
+  registrationId: string;
+  productName: string;
+  sku: string;
+  pnc: string;
+  img: string;
+  category?: string;
+  serialNumber?: string;
+  purchaseDate?: string;
+  registeredAt?: string;
+  status?: string;
+  warrantyMonths?: number;
+}
+
 export default function RegisteredProductsClient() {
+  const [products, setProducts] = useState<RegisteredProductItem[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("electrolux_registered_products");
+        if (raw) {
+          setProducts(JSON.parse(raw));
+        }
+      } catch (err) {
+        console.error("Lỗi khi đọc sản phẩm đã đăng ký:", err);
+      } finally {
+        setIsLoaded(true);
+      }
+    }
+  }, []);
+
   return (
     <>
       <Header navItems={navItems} />
@@ -18,13 +53,13 @@ export default function RegisteredProductsClient() {
           <AccountSidebar activeHref="/account/registered-products" />
 
           <div className="account-content">
-            <div style={{ marginBottom: "20px" }}>
-              <span style={{ fontSize: "0.95rem", fontWeight: 600, color: "#0b2545" }}>
-                0 sản phẩm
+            <div style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "1rem", fontWeight: 700, color: "#0b2545" }}>
+                {products.length} sản phẩm
               </span>
             </div>
 
-            <div style={{ marginBottom: "36px" }}>
+            <div style={{ marginBottom: "32px" }}>
               <Link
                 href="/support"
                 style={{
@@ -35,16 +70,110 @@ export default function RegisteredProductsClient() {
                   border: "1.5px solid #0b2545",
                   borderRadius: "2px",
                   color: "#0b2545",
-                  fontWeight: 600,
+                  fontWeight: 700,
                   fontSize: "0.85rem",
                   letterSpacing: "0.5px",
                   textDecoration: "none",
                   transition: "all 0.2s ease",
+                  background: "#fff",
                 }}
               >
                 <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>+</span> ĐĂNG KÝ SẢN PHẨM MỚI
               </Link>
             </div>
+
+            {/* List of Registered Products */}
+            {isLoaded && products.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginBottom: "40px" }}>
+                {products.map((item) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                      padding: "24px",
+                      background: "#fff",
+                      display: "grid",
+                      gridTemplateColumns: "130px 1fr auto",
+                      gap: "24px",
+                      alignItems: "center",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                    }}
+                  >
+                    {/* Image */}
+                    <div style={{ width: 130, height: 130, display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc", borderRadius: 6, padding: 12 }}>
+                      <Image
+                        src={item.img || "/icon-water-heater-instant.svg"}
+                        alt={item.productName}
+                        width={100}
+                        height={100}
+                        style={{ objectFit: "contain", maxHeight: "100%" }}
+                      />
+                    </div>
+
+                    {/* Details */}
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                        <span style={{ background: "#dcfce7", color: "#15803d", padding: "4px 10px", borderRadius: 12, fontSize: "0.78rem", fontWeight: 700 }}>
+                          ✓ {item.status || "Đang bảo hành"}
+                        </span>
+                        <span style={{ fontSize: "0.82rem", color: "#64748b" }}>
+                          Mã đăng ký: <strong>{item.registrationId || item.id}</strong>
+                        </span>
+                      </div>
+
+                      <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0b2545", margin: "0 0 10px", lineHeight: 1.35 }}>
+                        {item.productName}
+                      </h3>
+
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", fontSize: "0.88rem", color: "#334155" }}>
+                        <p style={{ margin: 0 }}><strong>Mã model:</strong> {item.sku}</p>
+                        <p style={{ margin: 0 }}><strong>Số PNC:</strong> {item.pnc}</p>
+                        <p style={{ margin: 0 }}><strong>Số serial:</strong> {item.serialNumber || "Chưa cập nhật"}</p>
+                        <p style={{ margin: 0 }}><strong>Ngày mua:</strong> {item.purchaseDate ? new Date(item.purchaseDate).toLocaleDateString("vi-VN") : "Chưa cập nhật"}</p>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10, borderLeft: "1px solid #f1f5f9", paddingLeft: 20 }}>
+                      <Link
+                        href="/support/book-service"
+                        style={{
+                          padding: "10px 18px",
+                          background: "#0b2545",
+                          color: "#fff",
+                          fontWeight: 700,
+                          fontSize: "0.82rem",
+                          borderRadius: 4,
+                          textDecoration: "none",
+                          textAlign: "center",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        YÊU CẦU DỊCH VỤ
+                      </Link>
+                      <Link
+                        href="/support"
+                        style={{
+                          padding: "8px 18px",
+                          background: "none",
+                          border: "1px solid #cbd5e1",
+                          color: "#0b2545",
+                          fontWeight: 600,
+                          fontSize: "0.82rem",
+                          borderRadius: 4,
+                          textDecoration: "none",
+                          textAlign: "center",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        TÌM HỖ TRỢ
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Trade-In Banner */}
             <div
@@ -120,3 +249,4 @@ export default function RegisteredProductsClient() {
     </>
   );
 }
+
