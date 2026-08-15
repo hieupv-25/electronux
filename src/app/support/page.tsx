@@ -203,7 +203,7 @@ const channels = [
   { title: "Email", desc: "Chia sẻ thắc mắc của bạn bất cứ lúc nào", links: [["GỬI EMAIL NGAY", "mailto:vncare@electrolux.com"]] },
   { title: "Gọi tổng đài Electrolux", desc: "Số điện thoại bảo hành và tư vấn chính hãng\nThứ hai đến thứ sáu: 8:00 – 18:00\nThứ bảy: 8:00 – 17:00", links: [["1800 588 899", "tel:1800588899"]] },
   { title: "Đặt lịch hẹn bảo hành", desc: "Yêu cầu bảo hành và hỗ trợ kỹ thuật cho thiết bị", links: [["ĐẶT HẸN NGAY", "/support/warranty-appointment"]] },
-  { title: "Dịch vụ Electrolux", desc: "Bảo dưỡng, sửa chữa giá cố định và gia hạn bảo hành", links: [["XEM DỊCH VỤ", "/services"]] },
+  { title: "Dịch vụ Electrolux", desc: "Bảo dưỡng và gia hạn bảo hành", links: [["XEM DỊCH VỤ", "/services"]] },
 ];
 
 /* ─── Main Support Page Component ─── */

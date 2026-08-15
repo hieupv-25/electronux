@@ -240,7 +240,7 @@ export default function MaintenanceCatalog({ services }: { services: Maintenance
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
           column-gap: 32px;
-          row-gap: 36px;
+          row-gap: 66px;
           align-items: stretch;
         }
         article {

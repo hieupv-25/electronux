@@ -129,21 +129,27 @@ export default async function MaintenanceServiceDetailPage({ params }: PageProps
             {service.description && <p className="maintenance-detail__description">{service.description}</p>}
 
             <ul className="maintenance-detail__bullets">
-              <li>Kỹ thuật viên đến tận nơi để chăm sóc thiết bị của bạn.</li>
-              <li>Chăm sóc thiết bị theo quy chuẩn cần thiết và tư vấn phương pháp dùng thiết bị hiệu quả.</li>
+              <li>Kỹ thuật viên của chúng tôi đến tận nơi để chăm sóc thiết bị của bạn.</li>
+              <li>Chăm sóc thiết bị theo đúng quy chuẩn cần thiết, và tư vấn các phương pháp để bạn có thể tự chăm sóc sản phẩm tại nhà.</li>
               <li>Làm sạch và bảo dưỡng thiết bị cho hiệu suất vận hành bền lâu.</li>
             </ul>
 
             <h2>Không bao gồm:</h2>
             <ul className="maintenance-detail__bullets">
-              <li>Giá dịch vụ không bao gồm chi phí hoặc công thay thế linh phụ kiện.</li>
+              <li>Giá dịch vụ không bao gồm chi phí hoặc công thay thế linh-phụ kiện.</li>
             </ul>
 
             <h2>Điều kiện áp dụng:</h2>
             <ul className="maintenance-detail__bullets">
               <li>Dịch vụ áp dụng cho dòng {service.productType}.</li>
-              <li>Dịch vụ được hỗ trợ tại Hà Nội, Hồ Chí Minh và một số khu vực có kỹ thuật viên.</li>
-              <li>Các khu vực khác vui lòng liên hệ tổng đài CSKH để được hỗ trợ.</li>
+              <li>
+                Dịch vụ được hỗ trợ tại các khu vực:
+                <ul className="maintenance-detail__sub-bullets">
+                  <li><strong>Hà Nội</strong> (Q. Hoàng Mai, H. Thanh Trì, Q. Thanh Xuân, Q. Đống Đa, Q. Cầu Giấy, H. Chương Mỹ, H. Quốc Oai, H. Thanh Oai, H. Ứng Hòa, Q. Hà Đông, Q. Nam Từ Liêm)</li>
+                  <li><strong>Hồ Chí Minh</strong> (Tất cả; trừ H. Củ Chi và H. Cần Giờ)</li>
+                </ul>
+              </li>
+              <li>Các khu vực khác vui lòng liên hệ Tổng đài CSKH để được hỗ trợ.</li>
             </ul>
 
             <strong className="maintenance-detail__price">{formatPrice(service.price)}</strong>
@@ -256,11 +262,24 @@ export default async function MaintenanceServiceDetailPage({ params }: PageProps
         }
         .maintenance-detail__bullets {
           padding-left: 18px;
+          list-style: disc outside;
           line-height: 1.65;
           margin: 10px 0;
         }
         .maintenance-detail__bullets li {
+          display: list-item;
           margin-bottom: 6px;
+        }
+        .maintenance-detail__sub-bullets {
+          padding-left: 20px;
+          list-style: circle outside;
+          margin: 3px 0 0;
+        }
+        .maintenance-detail__sub-bullets li {
+          margin-bottom: 2px;
+        }
+        .maintenance-detail__sub-bullets strong {
+          color: #011e41;
         }
         .maintenance-detail__info h2 {
           font-size: .95rem;
