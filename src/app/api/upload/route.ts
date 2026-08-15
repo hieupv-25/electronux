@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase, STORAGE_BUCKETS } from "@/lib/supabase";
+import { createSupabaseAdminClient, STORAGE_BUCKETS } from "@/lib/supabase";
+import { auth } from "@/auth";
 
 /**
  * POST /api/upload
@@ -13,15 +14,28 @@ import { supabase, STORAGE_BUCKETS } from "@/lib/supabase";
  */
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
+    if (session.user.role !== "admin") return NextResponse.json({ error: "Không có quyền truy cập" }, { status: 403 });
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const folder = (formData.get("folder") as string) || "";
+    const requestedBucket = formData.get("bucket");
+    const bucket = requestedBucket === STORAGE_BUCKETS.SERVICES
+      ? STORAGE_BUCKETS.SERVICES
+      : STORAGE_BUCKETS.PRODUCTS;
+    const supabaseAdmin = createSupabaseAdminClient();
 
     if (!file) {
       return NextResponse.json(
         { error: "Không tìm thấy file trong request" },
         { status: 400 }
       );
+    }
+
+    if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: "Chỉ chấp nhận ảnh có dung lượng tối đa 5 MB" }, { status: 400 });
     }
 
     // Tạo tên file unique để tránh trùng
@@ -32,8 +46,8 @@ export async function POST(request: NextRequest) {
       : `${timestamp}-${safeName}`;
 
     // Upload lên Supabase Storage
-    const { data, error } = await supabase.storage
-      .from(STORAGE_BUCKETS.PRODUCTS)
+    const { data, error } = await supabaseAdmin.storage
+      .from(bucket)
       .upload(filePath, file, {
         contentType: file.type,
         upsert: true,
@@ -48,8 +62,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Lấy public URL
-    const { data: urlData } = supabase.storage
-      .from(STORAGE_BUCKETS.PRODUCTS)
+    const { data: urlData } = supabaseAdmin.storage
+      .from(bucket)
       .getPublicUrl(data.path);
 
     return NextResponse.json({
@@ -73,7 +87,11 @@ export async function POST(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const { paths } = await request.json();
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
+    if (session.user.role !== "admin") return NextResponse.json({ error: "Không có quyền truy cập" }, { status: 403 });
+
+    const { paths, bucket: requestedBucket } = await request.json();
 
     if (!paths || !Array.isArray(paths) || paths.length === 0) {
       return NextResponse.json(
@@ -82,8 +100,12 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const { data, error } = await supabase.storage
-      .from(STORAGE_BUCKETS.PRODUCTS)
+    const bucket = requestedBucket === STORAGE_BUCKETS.SERVICES
+      ? STORAGE_BUCKETS.SERVICES
+      : STORAGE_BUCKETS.PRODUCTS;
+    const supabaseAdmin = createSupabaseAdminClient();
+    const { data, error } = await supabaseAdmin.storage
+      .from(bucket)
       .remove(paths);
 
     if (error) {

@@ -6,6 +6,7 @@ import MaintenanceCatalog from "@/components/services/MaintenanceCatalog";
 import { footerSections, navItems } from "@/data/siteData";
 import { maintenanceServiceFallback, type MaintenanceServiceItem } from "@/data/maintenanceServices";
 import { prisma } from "@/lib/prisma";
+import { getMaintenanceGroup, maintenanceGroupFromSpecifications } from "@/data/maintenanceCatalog";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -25,6 +26,8 @@ async function getMaintenanceServices(): Promise<MaintenanceServiceItem[]> {
       select: {
         name: true,
         slug: true,
+        description: true,
+        specifications: true,
         images: { orderBy: { order: "asc" }, take: 1, select: { url: true } },
         variants: {
           where: { isActive: true },
@@ -38,6 +41,11 @@ async function getMaintenanceServices(): Promise<MaintenanceServiceItem[]> {
     const items = products.flatMap((product) => {
       const variant = product.variants[0];
       if (!variant) return [];
+      const groupKey = maintenanceGroupFromSpecifications(product.specifications) || "garment-care";
+      const group = getMaintenanceGroup(groupKey) || getMaintenanceGroup("garment-care")!;
+      const specifications = product.specifications && typeof product.specifications === "object" && !Array.isArray(product.specifications)
+        ? product.specifications as Record<string, unknown>
+        : {};
       return [{
         variantId: variant.id,
         sku: variant.sku,
@@ -45,10 +53,14 @@ async function getMaintenanceServices(): Promise<MaintenanceServiceItem[]> {
         slug: product.slug,
         price: Number(variant.price),
         imageUrl: product.images[0]?.url || "/dichvubaoduong.jpg",
+        group: group.value,
+        groupLabel: group.label,
+        productType: typeof specifications.productType === "string" ? specifications.productType : "Thiết bị chăm sóc trang phục",
+        description: product.description,
       }];
     });
 
-    return items.length ? items.sort((a, b) => b.sku.localeCompare(a.sku)) : maintenanceServiceFallback;
+    return items.sort((a, b) => b.sku.localeCompare(a.sku));
   } catch (error) {
     console.error("Failed to load maintenance services", error);
     return maintenanceServiceFallback;
