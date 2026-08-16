@@ -4625,6 +4625,70 @@ img {
   gap: 14px;
 }
 
+.admin-maintenance-layout {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.admin-maintenance-layout .admin-form-card {
+  width: 100%;
+}
+
+.admin-maintenance-form__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  padding-top: 2px;
+}
+
+.admin-maintenance-form__actions .admin-primary-button {
+  min-width: min(420px, 100%);
+}
+
+.admin-maintenance-editor {
+  overflow: hidden;
+}
+
+.admin-maintenance-editor__summary {
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, auto) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 16px 18px;
+  color: #657584;
+  font-size: 0.86rem;
+}
+
+.admin-maintenance-editor__title {
+  color: var(--elx-navy);
+  font-weight: 800;
+  min-width: 0;
+}
+
+.admin-maintenance-editor__summary strong {
+  color: var(--elx-red);
+  white-space: nowrap;
+}
+
+.admin-maintenance-editor__form {
+  border-top: 1px solid #e1e7ec;
+  padding: 18px;
+}
+
+.admin-maintenance-editor__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (max-width: 760px) {
+  .admin-maintenance-editor__summary {
+    grid-template-columns: 1fr;
+  }
+}
+
 .admin-panel__header--loose {
   background: #ffffff;
   border: 1px solid #d9e1e7;

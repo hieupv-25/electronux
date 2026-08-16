@@ -199,6 +199,8 @@ const faqs: { q: string; a: React.ReactNode }[] = [
             </span>
         ),
     },
+];
+
 const channels = [
     { title: "Mạng xã hội", desc: "Kết nối với chúng tôi để cập nhật thông tin mới nhất", links: [["FACEBOOK", "https://www.facebook.com/electroluxvietnam/"], ["ZALO", "https://zalo.me/3940082846017430673"], ["INSTAGRAM", "https://www.instagram.com/electroluxvn/"], ["TIKTOK", "https://www.tiktok.com/@electrolux.vietnam"]] },
     { title: "Email", desc: "Chia sẻ thắc mắc của bạn bất cứ lúc nào", links: [["GỬI EMAIL NGAY", "mailto:vncare@electrolux.com"]] },
@@ -1056,20 +1058,19 @@ export default function SupportPage() {
                 <div style={{ height: 1, background: "var(--elx-border)" }} />
                 {/* Cards row */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 0 }}>
-                    {supportChannels.map((ch, i) => (
+                    {channels.map((ch, i) => (
                         <div
                             key={i}
                             style={{
                                 background: "#fff",
                                 padding: "36px 24px",
-                                borderRight: i < supportChannels.length - 1 ? "1px solid var(--elx-border)" : "none",
+                                borderRight: i < channels.length - 1 ? "1px solid var(--elx-border)" : "none",
                                 borderTop: "1px solid var(--elx-border)",
                                 borderBottom: "1px solid var(--elx-border)",
                                 borderLeft: i === 0 ? "1px solid var(--elx-border)" : "none",
                                 display: "flex", flexDirection: "column", gap: 12,
                             }}
                         >
-                            <div style={{ marginBottom: 4 }}>{ch.icon}</div>
                             <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--elx-navy)", margin: 0 }}>{ch.title}</h3>
                             <p style={{ fontSize: "1.03rem", color: "#4a5a72", lineHeight: 1.6, margin: 0, whiteSpace: "pre-line", flex: 1 }}>{ch.desc}</p>
                             <div style={{
@@ -1081,14 +1082,14 @@ export default function SupportPage() {
                                 {ch.links.map((lk, j) => (
                                     <a
                                         key={j}
-                                        href={lk.href}
+                                        href={lk[1]}
                                         style={{
                                             display: "inline-flex", alignItems: "center", gap: 6,
                                             color: "var(--elx-navy)", fontWeight: 700, fontSize: "0.85rem",
                                             textDecoration: "none", letterSpacing: 0.3,
                                         }}
                                     >
-                                        {lk.label}
+                                        {lk[0]}
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                             <circle cx="12" cy="12" r="10" /><path d="M12 8l4 4-4 4M8 12h8" />
                                         </svg>

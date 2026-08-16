@@ -19,6 +19,7 @@ import type {
   Role,
   ServiceType,
 } from "@/generated/prisma/enums";
+import { getMaintenanceGroup } from "@/data/maintenanceCatalog";
 
 const orderStatuses = [
   "pending",
@@ -91,17 +92,17 @@ async function uniqueCategorySlug(
   }
 }
 
-async function uniqueProductSlug(name: string, requestedSlug: string) {
+async function uniqueProductSlug(name: string, requestedSlug: string, excludeId?: string) {
   const baseSlug = slugify(requestedSlug || name) || `san-pham-${Date.now()}`;
   let slug = baseSlug;
   let suffix = 2;
 
-  while (await prisma.product.findUnique({ where: { slug }, select: { id: true } })) {
+  while (true) {
+    const existing = await prisma.product.findUnique({ where: { slug }, select: { id: true } });
+    if (!existing || existing.id === excludeId) return slug;
     slug = `${baseSlug}-${suffix}`;
     suffix += 1;
   }
-
-  return slug;
 }
 
 export async function createCategory(formData: FormData) {
@@ -436,6 +437,129 @@ export async function createService(formData: FormData) {
   });
 
   revalidatePath("/admin/services");
+}
+
+export async function createMaintenanceService(formData: FormData) {
+  await requireAdminSession();
+
+  const name = getFormString(formData, "name");
+  const sku = getFormString(formData, "sku");
+  const groupKey = getFormString(formData, "group");
+  const productType = getFormString(formData, "productType");
+  const imageUrl = getFormString(formData, "imageUrl");
+  const group = getMaintenanceGroup(groupKey);
+  if (!name || !sku || !group || !productType || !imageUrl) {
+    throw new Error("Thiếu thông tin bắt buộc của dịch vụ bảo dưỡng.");
+  }
+  if (!group.productTypes.some((type) => type === productType)) {
+    throw new Error("Loại sản phẩm không thuộc nhóm bảo dưỡng đã chọn.");
+  }
+
+  const category = await prisma.category.findUnique({
+    where: { slug: "dich-vu-bao-duong" },
+    select: { id: true },
+  });
+  if (!category) throw new Error("Không tìm thấy danh mục dịch vụ bảo dưỡng.");
+
+  await prisma.product.create({
+    data: {
+      categoryId: category.id,
+      name,
+      slug: await uniqueProductSlug(name, getFormString(formData, "slug")),
+      kind: "service",
+      description: getFormOptionalString(formData, "description"),
+      specifications: {
+        serviceType: "maintenance",
+        serviceGroupKey: group.value,
+        serviceGroup: group.label,
+        productType,
+      },
+      isActive: true,
+      freeShipping: false,
+      variants: {
+        create: {
+          sku,
+          variantName: "Gói tiêu chuẩn",
+          price: getFormDecimal(formData, "price"),
+          stockQuantity: 99999,
+          isActive: true,
+          attributes: { serviceType: "maintenance" },
+        },
+      },
+      images: { create: { url: imageUrl, order: 0 } },
+    },
+  });
+
+  revalidatePath("/admin/services");
+  revalidatePath("/admin/services/maintenance");
+  revalidatePath("/services/maintenance");
+  revalidatePath("/admin");
+}
+
+export async function updateMaintenanceService(formData: FormData) {
+  await requireAdminSession();
+
+  const id = getFormString(formData, "id");
+  const variantId = getFormString(formData, "variantId");
+  const name = getFormString(formData, "name");
+  const sku = getFormString(formData, "sku");
+  const group = getMaintenanceGroup(getFormString(formData, "group"));
+  const productType = getFormString(formData, "productType");
+  if (!id || !variantId || !name || !sku || !group || !productType) {
+    throw new Error("Thiếu thông tin bắt buộc của dịch vụ bảo dưỡng.");
+  }
+  if (!group.productTypes.some((type) => type === productType)) {
+    throw new Error("Loại sản phẩm không thuộc nhóm bảo dưỡng đã chọn.");
+  }
+
+  const current = await prisma.product.findFirst({
+    where: { id, kind: "service", category: { slug: "dich-vu-bao-duong" } },
+    select: { id: true },
+  });
+  if (!current) throw new Error("Không tìm thấy dịch vụ bảo dưỡng.");
+
+  const imageUrl = getFormOptionalString(formData, "imageUrl");
+  await prisma.product.update({
+    where: { id },
+    data: {
+      name,
+      slug: await uniqueProductSlug(name, getFormString(formData, "slug"), id),
+      description: getFormOptionalString(formData, "description"),
+      specifications: {
+        serviceType: "maintenance",
+        serviceGroupKey: group.value,
+        serviceGroup: group.label,
+        productType,
+      },
+      variants: {
+        update: {
+          where: { id: variantId },
+          data: { sku, price: getFormDecimal(formData, "price") },
+        },
+      },
+      images: imageUrl ? { deleteMany: {}, create: { url: imageUrl, order: 0 } } : undefined,
+    },
+  });
+
+  revalidatePath("/admin/services");
+  revalidatePath("/admin/services/maintenance");
+  revalidatePath("/services/maintenance");
+}
+
+export async function deleteMaintenanceService(formData: FormData) {
+  await requireAdminSession();
+  const id = getFormString(formData, "id");
+  if (!id) return;
+
+  await prisma.product.updateMany({
+    where: { id, kind: "service", category: { slug: "dich-vu-bao-duong" } },
+    data: { isActive: false, deletedAt: new Date() },
+  });
+
+  revalidatePath("/admin/services");
+  revalidatePath("/admin/services/maintenance");
+  revalidatePath("/services/maintenance");
+  revalidatePath("/admin");
 }
 
 export async function updateWarrantyAppointmentStatus(formData: FormData) {

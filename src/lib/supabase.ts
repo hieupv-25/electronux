@@ -5,9 +5,25 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+/**
+ * Client đặc quyền chỉ dành cho API/server đã tự kiểm tra quyền quản trị.
+ * Không export key này qua biến NEXT_PUBLIC_* hoặc dùng trong Client Component.
+ */
+export function createSupabaseAdminClient() {
+  const secretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!secretKey) {
+    throw new Error("Thiếu SUPABASE_SECRET_KEY hoặc SUPABASE_SERVICE_ROLE_KEY trên server");
+  }
+
+  return createClient(supabaseUrl, secretKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
 // ── Storage Bucket Names ──
 export const STORAGE_BUCKETS = {
   PRODUCTS: "products",
+  SERVICES: "services",
 } as const;
 
 // ── Storage Helpers ──

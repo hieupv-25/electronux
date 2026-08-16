@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   createService,
   updateProductRegistrationStatus,
@@ -17,7 +18,7 @@ const serviceTypeOptions = ["support", "paid", "warranty_extension"];
 const requestStatusOptions = ["pending", "processing", "completed", "cancelled"];
 
 async function getServicesData() {
-  const [services, appointments, productRegistrations] = await Promise.all([
+  const [services, appointments, productRegistrations, maintenanceServiceCount] = await Promise.all([
     prisma.service.findMany({
       orderBy: { name: "asc" },
       select: {
@@ -61,13 +62,20 @@ async function getServicesData() {
         },
       },
     }),
+    prisma.product.count({
+      where: {
+        kind: "service",
+        deletedAt: null,
+        category: { slug: "dich-vu-bao-duong" },
+      },
+    }),
   ]);
 
-  return { services, appointments, productRegistrations };
+  return { services, appointments, productRegistrations, maintenanceServiceCount };
 }
 
 export default async function AdminServicesPage() {
-  const { services, appointments, productRegistrations } = await getServicesData();
+  const { services, appointments, productRegistrations, maintenanceServiceCount } = await getServicesData();
 
   return (
     <>
@@ -132,6 +140,21 @@ export default async function AdminServicesPage() {
         </section>
       </section>
 
+      <section className="admin-panel" style={{ marginBottom: 18 }}>
+        <div className="admin-panel__header">
+          <div>
+            <p className="admin-eyebrow">Bảo dưỡng</p>
+            <h2>{maintenanceServiceCount} dịch vụ bảo dưỡng</h2>
+          </div>
+          <Link className="admin-primary-button" href="/admin/services/maintenance">
+            Quản lý bảo dưỡng
+          </Link>
+        </div>
+        <div className="admin-record-card__body">
+          Thêm, sửa, xóa các gói bảo dưỡng và ảnh hiển thị ở trang khách hàng tại trang quản lý riêng.
+        </div>
+      </section>
+
       <section className="admin-records">
         <div className="admin-panel__header admin-panel__header--loose">
           <div>
@@ -147,13 +170,17 @@ export default async function AdminServicesPage() {
               <div className="admin-record-card__header">
                 <div>
                   <p className="admin-eyebrow">
-                    {request.service ? `${request.service.name} - ${serviceTypeLabels[request.service.type]}` : "Lịch hẹn bảo hành"}
+                    {request.service
+                      ? `${request.service.name} - ${serviceTypeLabels[request.service.type]}`
+                      : "Lịch hẹn bảo hành"}
                   </p>
                   <h3>
-                    {request.customerName || (request.user ? `${request.user.firstName} ${request.user.lastName}` : "Khách vãng lai")}
+                    {request.customerName ||
+                      (request.user ? `${request.user.firstName} ${request.user.lastName}` : "Khách vãng lai")}
                   </h3>
                   <span>
-                    {request.requestCode || request.id} - {request.email || request.user?.email || "Chưa có email"} - {request.phone || request.user?.phone || "Chưa có SĐT"} - {formatDate(request.createdAt)}
+                    {request.requestCode || request.id} - {request.email || request.user?.email || "Chưa có email"} -{" "}
+                    {request.phone || request.user?.phone || "Chưa có SĐT"} - {formatDate(request.createdAt)}
                   </span>
                 </div>
                 <StatusBadge value={request.status} labels={requestStatusLabels} />
@@ -161,10 +188,20 @@ export default async function AdminServicesPage() {
 
               <div className="admin-list-item" style={{ marginBottom: 16 }}>
                 <div>
-                  <p><strong>Thiết bị:</strong> {request.model || "—"} / {request.serialNumber || "—"}</p>
-                  <p><strong>Địa chỉ:</strong> {[request.address, request.ward, request.district, request.city].filter(Boolean).join(", ") || "—"}</p>
-                  <p><strong>Sự cố:</strong> {request.issue || "—"}</p>
-                  <p><strong>Lịch mong muốn:</strong> {request.preferredDate ? formatDate(request.preferredDate) : "—"} {request.preferredTime || ""}</p>
+                  <p>
+                    <strong>Thiết bị:</strong> {request.model || "—"} / {request.serialNumber || "—"}
+                  </p>
+                  <p>
+                    <strong>Địa chỉ:</strong>{" "}
+                    {[request.address, request.ward, request.district, request.city].filter(Boolean).join(", ") || "—"}
+                  </p>
+                  <p>
+                    <strong>Sự cố:</strong> {request.issue || "—"}
+                  </p>
+                  <p>
+                    <strong>Lịch mong muốn:</strong>{" "}
+                    {request.preferredDate ? formatDate(request.preferredDate) : "—"} {request.preferredTime || ""}
+                  </p>
                 </div>
               </div>
 
@@ -214,18 +251,37 @@ export default async function AdminServicesPage() {
                 <div>
                   <p className="admin-eyebrow">{registration.registrationCode}</p>
                   <h3>{registration.customerName}</h3>
-                  <span>{registration.email} - {registration.phone} - {formatDate(registration.createdAt)}</span>
+                  <span>
+                    {registration.email} - {registration.phone} - {formatDate(registration.createdAt)}
+                  </span>
                 </div>
                 <StatusBadge value={registration.status} labels={requestStatusLabels} />
               </div>
 
               <div className="admin-list-item" style={{ marginBottom: 16 }}>
                 <div>
-                  <p><strong>Sản phẩm:</strong> {registration.productName || "—"}</p>
-                  <p><strong>Model / Serial:</strong> {registration.model} / {registration.serialNumber || "—"}</p>
-                  <p><strong>Ngày mua:</strong> {formatDate(registration.purchaseDate)}</p>
-                  <p><strong>Nơi mua:</strong> {registration.retailer || "—"}</p>
-                  <p><strong>Hóa đơn:</strong> {registration.invoiceUrl ? <a href={registration.invoiceUrl} target="_blank" rel="noreferrer">Xem tệp</a> : "—"}</p>
+                  <p>
+                    <strong>Sản phẩm:</strong> {registration.productName || "—"}
+                  </p>
+                  <p>
+                    <strong>Model / Serial:</strong> {registration.model} / {registration.serialNumber || "—"}
+                  </p>
+                  <p>
+                    <strong>Ngày mua:</strong> {formatDate(registration.purchaseDate)}
+                  </p>
+                  <p>
+                    <strong>Nơi mua:</strong> {registration.retailer || "—"}
+                  </p>
+                  <p>
+                    <strong>Hóa đơn:</strong>{" "}
+                    {registration.invoiceUrl ? (
+                      <a href={registration.invoiceUrl} target="_blank" rel="noreferrer">
+                        Xem tệp
+                      </a>
+                    ) : (
+                      "—"
+                    )}
+                  </p>
                 </div>
               </div>
 
@@ -235,15 +291,24 @@ export default async function AdminServicesPage() {
                   Trạng thái
                   <select name="status" defaultValue={registration.status}>
                     {requestStatusOptions.map((status) => (
-                      <option key={status} value={status}>{requestStatusLabels[status]}</option>
+                      <option key={status} value={status}>
+                        {requestStatusLabels[status]}
+                      </option>
                     ))}
                   </select>
                 </label>
                 <label className="admin-field-span">
                   Ghi chú xử lý
-                  <textarea name="notes" rows={3} defaultValue={registration.notes ?? ""} placeholder="Đã kiểm tra serial và hóa đơn..." />
+                  <textarea
+                    name="notes"
+                    rows={3}
+                    defaultValue={registration.notes ?? ""}
+                    placeholder="Đã kiểm tra serial và hóa đơn..."
+                  />
                 </label>
-                <button className="admin-primary-button" type="submit">Cập nhật đăng ký</button>
+                <button className="admin-primary-button" type="submit">
+                  Cập nhật đăng ký
+                </button>
               </form>
             </article>
           ))

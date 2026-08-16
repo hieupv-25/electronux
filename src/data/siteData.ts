@@ -267,7 +267,6 @@ export const megaMenu: Record<string, MegaMenuSection> = {
     layout: "circular",
     items: [
       { label: "Dịch vụ bảo dưỡng", icon: "tools", href: "/services/maintenance" },
-      { label: "Sửa chữa giá cố định", icon: "toolbox", href: "/services/fixed-price-repair" },
       { label: "Gia hạn bảo hành", icon: "shield", href: "/services/warranty-extension" },
     ],
   },
