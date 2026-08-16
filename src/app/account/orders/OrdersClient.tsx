@@ -39,8 +39,8 @@ export default function OrdersClient() {
   const firstName = user?.firstName || "viv";
   const lastName = user?.lastName || "vietttishnl";
 
-  // Tab Selection: "preorder" | "unpaid" | "current" | "past"
-  const [activeTab, setActiveTab] = useState<"preorder" | "unpaid" | "current" | "past">("preorder");
+  // Tab Selection: "unpaid" | "current" | "past"
+  const [activeTab, setActiveTab] = useState<"unpaid" | "current" | "past">("unpaid");
   const [searchQuery, setSearchQuery] = useState("");
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
@@ -203,12 +203,6 @@ export default function OrdersClient() {
           <div className="orders-content">
             {/* ====== TABS ====== */}
             <div className="orders-tabs">
-              <button
-                className={`orders-tab ${activeTab === "preorder" ? "orders-tab--active" : ""}`}
-                onClick={() => setActiveTab("preorder")}
-              >
-                Pre-order
-              </button>
               <button
                 className={`orders-tab ${activeTab === "unpaid" ? "orders-tab--active" : ""}`}
                 onClick={() => setActiveTab("unpaid")}
