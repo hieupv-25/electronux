@@ -1,5 +1,6 @@
 "use client";
-import { useState, useRef, useMemo, type ReactNode } from "react";
+
+import { useState, useRef, useMemo, useEffect, type ReactNode } from "react";
 import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -92,23 +93,23 @@ const buildSupportProducts = (): SupportProduct[] => {
 
 /* ─── Quick links ─── */
 function QuickIcon({ type }: { type: "tool" | "bag" | "doc" | "shield" | "calendar" | "recycle" }) {
-  const paths: Record<string, ReactNode> = {
-    tool: <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.8-3.8a6 6 0 01-8 8l-6.9 6.9a2.1 2.1 0 01-3-3l6.9-6.9a6 6 0 018-8z" />,
-    bag: <><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 01-8 0"/></>,
-    doc: <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M12 12v6M9 15h6"/></>,
-    shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>,
-    calendar: <><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01"/></>,
-    recycle: <><path d="M7.5 7.5L12 2l4.5 5.5M16.5 7.5L21 16h-5M16 16l-4 6-4-6M8 16H3l4.5-8.5"/></>,
-  };
-  return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">{paths[type]}</svg>;
+    const paths: Record<string, ReactNode> = {
+        tool: <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.8-3.8a6 6 0 01-8 8l-6.9 6.9a2.1 2.1 0 01-3-3l6.9-6.9a6 6 0 018-8z" />,
+        bag: <><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><path d="M3 6h18M16 10a4 4 0 01-8 0" /></>,
+        doc: <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><path d="M14 2v6h6M12 12v6M9 15h6" /></>,
+        shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />,
+        calendar: <><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01" /></>,
+        recycle: <><path d="M7.5 7.5L12 2l4.5 5.5M16.5 7.5L21 16h-5M16 16l-4 6-4-6M8 16H3l4.5-8.5" /></>,
+    };
+    return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">{paths[type]}</svg>;
 }
 const quickLinks = [
-  { type: "tool" as const, label: "Xử lý sự cố và câu hỏi thường gặp", href: "/support/troubleshooting" },
-  { type: "bag" as const, label: "Câu hỏi về đơn hàng trực tuyến", href: "/support/online-order-faq" },
-  { type: "doc" as const, label: "Đăng ký bảo hành điện tử", href: "/support/product-registration" },
-  { type: "shield" as const, label: "Điều khoản và điều kiện bảo hành", href: "/support/warranty-policy" },
-  { type: "calendar" as const, label: "Đặt lịch hẹn bảo hành", href: "/support/warranty-appointment" },
-  { type: "recycle" as const, label: "Điểm tiếp nhận sản phẩm thải bỏ", href: "/support/recycling-points" },
+    { type: "tool" as const, label: "Xử lý sự cố và câu hỏi thường gặp", href: "/support/troubleshooting" },
+    { type: "bag" as const, label: "Câu hỏi về đơn hàng trực tuyến", href: "/support/online-order-faq" },
+    { type: "doc" as const, label: "Đăng ký bảo hành điện tử", href: "/support/product-registration" },
+    { type: "shield" as const, label: "Điều khoản và điều kiện bảo hành", href: "/support/warranty-policy" },
+    { type: "calendar" as const, label: "Đặt lịch hẹn bảo hành", href: "/support/warranty-appointment" },
+    { type: "recycle" as const, label: "Điểm tiếp nhận sản phẩm thải bỏ", href: "/support/recycling-points" },
 ];
 /* ─── FAQ data ─── */
 const faqs: { q: string; a: React.ReactNode }[] = [
@@ -199,17 +200,35 @@ const faqs: { q: string; a: React.ReactNode }[] = [
         ),
     },
 const channels = [
-  { title: "Mạng xã hội", desc: "Kết nối với chúng tôi để cập nhật thông tin mới nhất", links: [["FACEBOOK", "https://www.facebook.com/electroluxvietnam/"], ["ZALO", "https://zalo.me/3940082846017430673"], ["INSTAGRAM", "https://www.instagram.com/electroluxvn/"], ["TIKTOK", "https://www.tiktok.com/@electrolux.vietnam"]] },
-  { title: "Email", desc: "Chia sẻ thắc mắc của bạn bất cứ lúc nào", links: [["GỬI EMAIL NGAY", "mailto:vncare@electrolux.com"]] },
-  { title: "Gọi tổng đài Electrolux", desc: "Số điện thoại bảo hành và tư vấn chính hãng\nThứ hai đến thứ sáu: 8:00 – 18:00\nThứ bảy: 8:00 – 17:00", links: [["1800 588 899", "tel:1800588899"]] },
-  { title: "Đặt lịch hẹn bảo hành", desc: "Yêu cầu bảo hành và hỗ trợ kỹ thuật cho thiết bị", links: [["ĐẶT HẸN NGAY", "/support/warranty-appointment"]] },
-  { title: "Dịch vụ Electrolux", desc: "Bảo dưỡng, sửa chữa giá cố định và gia hạn bảo hành", links: [["XEM DỊCH VỤ", "/services"]] },
+    { title: "Mạng xã hội", desc: "Kết nối với chúng tôi để cập nhật thông tin mới nhất", links: [["FACEBOOK", "https://www.facebook.com/electroluxvietnam/"], ["ZALO", "https://zalo.me/3940082846017430673"], ["INSTAGRAM", "https://www.instagram.com/electroluxvn/"], ["TIKTOK", "https://www.tiktok.com/@electrolux.vietnam"]] },
+    { title: "Email", desc: "Chia sẻ thắc mắc của bạn bất cứ lúc nào", links: [["GỬI EMAIL NGAY", "mailto:vncare@electrolux.com"]] },
+    { title: "Gọi tổng đài Electrolux", desc: "Số điện thoại bảo hành và tư vấn chính hãng\nThứ hai đến thứ sáu: 8:00 – 18:00\nThứ bảy: 8:00 – 17:00", links: [["1800 588 899", "tel:1800588899"]] },
+    { title: "Đặt lịch hẹn bảo hành", desc: "Yêu cầu bảo hành và hỗ trợ kỹ thuật cho thiết bị", links: [["ĐẶT HẸN NGAY", "/support/warranty-appointment"]] },
+    { title: "Dịch vụ Electrolux", desc: "Bảo dưỡng, sửa chữa giá cố định và gia hạn bảo hành", links: [["XEM DỊCH VỤ", "/services"]] },
 ];
 
 /* ─── Main Support Page Component ─── */
 export default function SupportPage() {
     const [openFaq, setOpenFaq] = useState<number | null>(null);
     const [modelQuery, setModelQuery] = useState("");
+
+    // Smooth scroll to #lien-he section on load or hash change
+    useEffect(() => {
+        const scrollToContact = () => {
+            if (typeof window !== "undefined" && window.location.hash === "#lien-he") {
+                const el = document.getElementById("lien-he");
+                if (el) {
+                    setTimeout(() => {
+                        el.scrollIntoView({ behavior: "smooth" });
+                    }, 100);
+                }
+            }
+        };
+
+        scrollToContact();
+        window.addEventListener("hashchange", scrollToContact);
+        return () => window.removeEventListener("hashchange", scrollToContact);
+    }, []);
 
     // Build real products list from DB
     const supportProductsData = useMemo(() => buildSupportProducts(), []);
@@ -1025,7 +1044,7 @@ export default function SupportPage() {
             </section>
 
             {/* ── Chúng tôi sẵn sàng hỗ trợ bạn ── */}
-            <section style={{ background: "#eef2f7", padding: "0 30px" }}>
+            <section id="lien-he" style={{ background: "#eef2f7", padding: "0 30px", scrollMarginTop: "90px" }}>
                 {/* Header band */}
                 <div style={{ textAlign: "center", padding: "40px 0 32px" }}>
                     <h2 style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--elx-navy)", margin: "0 0 8px" }}>

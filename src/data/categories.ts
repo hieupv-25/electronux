@@ -18,7 +18,7 @@ export const categoryRoutes: Record<string, string> = {
   "Trung tâm hỗ trợ": "/support",
   "Tư vấn mua hàng": "/support",
   "Câu hỏi thường gặp": "/support/online-order-faq",
-  "Liên hệ": "/support",
+  "Liên hệ": "/support#lien-he",
 };
 
 export const hobCategory: CategoryPageData = {
