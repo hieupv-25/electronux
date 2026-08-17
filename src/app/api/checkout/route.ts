@@ -43,7 +43,28 @@ export async function POST(req: NextRequest) {
     const trackingNumber = "ELX-2026-" + Math.floor(100000 + Math.random() * 900000);
     const orderId = "order-" + Date.now();
 
-    // Try DB insertion first
+    // Deduct stock in DB for checked-out variants
+    const checkoutItems = (items as Array<{ variantId?: string; quantity?: number; variant?: { id?: string } }>) || [];
+    for (const item of checkoutItems) {
+      const vId = item.variantId || item.variant?.id;
+      const qty = item.quantity || 1;
+      if (vId) {
+        try {
+          await prisma.productVariant.update({
+            where: { id: vId },
+            data: {
+              stockQuantity: {
+                decrement: qty,
+              },
+            },
+          });
+        } catch (err) {
+          console.warn(`Could not update stock for variant ${vId}:`, err);
+        }
+      }
+    }
+
+    // Try DB insertion for Order record
     try {
       if (userId) {
         await prisma.order.create({

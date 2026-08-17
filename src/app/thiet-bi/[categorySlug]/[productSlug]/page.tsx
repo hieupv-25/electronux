@@ -6,6 +6,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import Footer from "@/components/Footer";
 import { navItems, services, footerSections } from "@/data/siteData";
 import { getProductBySlug, ALL_CATEGORIES } from "@/lib/getCategoryData";
+import { prisma } from "@/lib/prisma";
 import ProductDetailClient from "./ProductDetailClient";
 
 interface PageProps {
@@ -48,6 +49,30 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
   const { product, category } = result;
 
+  // Query actual stock from database variant if available
+  let dbStockQuantity: number | undefined = undefined;
+  try {
+    const dbVariant = await prisma.productVariant.findFirst({
+      where: {
+        OR: [
+          ...(product.variantId ? [{ id: product.variantId }] : []),
+          { sku: product.sku },
+        ],
+      },
+      select: { stockQuantity: true },
+    });
+    if (dbVariant) {
+      dbStockQuantity = dbVariant.stockQuantity;
+    }
+  } catch (e) {
+    console.error("Error fetching stock quantity from database:", e);
+  }
+
+  const productWithStock = {
+    ...product,
+    stockQuantity: dbStockQuantity ?? product.stockQuantity ?? 100,
+  };
+
   return (
     <>
       <Header navItems={navItems} />
@@ -68,7 +93,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      <ProductDetailClient product={product} category={category} />
+      <ProductDetailClient product={productWithStock} category={category} />
 
       <Footer footerSections={footerSections} />
     </>

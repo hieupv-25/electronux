@@ -33,6 +33,7 @@ export default function ProductDetailClient({ product, category }: Props) {
       ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
       : 0;
 
+  const stockQty = product.stockQuantity ?? 100;
   const savingsAmount = product.oldPrice > product.price ? product.oldPrice - product.price : 0;
   const installmentPerMonth = Math.round(product.price / 6);
 
@@ -233,9 +234,17 @@ export default function ProductDetailClient({ product, category }: Props) {
             </div>
 
             {/* Stock Status */}
-            <div className="pdp-v2__stock">
+            <div className={`pdp-v2__stock ${stockQty <= 0 ? "pdp-v2__stock--out" : stockQty <= 5 ? "pdp-v2__stock--low" : ""}`}>
               <span className="pdp-v2__stock-dot">●</span>
-              <span className="pdp-v2__stock-text">Hàng có sẵn</span>
+              <span className="pdp-v2__stock-text">
+                {stockQty > 0 ? (
+                  <>
+                    Hàng có sẵn <span className="pdp-v2__stock-count">(Tồn kho: <strong>{stockQty}</strong> sản phẩm)</span>
+                  </>
+                ) : (
+                  "Tạm hết hàng"
+                )}
+              </span>
             </div>
 
             {/* Add to Cart Action */}
@@ -244,14 +253,18 @@ export default function ProductDetailClient({ product, category }: Props) {
                 id="pdp-add-to-cart-btn"
                 className="pdp-v2__add-cart-btn"
                 onClick={handleAddToCart}
-                disabled={!product.variantId || cartLoading}
+                disabled={!product.variantId || cartLoading || stockQty <= 0}
               >
                 {cartLoading ? (
                   <span className="pdp-v2__spinner" />
                 ) : (
                   <div className="pdp-v2__btn-content">
-                    <span className="pdp-v2__btn-title">🛒 THÊM VÀO GIỎ</span>
-                    <span className="pdp-v2__btn-sub">Miễn phí giao hàng</span>
+                    <span className="pdp-v2__btn-title">
+                      {stockQty > 0 ? "🛒 THÊM VÀO GIỎ" : "❌ TẠM HẾT HÀNG"}
+                    </span>
+                    <span className="pdp-v2__btn-sub">
+                      {stockQty > 0 ? "Miễn phí giao hàng" : "Vui lòng quay lại sau"}
+                    </span>
                   </div>
                 )}
               </button>
