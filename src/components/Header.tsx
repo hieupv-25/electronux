@@ -397,6 +397,7 @@ export default function Header({ navItems }: HeaderProps) {
       ====================================================== */}
 
       <div
+        suppressHydrationWarning
         style={{
           background: "var(--elx-navy)",
           color: "#fff",
@@ -404,6 +405,7 @@ export default function Header({ navItems }: HeaderProps) {
         }}
       >
         <div
+          suppressHydrationWarning
           style={{
             maxWidth: "100%",
             padding: "0 16px",
@@ -446,6 +448,7 @@ export default function Header({ navItems }: HeaderProps) {
         ==================================================== */}
 
         <div
+          suppressHydrationWarning
           style={{
             maxWidth: "100%",
             padding: "0 16px",
@@ -461,6 +464,7 @@ export default function Header({ navItems }: HeaderProps) {
           ================================================== */}
 
           <div
+            suppressHydrationWarning
             style={{
               display: "flex",
               alignItems: "center",
@@ -612,6 +616,7 @@ export default function Header({ navItems }: HeaderProps) {
               {navItems.map((item) => (
                 <div
                   key={item}
+                  suppressHydrationWarning
                   className="nav-item-wrapper"
                   onMouseEnter={() =>
                     handleNavEnter(item)
@@ -666,6 +671,7 @@ export default function Header({ navItems }: HeaderProps) {
           ================================================== */}
 
           <div
+            suppressHydrationWarning
             className="header-icons"
             style={{
               display: "flex",
@@ -965,6 +971,7 @@ export default function Header({ navItems }: HeaderProps) {
         ==================================================== */}
 
         <div
+          suppressHydrationWarning
           className={`mobile-nav${mobileMenu
             ? " mobile-nav--open"
             : ""
@@ -983,7 +990,7 @@ export default function Header({ navItems }: HeaderProps) {
           ))}
 
           {!session?.user && (
-            <div className="mobile-nav__auth">
+            <div suppressHydrationWarning className="mobile-nav__auth">
               <button
                 onClick={() => {
                   setMobileMenu(false);

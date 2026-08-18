@@ -14,11 +14,18 @@ type ProductCardProps = {
   categorySlug?: string;
 };
 
-export default function ProductCard({ product, categorySlug }: ProductCardProps) {
+export default function ProductCard({
+  product,
+  categorySlug,
+}: ProductCardProps) {
   // Infer the correct category slug if not passed or if default
   let resolvedCategorySlug = categorySlug;
+
   if (!resolvedCategorySlug) {
-    const found = ALL_CATEGORIES.find((cat) => cat.products.some((p) => p.slug === product.slug));
+    const found = ALL_CATEGORIES.find((cat) =>
+      cat.products.some((p) => p.slug === product.slug)
+    );
+
     resolvedCategorySlug = found ? found.slug : "may-giat";
   }
 
@@ -28,7 +35,9 @@ export default function ProductCard({ product, categorySlug }: ProductCardProps)
   const { addToCart, adding } = useCart();
   const { isSaved, toggleWishlist } = useWishlist();
 
-  const targetVariantId = product.variantId || product.id;
+  // Use variantId when available, otherwise use product id
+  const targetVariantId = product.variantId ?? product.id;
+
   const isAddingThis = adding === targetVariantId;
   const canAddToCart = Boolean(targetVariantId);
   const saved = isSaved(product.id);
@@ -51,12 +60,15 @@ export default function ProductCard({ product, categorySlug }: ProductCardProps)
     <article className="plp-card">
       <div className="plp-card__top">
         {badge && <span className="plp-card__badge">{badge}</span>}
+
         <button
           type="button"
           className="plp-card__wishlist"
           aria-label="Thêm vào yêu thích"
           onClick={handleWishlistClick}
-          style={{ color: saved ? "#e3000b" : "#64748b" }}
+          style={{
+            color: saved ? "#e3000b" : "#64748b",
+          }}
         >
           <svg
             width="20"
@@ -69,6 +81,7 @@ export default function ProductCard({ product, categorySlug }: ProductCardProps)
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </button>
+
         <Link href={detailHref} className="plp-card__img-link">
           <Image
             src={product.img}
@@ -76,13 +89,19 @@ export default function ProductCard({ product, categorySlug }: ProductCardProps)
             width={280}
             height={280}
             className="plp-card__img"
-            style={{ width: "100%", height: "auto" }}
+            style={{
+              width: "100%",
+              height: "auto",
+            }}
           />
         </Link>
+
         <p className="plp-card__sku">{product.sku}</p>
+
         <h2 className="plp-card__name">
           <Link href={detailHref}>{product.name}</Link>
         </h2>
+
         {product.features.length > 0 && (
           <ul className="plp-card__features">
             {product.features.map((feature) => (
@@ -96,43 +115,80 @@ export default function ProductCard({ product, categorySlug }: ProductCardProps)
         <div className="plp-card__badges">
           {product.freeShipping && (
             <span className="plp-card__service-badge">
-              <Image src="/icon-free-shipping.svg" alt="" width={16} height={16} />
+              <Image
+                src="/icon-free-shipping.svg"
+                alt=""
+                width={16}
+                height={16}
+              />
               Miễn phí vận chuyển
             </span>
           )}
+
           {product.freeInstallation && (
             <span className="plp-card__service-badge">
-              <Image src="/icon-free-install.svg" alt="" width={16} height={16} />
+              <Image
+                src="/icon-free-install.svg"
+                alt=""
+                width={16}
+                height={16}
+              />
               Miễn phí lắp đặt
             </span>
           )}
+
           {product.installment0Percent && (
             <span className="plp-card__service-badge">
-              <Image src="/icon-installment.svg" alt="" width={16} height={16} />
+              <Image
+                src="/icon-installment.svg"
+                alt=""
+                width={16}
+                height={16}
+              />
               Trả góp 0%
             </span>
           )}
         </div>
 
         <div className="plp-card__price-row">
-          <strong className="plp-card__price">{formatPrice(product.price)}</strong>
-          <span className="plp-card__price-old">{formatPrice(product.oldPrice)}</span>
+          <strong className="plp-card__price">
+            {formatPrice(product.price)}
+          </strong>
+
+          <span className="plp-card__price-old">
+            {formatPrice(product.oldPrice)}
+          </span>
         </div>
 
         <div className="plp-card__actions">
           <button
             type="button"
-            onClick={() => targetVariantId && addToCart(targetVariantId)}
+            onClick={() =>
+              targetVariantId && addToCart(targetVariantId)
+            }
             disabled={isAddingThis || !canAddToCart}
+            title={
+              canAddToCart
+                ? undefined
+                : "Sản phẩm này chưa thể thêm vào giỏ"
+            }
             className="cta-btn plp-card__add-btn"
             style={{
-              cursor: isAddingThis || !canAddToCart ? "not-allowed" : "pointer",
-              opacity: isAddingThis || !canAddToCart ? 0.7 : 1,
+              cursor:
+                isAddingThis || !canAddToCart
+                  ? "not-allowed"
+                  : "pointer",
+              opacity:
+                isAddingThis || !canAddToCart ? 0.7 : 1,
             }}
           >
             {isAddingThis ? "Đang thêm..." : "Thêm vào giỏ"}
           </button>
-          <Link href={detailHref} className="cta-btn cta-btn--outline plp-card__detail-btn">
+
+          <Link
+            href={detailHref}
+            className="cta-btn cta-btn--outline plp-card__detail-btn"
+          >
             Xem chi tiết
           </Link>
         </div>

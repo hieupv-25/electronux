@@ -26,10 +26,10 @@ export default function AccountClient() {
   const [loading, setLoading] = useState(true);
 
   // User Profile State
-  const [firstName, setFirstName] = useState(session?.user?.firstName || "viv");
-  const [lastName, setLastName] = useState(session?.user?.lastName || "vietttishnl");
+  const [firstName, setFirstName] = useState(session?.user?.firstName || "");
+  const [lastName, setLastName] = useState(session?.user?.lastName || "");
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState(session?.user?.email || "xyzpokef@gmail.com");
+  const [email, setEmail] = useState(session?.user?.email || "");
 
   // Address List State
   const [addresses, setAddresses] = useState<Address[]>([]);
