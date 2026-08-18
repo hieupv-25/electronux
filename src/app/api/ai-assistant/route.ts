@@ -17,6 +17,14 @@ const requestLog = new Map<string, number[]>();
 type OpenAIContent = { type?: string; text?: string };
 type OpenAIOutput = { type?: string; content?: OpenAIContent[] };
 type OpenAIResponse = { output?: OpenAIOutput[] };
+type GeminiResponse = {
+  candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+};
+type GroqResponse = {
+  choices?: Array<{ message?: { content?: string } }>;
+};
+
+type AIProvider = "gemini" | "groq" | "openai";
 
 function isRateLimited(clientId: string) {
   const now = Date.now();
@@ -80,6 +88,97 @@ async function askOpenAI(messages: AssistantMessageInput[], prompt: string) {
   return text || createSmartFallback(messages, selectAssistantProducts(messages));
 }
 
+async function askGemini(prompt: string) {
+  const apiKey = process.env.GEMINI_API_KEY?.trim();
+  if (!apiKey) return null;
+
+  const model = process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "x-goog-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: ASSISTANT_INSTRUCTIONS }] },
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.35,
+          maxOutputTokens: 500,
+        },
+      }),
+      signal: AbortSignal.timeout(20_000),
+    },
+  );
+
+  if (!response.ok) throw new Error(`Gemini request failed with ${response.status}`);
+  const data = (await response.json()) as GeminiResponse;
+  const text = data.candidates?.[0]?.content?.parts
+    ?.map((part) => part.text?.trim())
+    .filter((part): part is string => Boolean(part))
+    .join("\n");
+  return text || null;
+}
+
+async function askGroq(prompt: string) {
+  const apiKey = process.env.GROQ_API_KEY?.trim();
+  if (!apiKey) return null;
+
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: process.env.GROQ_MODEL?.trim() || "openai/gpt-oss-120b",
+      messages: [
+        { role: "system", content: ASSISTANT_INSTRUCTIONS },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.35,
+      max_completion_tokens: 500,
+    }),
+    signal: AbortSignal.timeout(20_000),
+  });
+
+  if (!response.ok) throw new Error(`Groq request failed with ${response.status}`);
+  const data = (await response.json()) as GroqResponse;
+  return data.choices?.[0]?.message?.content?.trim() || null;
+}
+
+function getConfiguredProviders(): AIProvider[] {
+  const selected = process.env.AI_PROVIDER?.trim().toLowerCase() || "auto";
+  if (selected === "gemini" || selected === "groq" || selected === "openai") {
+    return [selected];
+  }
+
+  return ["gemini", "groq", "openai"];
+}
+
+async function askConfiguredAI(messages: AssistantMessageInput[], prompt: string) {
+  for (const provider of getConfiguredProviders()) {
+    try {
+      const message = provider === "gemini"
+        ? await askGemini(prompt)
+        : provider === "groq"
+          ? await askGroq(prompt)
+          : await askOpenAI(messages, prompt);
+
+      if (message) return message;
+    } catch (error) {
+      console.warn(
+        `${provider} assistant request failed`,
+        error instanceof Error ? error.message : "unknown",
+      );
+    }
+  }
+
+  return null;
+}
+
 export async function POST(request: NextRequest) {
   const contentLength = Number(request.headers.get("content-length") ?? 0);
   if (contentLength > 20_000) {
@@ -113,7 +212,7 @@ export async function POST(request: NextRequest) {
   const fallback = createSmartFallback(messages, products);
 
   try {
-    const aiMessage = await askOpenAI(messages, buildAssistantPrompt(messages, products));
+    const aiMessage = await askConfiguredAI(messages, buildAssistantPrompt(messages, products));
     return NextResponse.json({
       message: aiMessage ?? fallback,
       products,

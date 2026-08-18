@@ -160,7 +160,7 @@ function rankCatalog(messages: AssistantMessageInput[]): RankedProduct[] {
   const conversationText = normalizeAssistantText(getConversationText(messages));
   const categorySlug = inferCategory(conversationText);
   const budget = extractBudget(lastText) ?? extractBudget(conversationText);
-  const capacity = extractCapacity(lastText);
+  const capacity = extractCapacity(lastText) ?? extractCapacity(conversationText);
   const tokens = meaningfulTokens(lastText);
 
   const ranked = ALL_CATEGORIES.flatMap((category) =>
@@ -241,6 +241,7 @@ export function createSmartFallback(
   products: AssistantProduct[],
 ) {
   const lastText = normalizeAssistantText(getLastUserText(messages));
+  const conversationText = normalizeAssistantText(getConversationText(messages));
   const supportAnswer = findSupportAnswer(messages);
   if (supportAnswer) return supportAnswer.answer;
 
@@ -250,8 +251,8 @@ export function createSmartFallback(
 
   if (products.length > 0) {
     const isComparison = /so sanh|khac nhau|nen chon|tot hon/.test(lastText);
-    const hasHouseholdSize = /\d+\s*(?:nguoi|thanh vien)/.test(lastText);
-    const hasPriority = /uu tien|tiet kiem|yen tinh|khang khuan|nhanh|thong minh|an toan/.test(lastText);
+    const hasHouseholdSize = /\d+\s*(?:nguoi|thanh vien)/.test(conversationText);
+    const hasPriority = /uu tien|tiet kiem|yen tinh|khang khuan|nhanh|thong minh|an toan/.test(conversationText);
     const productSummary = products
       .map((product) => `${product.name} (${formatPrice(product.price)})`)
       .join("; ");
