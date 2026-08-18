@@ -26,7 +26,7 @@ type OrderResult = {
   createdAt: string;
 };
 
-type QRData = {
+type VNPayQRData = {
   orderId: string;
   trackingNumber: string;
   paymentUrl: string;
@@ -34,8 +34,23 @@ type QRData = {
   amount: number;
 };
 
-const POLL_INTERVAL = 3000; // 3 seconds
-const QR_TIMEOUT = 300; // 5 minutes in seconds
+type VietQRData = {
+  orderId: string;
+  trackingNumber: string;
+  qrImageUrl: string;
+  transferInfo: {
+    bankId: string;
+    bankName: string;
+    bankShortName: string;
+    accountNo: string;
+    accountName: string;
+    amount: number;
+    transferContent: string;
+  };
+};
+
+const POLL_INTERVAL = 2000; // 2 seconds
+const QR_TIMEOUT = 600; // 10 minutes in seconds
 
 export default function CheckoutModal({
   isOpen,
@@ -44,18 +59,20 @@ export default function CheckoutModal({
   totalAmount,
   onSuccess,
 }: CheckoutModalProps) {
-  const [step, setStep] = useState<"form" | "processing" | "qr" | "success">("form");
+  const [step, setStep] = useState<"form" | "processing" | "vnpay_qr" | "vietqr" | "success">("form");
   const [name, setName] = useState("Nguyễn Văn A");
   const [phone, setPhone] = useState("0912345678");
   const [address, setAddress] = useState("123 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh");
-  const [paymentMethod, setPaymentMethod] = useState("vnpay");
+  const [paymentMethod, setPaymentMethod] = useState("vietqr");
   const [orderResult, setOrderResult] = useState<OrderResult | null>(null);
 
-  // QR State
-  const [qrData, setQrData] = useState<QRData | null>(null);
+  // QR States
+  const [vnpayData, setVnpayData] = useState<VNPayQRData | null>(null);
+  const [vietqrData, setVietqrData] = useState<VietQRData | null>(null);
   const [qrTimeLeft, setQrTimeLeft] = useState(QR_TIMEOUT);
   const [pollingStatus, setPollingStatus] = useState<"waiting" | "confirmed" | "failed">("waiting");
   const [simulating, setSimulating] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -71,77 +88,117 @@ export default function CheckoutModal({
     }
   }, []);
 
-  const handlePaymentConfirmed = useCallback((trackingNumber: string, amount: number) => {
-    stopPolling();
-    setPollingStatus("confirmed");
-    setOrderResult({
-      id: qrData?.orderId || "",
-      trackingNumber,
-      recipientName: name,
-      phone,
-      shippingAddress: address,
-      paymentMethod: "VNPAY",
-      paymentStatus: "PAID",
-      orderStatus: "processing",
-      totalAmount: amount,
-      items,
-      createdAt: new Date().toISOString(),
-    });
-    setTimeout(() => {
-      onSuccess();
-      setStep("success");
-    }, 500);
-  }, [qrData, name, phone, address, items, onSuccess, stopPolling]);
-
-  const startPolling = useCallback((orderId: string) => {
-    // Countdown timer
-    setQrTimeLeft(QR_TIMEOUT);
-    countdownRef.current = setInterval(() => {
-      setQrTimeLeft((prev) => {
-        if (prev <= 1) {
-          stopPolling();
-          setPollingStatus("failed");
-          return 0;
-        }
-        return prev - 1;
+  const handlePaymentConfirmed = useCallback(
+    (trackingNumber: string, amount: number, currentMethod = "VIETQR") => {
+      stopPolling();
+      setPollingStatus("confirmed");
+      setOrderResult({
+        id: vietqrData?.orderId || vnpayData?.orderId || "",
+        trackingNumber,
+        recipientName: name,
+        phone,
+        shippingAddress: address,
+        paymentMethod: currentMethod,
+        paymentStatus: "PAID",
+        orderStatus: "processing",
+        totalAmount: amount,
+        items,
+        createdAt: new Date().toISOString(),
       });
-    }, 1000);
+      setTimeout(() => {
+        onSuccess();
+        setStep("success");
+      }, 500);
+    },
+    [vietqrData, vnpayData, name, phone, address, items, onSuccess, stopPolling]
+  );
 
-    // Polling for payment status
-    pollTimerRef.current = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/checkout/vnpay-status?orderId=${orderId}`);
-        const data = await res.json();
-        if (data.status === "paid") {
-          handlePaymentConfirmed(data.trackingNumber, data.totalAmount);
+  const startPolling = useCallback(
+    (orderId: string, checkUrl: string, currentMethod: string) => {
+      setQrTimeLeft(QR_TIMEOUT);
+      countdownRef.current = setInterval(() => {
+        setQrTimeLeft((prev) => {
+          if (prev <= 1) {
+            stopPolling();
+            setPollingStatus("failed");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      pollTimerRef.current = setInterval(async () => {
+        try {
+          const res = await fetch(`${checkUrl}?orderId=${orderId}`);
+          const data = await res.json();
+          if (data.status === "paid") {
+            handlePaymentConfirmed(data.trackingNumber, data.totalAmount, currentMethod);
+          }
+        } catch {
+          // silently ignore network errors during polling
         }
-      } catch {
-        // silently ignore network errors during polling
-      }
-    }, POLL_INTERVAL);
-  }, [handlePaymentConfirmed, stopPolling]);
+      }, POLL_INTERVAL);
+    },
+    [handlePaymentConfirmed, stopPolling]
+  );
 
   // Cleanup on unmount or close
   useEffect(() => {
     if (!isOpen) {
       stopPolling();
       setStep("form");
-      setQrData(null);
+      setVnpayData(null);
+      setVietqrData(null);
       setQrTimeLeft(QR_TIMEOUT);
       setPollingStatus("waiting");
+      setCopiedKey(null);
     }
     return () => stopPolling();
   }, [isOpen, stopPolling]);
 
   if (!isOpen) return null;
 
+  const handleCopy = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
+
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setStep("processing");
 
     try {
+      // 1. VIETQR Method
+      if (paymentMethod === "vietqr") {
+        const createRes = await fetch("/api/checkout/vietqr-create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            recipientName: name,
+            phone,
+            shippingAddress: address,
+            totalAmount,
+            items,
+          }),
+        });
+
+        const createData = await createRes.json();
+        if (!createRes.ok || !createData.success || !createData.qrImageUrl) {
+          alert(createData.message || "Không thể khởi tạo mã VietQR, vui lòng thử lại.");
+          setStep("form");
+          return;
+        }
+
+        setVietqrData(createData);
+        setPollingStatus("waiting");
+        setStep("vietqr");
+        startPolling(createData.orderId, "/api/checkout/vietqr-status", "VIETQR");
+        return;
+      }
+
+      // 2. VNPAY / Card / ATM Method
       if (paymentMethod === "vnpay" || paymentMethod === "card" || paymentMethod === "atm") {
-        // Step 1: Create VNPay order
         const createRes = await fetch("/api/checkout/vnpay-create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -162,7 +219,7 @@ export default function CheckoutModal({
           return;
         }
 
-        // Step 2: Generate QR Code
+        // Generate QR Code
         const qrRes = await fetch("/api/checkout/vnpay-qr", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -171,27 +228,25 @@ export default function CheckoutModal({
 
         const qrJson = await qrRes.json();
         if (!qrRes.ok || !qrJson.success || !qrJson.qrDataUrl) {
-          // fallback: redirect as before if QR fails
           window.location.assign(createData.paymentUrl);
           return;
         }
 
-        // Step 3: Show QR
-        const newQrData: QRData = {
+        const newQrData: VNPayQRData = {
           orderId: createData.orderId,
           trackingNumber: createData.trackingNumber,
           paymentUrl: createData.paymentUrl,
           qrDataUrl: qrJson.qrDataUrl,
           amount: totalAmount,
         };
-        setQrData(newQrData);
+        setVnpayData(newQrData);
         setPollingStatus("waiting");
-        setStep("qr");
-        startPolling(createData.orderId);
+        setStep("vnpay_qr");
+        startPolling(createData.orderId, "/api/checkout/vnpay-status", "VNPAY");
         return;
       }
 
-      // COD / other methods
+      // 3. COD Method
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -232,23 +287,48 @@ export default function CheckoutModal({
 
   const handleCancelQR = () => {
     stopPolling();
-    setQrData(null);
+    setVnpayData(null);
+    setVietqrData(null);
     setPollingStatus("waiting");
     setStep("form");
   };
 
-  const handleSimulatePayment = async () => {
-    if (!qrData?.orderId) return;
+  // Simulating VietQR payment
+  const handleSimulateVietQR = async () => {
+    if (!vietqrData?.orderId) return;
+    setSimulating(true);
+    try {
+      const res = await fetch("/api/checkout/vietqr-confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: vietqrData.orderId }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        handlePaymentConfirmed(data.trackingNumber, data.totalAmount, "VIETQR");
+      } else {
+        alert(data.message || "Không thể xác nhận thanh toán.");
+      }
+    } catch {
+      alert("Lỗi kết nối.");
+    } finally {
+      setSimulating(false);
+    }
+  };
+
+  // Simulating VNPay payment
+  const handleSimulateVNPay = async () => {
+    if (!vnpayData?.orderId) return;
     setSimulating(true);
     try {
       const res = await fetch("/api/checkout/vnpay-simulate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: qrData.orderId }),
+        body: JSON.stringify({ orderId: vnpayData.orderId }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        handlePaymentConfirmed(data.trackingNumber, data.totalAmount);
+        handlePaymentConfirmed(data.trackingNumber, data.totalAmount, "VNPAY");
       } else {
         alert(data.message || "Không thể mô phỏng thanh toán.");
       }
@@ -276,10 +356,10 @@ export default function CheckoutModal({
       <div
         style={{
           background: "#fff",
-          borderRadius: 12,
-          maxWidth: step === "qr" ? 480 : 640,
+          borderRadius: 14,
+          maxWidth: step === "vietqr" ? 560 : step === "vnpay_qr" ? 480 : 640,
           width: "100%",
-          maxHeight: "90vh",
+          maxHeight: "92vh",
           overflowY: "auto",
           boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
           position: "relative",
@@ -289,25 +369,31 @@ export default function CheckoutModal({
         {/* Modal Header */}
         <div
           style={{
-            padding: "20px 24px",
+            padding: "18px 24px",
             borderBottom: "1px solid #e5e7eb",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             background: "#001e38",
             color: "#fff",
-            borderTopLeftRadius: 12,
-            borderTopRightRadius: 12,
+            borderTopLeftRadius: 14,
+            borderTopRightRadius: 14,
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <Image src="/electrolux_logo.svg" alt="Electrolux" width={110} height={26} />
-            <span style={{ fontSize: "1.1rem", fontWeight: 600, borderLeft: "1px solid #ffffff40", paddingLeft: 10 }}>
-              {step === "success" ? "Xác Nhận Đơn Hàng" : step === "qr" ? "Quét Mã QR Thanh Toán" : "Thanh Toán Đơn Hàng"}
+            <span style={{ fontSize: "1.05rem", fontWeight: 600, borderLeft: "1px solid #ffffff40", paddingLeft: 10 }}>
+              {step === "success"
+                ? "Xác Nhận Đơn Hàng"
+                : step === "vietqr"
+                ? "Chuyển Khoản Qua VietQR"
+                : step === "vnpay_qr"
+                ? "Quét Mã QR VNPAY"
+                : "Thanh Toán Đơn Hàng"}
             </span>
           </div>
           <button
-            onClick={step === "qr" ? handleCancelQR : onClose}
+            onClick={step === "vnpay_qr" || step === "vietqr" ? handleCancelQR : onClose}
             style={{
               background: "none",
               border: "none",
@@ -324,13 +410,13 @@ export default function CheckoutModal({
         {/* ── STEP 1: FORM ── */}
         {step === "form" && (
           <form onSubmit={handleCheckout} style={{ padding: 24 }}>
-            <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#111827", marginBottom: 16 }}>
+            <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#111827", marginBottom: 14 }}>
               1. Thông tin giao hàng
             </h3>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 24 }}>
               <div>
-                <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#374151", marginBottom: 4 }}>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, color: "#374151", marginBottom: 4 }}>
                   Họ và tên người nhận
                 </label>
                 <input
@@ -350,7 +436,7 @@ export default function CheckoutModal({
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#374151", marginBottom: 4 }}>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, color: "#374151", marginBottom: 4 }}>
                   Số điện thoại liên hệ
                 </label>
                 <input
@@ -370,7 +456,7 @@ export default function CheckoutModal({
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#374151", marginBottom: 4 }}>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, color: "#374151", marginBottom: 4 }}>
                   Địa chỉ giao hàng chi tiết
                 </label>
                 <input
@@ -390,16 +476,33 @@ export default function CheckoutModal({
               </div>
             </div>
 
-            <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#111827", marginBottom: 16 }}>
+            <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#111827", marginBottom: 14 }}>
               2. Phương thức thanh toán
             </h3>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
               {[
-                { id: "vnpay", label: "Cổng thanh toán VNPAY / QR Code", desc: "Quét mã QR bằng app ngân hàng hoặc ví VNPay" },
-                { id: "card", label: "Thẻ Quốc Tế (VISA, Mastercard, JCB)", desc: "Giao dịch an toàn tiêu chuẩn PCI DSS" },
-                { id: "atm", label: "Thẻ ATM / Thẻ Nội Địa", desc: "Tất cả các ngân hàng tại Việt Nam" },
-                { id: "cod", label: "Thanh toán khi nhận hàng (COD)", desc: "Kiểm tra hàng trước khi thanh toán" },
+                {
+                  id: "vietqr",
+                  label: "🔥 Chuyển khoản VietQR (Mọi Ngân Hàng / MoMo / Viettel Money)",
+                  desc: "Quét mã QR tự động điền số tiền & nội dung, xác nhận chuyển khoản tức thì",
+                  badge: "Khuyên Dùng",
+                },
+                {
+                  id: "vnpay",
+                  label: "Cổng thanh toán VNPAY (Sandbox / Thật)",
+                  desc: "Quét mã QR VNPAY hoặc thanh toán qua cổng điện tử",
+                },
+                {
+                  id: "card",
+                  label: "Thẻ Quốc Tế (VISA, Mastercard, JCB)",
+                  desc: "Giao dịch an toàn bảo mật tiêu chuẩn PCI DSS",
+                },
+                {
+                  id: "cod",
+                  label: "Thanh toán khi nhận hàng (COD)",
+                  desc: "Kiểm tra sản phẩm trước khi thanh toán tiền mặt",
+                },
               ].map((method) => (
                 <label
                   key={method.id}
@@ -407,12 +510,13 @@ export default function CheckoutModal({
                     display: "flex",
                     alignItems: "center",
                     gap: 12,
-                    padding: 14,
+                    padding: "14px 16px",
                     border: paymentMethod === method.id ? "2px solid #001e38" : "1px solid #e5e7eb",
-                    borderRadius: 8,
-                    background: paymentMethod === method.id ? "#f0f4f8" : "#fff",
+                    borderRadius: 10,
+                    background: paymentMethod === method.id ? "#f0f6ff" : "#fff",
                     cursor: "pointer",
                     transition: "all 0.2s",
+                    position: "relative",
                   }}
                 >
                   <input
@@ -423,9 +527,25 @@ export default function CheckoutModal({
                     onChange={(e) => setPaymentMethod(e.target.value)}
                     style={{ width: 18, height: 18, accentColor: "#001e38" }}
                   />
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: "0.95rem", color: "#111827" }}>{method.label}</div>
-                    <div style={{ fontSize: "0.8rem", color: "#6b7280" }}>{method.desc}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontWeight: 600, fontSize: "0.95rem", color: "#111827" }}>{method.label}</span>
+                      {method.badge && (
+                        <span
+                          style={{
+                            background: "#2563eb",
+                            color: "#fff",
+                            fontSize: "0.7rem",
+                            fontWeight: 700,
+                            padding: "2px 8px",
+                            borderRadius: 12,
+                          }}
+                        >
+                          {method.badge}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: "0.8rem", color: "#6b7280", marginTop: 2 }}>{method.desc}</div>
                   </div>
                 </label>
               ))}
@@ -435,24 +555,24 @@ export default function CheckoutModal({
             <div
               style={{
                 background: "#f9fafb",
-                padding: 16,
+                padding: "14px 18px",
                 borderRadius: 8,
-                marginBottom: 24,
+                marginBottom: 20,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
                 border: "1px solid #e5e7eb",
               }}
             >
-              <span style={{ fontSize: "1rem", fontWeight: 600, color: "#374151" }}>Tổng tiền thanh toán:</span>
-              <span style={{ fontSize: "1.3rem", fontWeight: 700, color: "#001e38" }}>{formatVND(totalAmount)}</span>
+              <span style={{ fontSize: "0.95rem", fontWeight: 600, color: "#374151" }}>Tổng tiền thanh toán:</span>
+              <span style={{ fontSize: "1.25rem", fontWeight: 800, color: "#001e38" }}>{formatVND(totalAmount)}</span>
             </div>
 
             <button
               type="submit"
               style={{
                 width: "100%",
-                padding: 16,
+                padding: 15,
                 background: "#001e38",
                 color: "#fff",
                 border: "none",
@@ -460,10 +580,10 @@ export default function CheckoutModal({
                 fontSize: "1.05rem",
                 fontWeight: 700,
                 cursor: "pointer",
-                boxShadow: "0 4px 12px rgba(0,30,56,0.3)",
+                boxShadow: "0 4px 14px rgba(0,30,56,0.3)",
               }}
             >
-              XÁC NHẬN THANH TOÁN ({formatVND(totalAmount)})
+              XÁC NHẬN ĐẶT HÀNG ({formatVND(totalAmount)})
             </button>
           </form>
         )}
@@ -473,31 +593,262 @@ export default function CheckoutModal({
           <div style={{ padding: "60px 24px", textAlign: "center" }}>
             <div
               style={{
-                width: 60,
-                height: 60,
+                width: 54,
+                height: 54,
                 border: "4px solid #e5e7eb",
                 borderTopColor: "#001e38",
                 borderRadius: "50%",
-                margin: "0 auto 24px",
+                margin: "0 auto 20px",
                 animation: "spin 1s linear infinite",
               }}
             />
             <style>{`
               @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
             `}</style>
-            <h3 style={{ fontSize: "1.25rem", fontWeight: 700, color: "#111827", marginBottom: 8 }}>
-              Đang khởi tạo thanh toán...
+            <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#111827", marginBottom: 6 }}>
+              Đang tạo mã thanh toán...
             </h3>
-            <p style={{ fontSize: "0.95rem", color: "#6b7280" }}>
-              Đang tạo đơn hàng và sinh mã QR, vui lòng chờ trong giây lát.
+            <p style={{ fontSize: "0.9rem", color: "#6b7280" }}>
+              Vui lòng chờ trong giây lát để hệ thống khởi tạo đơn hàng.
             </p>
           </div>
         )}
 
-        {/* ── STEP 3: QR CODE ── */}
-        {step === "qr" && qrData && (
+        {/* ── STEP 3A: VIETQR SCREEN ── */}
+        {step === "vietqr" && vietqrData && (
+          <div style={{ padding: "24px 20px" }}>
+            {/* Header info */}
+            <div style={{ textAlign: "center", marginBottom: 16 }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "#eff6ff",
+                  padding: "6px 14px",
+                  borderRadius: 20,
+                  border: "1px solid #bfdbfe",
+                  marginBottom: 10,
+                }}
+              >
+                <span style={{ fontSize: "0.85rem", color: "#1e40af", fontWeight: 700 }}>
+                  🏛️ Chuyển khoản VietQR liên ngân hàng 24/7
+                </span>
+              </div>
+              <p style={{ fontSize: "0.875rem", color: "#4b5563" }}>
+                Mở app ngân hàng bất kỳ (VCB, MB, Techcom, BIDV, MoMo...) và quét mã QR:
+              </p>
+            </div>
+
+            {/* Layout: QR Image + Bank Details */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr",
+                gap: 16,
+                alignItems: "center",
+                marginBottom: 16,
+              }}
+            >
+              {/* QR Image Card */}
+              <div
+                style={{
+                  background: "#fff",
+                  border: "2px solid #001e38",
+                  borderRadius: 14,
+                  padding: 12,
+                  textAlign: "center",
+                  boxShadow: "0 4px 16px rgba(0,30,56,0.08)",
+                  maxWidth: 320,
+                  margin: "0 auto",
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={vietqrData.qrImageUrl}
+                  alt="Mã VietQR Chuyển Khoản"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    borderRadius: 8,
+                    display: "block",
+                  }}
+                />
+              </div>
+
+              {/* Transfer Details Card */}
+              <div
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 10,
+                  padding: 14,
+                }}
+              >
+                <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0f172a", marginBottom: 10, borderBottom: "1px solid #e2e8f0", paddingBottom: 6 }}>
+                  📋 Thông tin chuyển khoản thủ công (Nếu không quét được QR):
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: "0.85rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ color: "#64748b" }}>Ngân hàng:</span>
+                    <strong style={{ color: "#0f172a" }}>{vietqrData.transferInfo.bankName} ({vietqrData.transferInfo.bankShortName})</strong>
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ color: "#64748b" }}>Chủ tài khoản:</span>
+                    <strong style={{ color: "#0f172a" }}>{vietqrData.transferInfo.accountName}</strong>
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ color: "#64748b" }}>Số tài khoản:</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <strong style={{ color: "#001e38", fontSize: "0.95rem" }}>{vietqrData.transferInfo.accountNo}</strong>
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(vietqrData.transferInfo.accountNo, "acc")}
+                        style={{
+                          background: copiedKey === "acc" ? "#10b981" : "#e2e8f0",
+                          color: copiedKey === "acc" ? "#fff" : "#334155",
+                          border: "none",
+                          borderRadius: 4,
+                          padding: "2px 6px",
+                          fontSize: "0.75rem",
+                          cursor: "pointer",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {copiedKey === "acc" ? "✓ Đã chép" : "Sao chép"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ color: "#64748b" }}>Số tiền:</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <strong style={{ color: "#b91c1c", fontSize: "1rem" }}>{formatVND(vietqrData.transferInfo.amount)}</strong>
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(String(vietqrData.transferInfo.amount), "amount")}
+                        style={{
+                          background: copiedKey === "amount" ? "#10b981" : "#e2e8f0",
+                          color: copiedKey === "amount" ? "#fff" : "#334155",
+                          border: "none",
+                          borderRadius: 4,
+                          padding: "2px 6px",
+                          fontSize: "0.75rem",
+                          cursor: "pointer",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {copiedKey === "amount" ? "✓ Đã chép" : "Sao chép"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      background: "#fffbeb",
+                      border: "1px dashed #f59e0b",
+                      borderRadius: 6,
+                      padding: "8px 10px",
+                      marginTop: 4,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div>
+                      <span style={{ color: "#92400e", fontSize: "0.78rem", display: "block" }}>Nội dung chuyển khoản (Bắt buộc):</span>
+                      <strong style={{ color: "#b45309", fontSize: "1rem", letterSpacing: 0.5 }}>{vietqrData.transferInfo.transferContent}</strong>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(vietqrData.transferInfo.transferContent, "content")}
+                      style={{
+                        background: copiedKey === "content" ? "#10b981" : "#f59e0b",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 6,
+                        padding: "6px 10px",
+                        fontSize: "0.8rem",
+                        cursor: "pointer",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {copiedKey === "content" ? "✓ Đã chép" : "Sao chép"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Countdown & Status */}
+            <div style={{ textAlign: "center", marginBottom: 14 }}>
+              <div style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: 6 }}>
+                Mã QR có hiệu lực trong: <strong style={{ color: "#0f172a" }}>{formatTimeLeft(qrTimeLeft)}</strong>
+              </div>
+
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "8px 16px",
+                  borderRadius: 20,
+                  background: pollingStatus === "waiting" ? "#fef3c7" : "#dcfce7",
+                  border: `1px solid ${pollingStatus === "waiting" ? "#fde68a" : "#86efac"}`,
+                }}
+              >
+                {pollingStatus === "waiting" ? (
+                  <>
+                    <span
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: "50%",
+                        border: "2px solid #d97706",
+                        borderTopColor: "transparent",
+                        animation: "spin 0.8s linear infinite",
+                        display: "inline-block",
+                      }}
+                    />
+                    <span style={{ fontSize: "0.82rem", color: "#92400e", fontWeight: 600 }}>
+                      Đang chờ hệ thống ghi nhận chuyển khoản...
+                    </span>
+                  </>
+                ) : (
+                  <span style={{ fontSize: "0.82rem", color: "#166534", fontWeight: 700 }}>
+                    ✅ Đã nhận được chuyển khoản! Đang chuyển hướng...
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <button
+                type="button"
+                onClick={handleCancelQR}
+                style={{
+                  padding: "10px 16px",
+                  background: "none",
+                  color: "#64748b",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: 8,
+                  fontSize: "0.85rem",
+                  cursor: "pointer",
+                }}
+              >
+                ← Quay lại chọn phương thức khác
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 3B: VNPAY QR SCREEN ── */}
+        {step === "vnpay_qr" && vnpayData && (
           <div style={{ padding: "28px 24px", textAlign: "center" }}>
-            {/* Amount badge */}
             <div
               style={{
                 display: "inline-flex",
@@ -510,17 +861,16 @@ export default function CheckoutModal({
                 border: "1px solid #d1dde8",
               }}
             >
-              <span style={{ fontSize: "0.9rem", color: "#4b5563", fontWeight: 500 }}>Số tiền thanh toán:</span>
+              <span style={{ fontSize: "0.9rem", color: "#4b5563", fontWeight: 500 }}>Số tiền:</span>
               <span style={{ fontSize: "1.25rem", fontWeight: 800, color: "#001e38" }}>
-                {formatVND(qrData.amount)}
+                {formatVND(vnpayData.amount)}
               </span>
             </div>
 
-            <p style={{ fontSize: "0.9rem", color: "#6b7280", marginBottom: 18, lineHeight: 1.5 }}>
-              Sử dụng <strong>app ngân hàng</strong> hoặc <strong>ví VNPay / MoMo</strong> để quét mã QR bên dưới
+            <p style={{ fontSize: "0.9rem", color: "#6b7280", marginBottom: 18 }}>
+              Quét mã QR bên dưới bằng app ngân hàng hoặc ví VNPay:
             </p>
 
-            {/* QR Image */}
             <div
               style={{
                 display: "inline-block",
@@ -535,13 +885,12 @@ export default function CheckoutModal({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={qrData.qrDataUrl}
-                alt="Mã QR thanh toán VNPay"
+                src={vnpayData.qrDataUrl}
+                alt="Mã QR VNPay"
                 width={220}
                 height={220}
                 style={{ display: "block" }}
               />
-              {/* VNPay badge overlay */}
               <div
                 style={{
                   position: "absolute",
@@ -552,7 +901,6 @@ export default function CheckoutModal({
                   color: "#fff",
                   fontSize: "0.72rem",
                   fontWeight: 700,
-                  letterSpacing: 1,
                   padding: "4px 12px",
                   borderRadius: 20,
                   whiteSpace: "nowrap",
@@ -562,112 +910,46 @@ export default function CheckoutModal({
               </div>
             </div>
 
-            {/* Timer */}
-            <div style={{ marginBottom: 20, marginTop: 8 }}>
-              {qrTimeLeft > 0 ? (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={qrTimeLeft < 60 ? "#dc2626" : "#6b7280"} strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </svg>
-                  <span style={{
-                    fontSize: "0.95rem",
-                    color: qrTimeLeft < 60 ? "#dc2626" : "#6b7280",
-                    fontWeight: qrTimeLeft < 60 ? 700 : 400,
-                  }}>
-                    Mã QR hết hạn sau: <strong style={{ fontVariantNumeric: "tabular-nums" }}>{formatTimeLeft(qrTimeLeft)}</strong>
-                  </span>
-                </div>
-              ) : (
-                <p style={{ color: "#dc2626", fontWeight: 600, fontSize: "0.9rem" }}>
-                  ⚠ Mã QR đã hết hạn. Vui lòng thử lại.
-                </p>
-              )}
-            </div>
-
-            {/* Polling status */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                padding: "10px 16px",
-                borderRadius: 8,
-                marginBottom: 20,
-                background: pollingStatus === "waiting" ? "#fffbeb" : pollingStatus === "confirmed" ? "#f0fdf4" : "#fef2f2",
-                border: `1px solid ${pollingStatus === "waiting" ? "#fcd34d" : pollingStatus === "confirmed" ? "#86efac" : "#fca5a5"}`,
-              }}
-            >
-              {pollingStatus === "waiting" && (
-                <>
-                  <span style={{
-                    display: "inline-block",
-                    width: 12,
-                    height: 12,
-                    borderRadius: "50%",
-                    border: "2px solid #f59e0b",
-                    borderTopColor: "transparent",
-                    animation: "spin 0.8s linear infinite",
-                    flexShrink: 0,
-                  }} />
-                  <span style={{ fontSize: "0.875rem", color: "#92400e", fontWeight: 500 }}>
-                    Đang chờ xác nhận thanh toán từ VNPay...
-                  </span>
-                </>
-              )}
-              {pollingStatus === "confirmed" && (
-                <span style={{ fontSize: "0.875rem", color: "#15803d", fontWeight: 600 }}>
-                  ✅ Đã xác nhận thanh toán! Đang chuyển hướng...
-                </span>
-              )}
-              {pollingStatus === "failed" && (
-                <span style={{ fontSize: "0.875rem", color: "#dc2626", fontWeight: 600 }}>
-                  ❌ Hết thời gian chờ. Vui lòng thử lại.
-                </span>
-              )}
-            </div>
-
-            {/* Action buttons */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {/* ⚠️ Sandbox only: Simulate payment confirmation */}
-              <button
-                onClick={handleSimulatePayment}
-                disabled={simulating || pollingStatus !== "waiting"}
+            <div style={{ marginBottom: 14 }}>
+              <div
                 style={{
-                  padding: "13px 16px",
-                  background: simulating ? "#d1fae5" : "#10b981",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  fontSize: "0.95rem",
-                  fontWeight: 700,
-                  cursor: simulating ? "not-allowed" : "pointer",
-                  display: "flex",
+                  display: "inline-flex",
                   alignItems: "center",
-                  justifyContent: "center",
                   gap: 8,
-                  opacity: pollingStatus !== "waiting" ? 0.5 : 1,
+                  padding: "8px 16px",
+                  borderRadius: 20,
+                  background: pollingStatus === "waiting" ? "#fef3c7" : "#dcfce7",
+                  border: `1px solid ${pollingStatus === "waiting" ? "#fde68a" : "#86efac"}`,
                 }}
               >
-                {simulating ? (
+                {pollingStatus === "waiting" ? (
                   <>
-                    <span style={{
-                      display: "inline-block",
-                      width: 14,
-                      height: 14,
-                      border: "2px solid #fff",
-                      borderTopColor: "transparent",
-                      borderRadius: "50%",
-                      animation: "spin 0.7s linear infinite",
-                    }} />
-                    Đang xác nhận...
+                    <span
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: "50%",
+                        border: "2px solid #d97706",
+                        borderTopColor: "transparent",
+                        animation: "spin 0.8s linear infinite",
+                        display: "inline-block",
+                      }}
+                    />
+                    <span style={{ fontSize: "0.82rem", color: "#92400e", fontWeight: 600 }}>
+                      Đang chờ hệ thống ghi nhận thanh toán tự động...
+                    </span>
                   </>
-                ) : "✅ Mô phỏng thanh toán thành công (Sandbox)"}
-              </button>
+                ) : (
+                  <span style={{ fontSize: "0.82rem", color: "#166534", fontWeight: 700 }}>
+                    ✅ Đã nhận được thanh toán! Đang chuyển hướng...
+                  </span>
+                )}
+              </div>
+            </div>
 
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <a
-                href={qrData.paymentUrl}
+                href={vnpayData.paymentUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
@@ -675,7 +957,6 @@ export default function CheckoutModal({
                   padding: "12px 16px",
                   background: "#f0f4f8",
                   color: "#001e38",
-                  border: "1px solid #d1dde8",
                   borderRadius: 8,
                   fontSize: "0.9rem",
                   fontWeight: 600,
@@ -683,8 +964,9 @@ export default function CheckoutModal({
                   textAlign: "center",
                 }}
               >
-                🔗 Mở trang thanh toán VNPay (dự phòng)
+                🔗 Mở trang thanh toán VNPay
               </a>
+
               <button
                 onClick={handleCancelQR}
                 style={{
@@ -697,7 +979,7 @@ export default function CheckoutModal({
                   cursor: "pointer",
                 }}
               >
-                Hủy và chọn phương thức khác
+                ← Quay lại chọn phương thức khác
               </button>
             </div>
           </div>
@@ -706,116 +988,88 @@ export default function CheckoutModal({
         {/* ── STEP 4: SUCCESS ── */}
         {step === "success" && orderResult && (
           <div style={{ padding: 32, textAlign: "center" }}>
-            {/* Big Green Success Checkmark */}
             <div
               style={{
-                width: 80,
-                height: 80,
+                width: 76,
+                height: 76,
                 background: "#10b981",
                 color: "#fff",
                 borderRadius: "50%",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                margin: "0 auto 20px",
+                margin: "0 auto 18px",
                 boxShadow: "0 10px 25px rgba(16,185,129,0.35)",
               }}
             >
-              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
 
-            <h2 style={{ fontSize: "1.6rem", fontWeight: 800, color: "#065f46", marginBottom: 8 }}>
-              ✅ THANH TOÁN THÀNH CÔNG!
+            <h2 style={{ fontSize: "1.5rem", fontWeight: 800, color: "#065f46", marginBottom: 6 }}>
+              ✅ ĐẶT HÀNG THÀNH CÔNG!
             </h2>
-            <p style={{ fontSize: "0.95rem", color: "#4b5563", marginBottom: 24 }}>
-              Cảm ơn bạn đã mua sắm tại Electrolux. Đơn hàng của bạn đã được khởi tạo và xác nhận thanh toán thành công.
+            <p style={{ fontSize: "0.9rem", color: "#4b5563", marginBottom: 20 }}>
+              Cảm ơn bạn đã mua sắm tại Electrolux. Đơn hàng của bạn đã được ghi nhận vào hệ thống.
             </p>
 
-            {/* Order details box */}
+            {/* Order details */}
             <div
               style={{
                 background: "#f0fdf4",
                 border: "1px solid #a7f3d0",
                 borderRadius: 10,
-                padding: 20,
+                padding: 18,
                 textAlign: "left",
-                marginBottom: 24,
+                marginBottom: 20,
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap" }}>
-                <span style={{ fontSize: "0.9rem", color: "#374151" }}>Mã đơn hàng:</span>
-                <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#065f46" }}>
-                  {orderResult.trackingNumber}
-                </span>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: "0.875rem", color: "#374151" }}>Mã đơn hàng:</span>
+                <strong style={{ fontSize: "0.95rem", color: "#065f46" }}>{orderResult.trackingNumber}</strong>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, alignItems: "center" }}>
-                <span style={{ fontSize: "0.9rem", color: "#374151" }}>Trạng thái thanh toán:</span>
-                <span
-                  style={{
-                    background: "#10b981",
-                    color: "#fff",
-                    fontSize: "0.8rem",
-                    fontWeight: 700,
-                    padding: "4px 10px",
-                    borderRadius: 20,
-                    letterSpacing: 0.5,
-                  }}
-                >
-                  PAID
-                </span>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: "0.875rem", color: "#374151" }}>Phương thức:</span>
+                <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "#111827" }}>{orderResult.paymentMethod}</span>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                <span style={{ fontSize: "0.9rem", color: "#374151" }}>Phương thức thanh toán:</span>
-                <span style={{ fontSize: "0.9rem", fontWeight: 600, color: "#111827" }}>
-                  {orderResult.paymentMethod}
-                </span>
-              </div>
-
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                <span style={{ fontSize: "0.9rem", color: "#374151" }}>Người nhận hàng:</span>
-                <span style={{ fontSize: "0.9rem", fontWeight: 600, color: "#111827" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: "0.875rem", color: "#374151" }}>Người nhận:</span>
+                <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "#111827" }}>
                   {orderResult.recipientName} ({orderResult.phone})
                 </span>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
-                <span style={{ fontSize: "0.9rem", color: "#374151" }}>Địa chỉ:</span>
-                <span style={{ fontSize: "0.9rem", color: "#111827", maxWidth: "60%", textAlign: "right" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+                <span style={{ fontSize: "0.875rem", color: "#374151" }}>Địa chỉ giao hàng:</span>
+                <span style={{ fontSize: "0.85rem", color: "#111827", maxWidth: "60%", textAlign: "right" }}>
                   {orderResult.shippingAddress}
                 </span>
               </div>
 
               <div style={{ borderTop: "1px dashed #6ee7b7", paddingTop: 10, display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: "1rem", fontWeight: 700, color: "#065f46" }}>Tổng tiền đã thanh toán:</span>
-                <span style={{ fontSize: "1.15rem", fontWeight: 800, color: "#065f46" }}>
-                  {formatVND(orderResult.totalAmount)}
-                </span>
+                <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#065f46" }}>Tổng tiền:</span>
+                <strong style={{ fontSize: "1.15rem", color: "#065f46" }}>{formatVND(orderResult.totalAmount)}</strong>
               </div>
             </div>
 
-            {/* Actions */}
             <button
-              onClick={() => {
-                onClose();
-                window.location.href = "/";
-              }}
+              onClick={onClose}
               style={{
                 width: "100%",
-                padding: 16,
+                padding: 14,
                 background: "#001e38",
                 color: "#fff",
                 border: "none",
                 borderRadius: 8,
-                fontSize: "1.05rem",
+                fontSize: "1rem",
                 fontWeight: 700,
                 cursor: "pointer",
               }}
             >
-              TIẾP TỤC MUA SẮM
+              HOÀN TẤT & TIẾP TỤC MUA SẮM
             </button>
           </div>
         )}
