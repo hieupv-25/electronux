@@ -1,97 +1,84 @@
 "use client";
-
 import { useState, useRef, useMemo, useEffect, type ReactNode } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { navItems, footerSections } from "@/data/siteData";
-import { ALL_CATEGORIES } from "@/lib/getCategoryData";
-/* ─── Device categories ─── */
-interface DeviceCategory {
-    icon: string;
-    label: string;
-}
+import { footerSections, navItems } from "@/data/siteData";
 
-const deviceCategories: DeviceCategory[] = [
-    { icon: "/icon-washing-machine.svg", label: "Máy giặt" },
-    { icon: "/icon-dryer.svg", label: "Máy sấy" },
-    { icon: "/icon-fridge.svg", label: "Tủ lạnh" },
-    { icon: "/icon-hob.svg", label: "Bếp nấu" },
-    { icon: "/icon-air-purifier.svg", label: "Máy lọc không khí" },
-    { icon: "/icon-dishwasher.svg", label: "Máy rửa bát" },
-    { icon: "/icon-oven.svg", label: "Lò nướng" },
-    { icon: "/icon-hood.svg", label: "Máy hút mùi" },
-    { icon: "/icon-water-heater-instant.svg", label: "Bình nước nóng trực tiếp" },
-];
-
-/* ─── Support Products Interface ─── */
-interface SupportProduct {
+export interface SupportProduct {
     id: string;
-    category: string;
     sku: string;
     pnc: string;
     name: string;
     img: string;
+    category: string;
 }
 
-// Generate realistic support products using real images from database (ALL_CATEGORIES)
-const buildSupportProducts = (): SupportProduct[] => {
-    const list: SupportProduct[] = [];
+const deviceCategories = [
+    { label: "Bình nước nóng trực tiếp", icon: "/icon-water-heater.svg" },
+    { label: "Bình nước nóng gián tiếp", icon: "/icon-water-heater.svg" },
+    { label: "Máy giặt", icon: "/icon-washing-machine.svg" },
+    { label: "Máy sấy", icon: "/icon-dryer.svg" },
+    { label: "Tủ lạnh", icon: "/icon-fridge.svg" },
+    { label: "Bếp âm", icon: "/icon-hob.svg" },
+    { label: "Lò nướng", icon: "/icon-hob.svg" },
+    { label: "Máy lọc không khí", icon: "/icon-air-purifier.svg" },
+];
 
-    // 1. Water Heater products with real product images
-    const waterHeaters: SupportProduct[] = [
-        { id: "sp-wh-1", category: "Bình nước nóng trực tiếp", sku: "EWE351BADW", pnc: "956002371", name: "Máy nước nóng công suất 3500W EWE351BADW", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
-        { id: "sp-wh-2", category: "Bình nước nóng trực tiếp", sku: "EWE351HB-DWS1", pnc: "956002372", name: "Máy nước nóng công suất 3500W", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
-        { id: "sp-wh-3", category: "Bình nước nóng trực tiếp", sku: "EWE351LB-DAX1", pnc: "956002373", name: "Máy nước nóng ComfortFlow™ 700 - Vàng đồng", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
-        { id: "sp-wh-4", category: "Bình nước nóng trực tiếp", sku: "EWE351LB-DAX2", pnc: "956002374", name: "Máy nước nóng ComfortFlow™ 700 - Vàng đồng", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
-        { id: "sp-wh-5", category: "Bình nước nóng trực tiếp", sku: "EWE451GX-DWB", pnc: "956002375", name: "Máy nước nóng công suất 4500W - Trắng & Xanh", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
-        { id: "sp-wh-6", category: "Bình nước nóng trực tiếp", sku: "EWE451GX-DWR", pnc: "956002376", name: "Máy nước nóng công suất 4500W - Trắng & Đỏ", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
-        { id: "sp-wh-7", category: "Bình nước nóng trực tiếp", sku: "EWE451KB-DWG2", pnc: "956002377", name: "Máy nước nóng trực tiếp", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
-        { id: "sp-wh-8", category: "Bình nước nóng trực tiếp", sku: "EWE451KX-DWB2", pnc: "956002378", name: "Máy nước nóng ComfortFlow™ 500", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
-        { id: "sp-wh-9", category: "Bình nước nóng trực tiếp", sku: "EWE451LB-DPX2", pnc: "956002379", name: "Máy nước nóng ComfortFlow™ 700", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
-        { id: "sp-wh-10", category: "Bình nước nóng trực tiếp", sku: "EWE451MB-DST2", pnc: "956002380", name: "Máy nước nóng ComfortFlow™ 800", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
-        { id: "sp-wh-11", category: "Bình nước nóng trực tiếp", sku: "EWE451PX-DWX6", pnc: "956002381", name: "Máy nước nóng trực tiếp 4500W", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
-        { id: "sp-wh-12", category: "Bình nước nóng trực tiếp", sku: "EWE451QB-W4", pnc: "956002382", name: "Máy nước nóng trực tiếp", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/water-heater/hero-water-heater-instant.png" },
+function buildSupportProducts(): SupportProduct[] {
+    return [
+        {
+            id: "sp-1",
+            sku: "EWE361KX-DWB6",
+            pnc: "947701389",
+            name: "Bình nước nóng trực tiếp ComfortFlow 500 có bơm trợ lực 3.6kW",
+            img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg",
+            category: "Bình nước nóng trực tiếp",
+        },
+        {
+            id: "sp-2",
+            sku: "EWE451KX-DWB6",
+            pnc: "947701390",
+            name: "Bình nước nóng trực tiếp UltimateHome 500 có bơm 4.5kW",
+            img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg",
+            category: "Bình nước nóng trực tiếp",
+        },
+        {
+            id: "sp-3",
+            sku: "EWF1023P5WC",
+            pnc: "914916801",
+            name: "Máy giặt cửa trước 10kg UltimateCare 300",
+            img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg",
+            category: "Máy giặt",
+        },
+        {
+            id: "sp-4",
+            sku: "EWF9023P5WC",
+            pnc: "914916802",
+            name: "Máy giặt cửa trước 9kg UltimateCare 500",
+            img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-2.jpg",
+            category: "Máy giặt",
+        },
+        {
+            id: "sp-5",
+            sku: "EDV804H3WC",
+            pnc: "916099101",
+            name: "Máy sấy cửa trước 8kg UltimateCare 300",
+            img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-4.jpg",
+            category: "Máy sấy",
+        },
+        {
+            id: "sp-6",
+            sku: "EQE6000A-B",
+            pnc: "924045601",
+            name: "Tủ lạnh MultiDoor UltimateTaste 700 541L",
+            img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-3.jpg",
+            category: "Tủ lạnh",
+        },
     ];
-    list.push(...waterHeaters);
+}
 
-    // 2. Add real products from ALL_CATEGORIES in database
-    ALL_CATEGORIES.forEach((catData) => {
-        let catLabel = catData.name;
-        if (catData.slug === "may-giat") catLabel = "Máy giặt";
-        else if (catData.slug === "may-say") catLabel = "Máy sấy";
-        else if (catData.slug === "tu-lanh") catLabel = "Tủ lạnh";
-        else if (catData.slug === "bep-nau") catLabel = "Bếp nấu";
-        else if (catData.slug === "may-loc-khong-khi") catLabel = "Máy lọc không khí";
-        else if (catData.slug === "may-nuoc-nong" || catData.slug === "may-nuoc-nong-gian-tiep") catLabel = "Bình nước nóng trực tiếp";
-
-        catData.products.forEach((p, idx) => {
-            list.push({
-                id: `db-prod-${p.id}`,
-                category: catLabel,
-                sku: p.sku || `SKU-${idx + 100}`,
-                pnc: `9149${Math.floor(10000 + Math.random() * 90000)}`,
-                name: p.name,
-                img: p.img,
-            });
-        });
-    });
-
-    // 3. Fallback items for categories without direct database entries (Máy rửa bát, Lò nướng, Máy hút mùi)
-    const fallbackOtherCategories: SupportProduct[] = [
-        { id: "sp-dw-1", category: "Máy rửa bát", sku: "ESF5512LOX", pnc: "911516101", name: "Máy rửa bát độc lập Series 300", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/hero-may-giat.jpg" },
-        { id: "sp-dw-2", category: "Máy rửa bát", sku: "EDF4430OW", pnc: "911516102", name: "Máy rửa bát âm tủ Series 500", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/plp/hero-may-giat.jpg" },
-        { id: "sp-ov-1", category: "Lò nướng", sku: "EOB3400BOX", pnc: "944064101", name: "Lò nướng âm tủ 70L Series 300", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/KIS87553IT.jpg" },
-        { id: "sp-ov-2", category: "Lò nướng", sku: "EOT3805K", pnc: "944064102", name: "Lò nướng thùng 38L", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/ETIS457CGB.jpg" },
-        { id: "sp-hd-1", category: "Máy hút mùi", sku: "EFC926SA", pnc: "942001101", name: "Máy hút mùi ống khói 90cm", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/KIS87553IT.jpg" },
-        { id: "sp-hd-2", category: "Máy hút mùi", sku: "EFT739X", pnc: "942001102", name: "Máy hút mùi cổ điển 70cm", img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/ETIS453CGA.jpg" },
-    ];
-    list.push(...fallbackOtherCategories);
-
-    return list;
-};
-
-/* ─── Quick links ─── */
 function QuickIcon({ type }: { type: "tool" | "bag" | "doc" | "shield" | "calendar" | "recycle" }) {
     const paths: Record<string, ReactNode> = {
         tool: <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.8-3.8a6 6 0 01-8 8l-6.9 6.9a2.1 2.1 0 01-3-3l6.9-6.9a6 6 0 018-8z" />,
@@ -103,6 +90,7 @@ function QuickIcon({ type }: { type: "tool" | "bag" | "doc" | "shield" | "calend
     };
     return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">{paths[type]}</svg>;
 }
+
 const quickLinks = [
     { type: "tool" as const, label: "Xử lý sự cố và câu hỏi thường gặp", href: "/support/troubleshooting" },
     { type: "bag" as const, label: "Câu hỏi về đơn hàng trực tuyến", href: "/support/online-order-faq" },
@@ -111,6 +99,7 @@ const quickLinks = [
     { type: "calendar" as const, label: "Đặt lịch hẹn bảo hành", href: "/support/warranty-appointment" },
     { type: "recycle" as const, label: "Điểm tiếp nhận sản phẩm thải bỏ", href: "/support/recycling-points" },
 ];
+
 /* ─── FAQ data ─── */
 const faqs: { q: string; a: React.ReactNode }[] = [
     {
@@ -214,22 +203,22 @@ export default function SupportPage() {
     const [openFaq, setOpenFaq] = useState<number | null>(null);
     const [modelQuery, setModelQuery] = useState("");
 
-    // Smooth scroll to #lien-he section on load or hash change
+    // Handle smooth scrolling to #lien-he if hash present or changed
     useEffect(() => {
-        const scrollToContact = () => {
-            if (typeof window !== "undefined" && window.location.hash === "#lien-he") {
+        const handleHashScroll = () => {
+            if (typeof window !== "undefined" && (window.location.hash === "#lien-he" || window.location.hash === "#contact")) {
                 const el = document.getElementById("lien-he");
                 if (el) {
                     setTimeout(() => {
                         el.scrollIntoView({ behavior: "smooth" });
-                    }, 100);
+                    }, 150);
                 }
             }
         };
 
-        scrollToContact();
-        window.addEventListener("hashchange", scrollToContact);
-        return () => window.removeEventListener("hashchange", scrollToContact);
+        handleHashScroll();
+        window.addEventListener("hashchange", handleHashScroll);
+        return () => window.removeEventListener("hashchange", handleHashScroll);
     }, []);
 
     // Build real products list from DB
@@ -1046,7 +1035,7 @@ export default function SupportPage() {
             </section>
 
             {/* ── Chúng tôi sẵn sàng hỗ trợ bạn ── */}
-            <section id="lien-he" style={{ background: "#eef2f7", padding: "0 30px", scrollMarginTop: "90px" }}>
+            <section id="lien-he" style={{ background: "#eef2f7", padding: "0 30px", scrollMarginTop: 80 }}>
                 {/* Header band */}
                 <div style={{ textAlign: "center", padding: "40px 0 32px" }}>
                     <h2 style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--elx-navy)", margin: "0 0 8px" }}>
@@ -1071,6 +1060,7 @@ export default function SupportPage() {
                                 display: "flex", flexDirection: "column", gap: 12,
                             }}
                         >
+                            <div style={{ marginBottom: 4 }}>{i === 0 ? "◎" : i === 1 ? "✉" : i === 2 ? "☎" : i === 3 ? "⌖" : "▦"}</div>
                             <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--elx-navy)", margin: 0 }}>{ch.title}</h3>
                             <p style={{ fontSize: "1.03rem", color: "#4a5a72", lineHeight: 1.6, margin: 0, whiteSpace: "pre-line", flex: 1 }}>{ch.desc}</p>
                             <div style={{
@@ -1107,3 +1097,4 @@ export default function SupportPage() {
         </>
     );
 }
+

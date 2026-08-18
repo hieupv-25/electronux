@@ -279,15 +279,7 @@ export const megaMenu: Record<string, MegaMenuSection> = {
       { label: "Câu hỏi thường gặp", icon: "clipboard", href: "/support/online-order-faq" },
       { label: "Đăng ký sản phẩm", icon: "shield", href: "/support/product-registration" },
       { label: "Đặt lịch bảo hành", icon: "calendar", href: "/support/warranty-appointment" },
-      { label: "Liên hệ", icon: "phoneCircle", href: "/support" },
-    ],
-  },
-  "Khuyến mại": {
-    layout: "circular",
-    items: [
-      { label: "Ưu đãi đang diễn ra", icon: "tag", href: "/khuyen-mai" },
-      { label: "Quà tặng", icon: "gift", href: "/khuyen-mai" },
-      { label: "Trả góp 0%", icon: "clipboard", href: "/khuyen-mai" },
+      { label: "Liên hệ", icon: "phoneCircle", href: "/support#lien-he" },
     ],
   },
 };

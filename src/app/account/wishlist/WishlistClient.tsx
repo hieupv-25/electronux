@@ -92,7 +92,8 @@ export default function WishlistClient() {
                 }}
               >
                 {items.map((item) => {
-                  const isAdding = adding === item.productId;
+                  const targetVariantId = item.productId || item.id;
+                  const isAdding = adding === targetVariantId;
                   const itemUrl = item.url || (item.categorySlug ? `/thiet-bi/${item.categorySlug}/${item.slug}` : `#`);
 
                   return (
@@ -167,7 +168,7 @@ export default function WishlistClient() {
                       {/* Actions */}
                       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                         <button
-                          onClick={() => addToCart(item.productId)}
+                          onClick={() => addToCart(targetVariantId)}
                           disabled={isAdding}
                           style={{
                             width: "100%",

@@ -1,12 +1,71 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AccountSidebar from "@/components/AccountSidebar";
 import { navItems, footerSections } from "@/data/siteData";
+import { formatPrice } from "@/lib/formatPrice";
+
+type PaidServiceItem = {
+  id: string;
+  orderId: string;
+  serviceName: string;
+  sku: string;
+  price: number;
+  imageUrl: string;
+  productType: string;
+  purchasedAt: string;
+  paymentStatus: "paid";
+  status: "Đã xác nhận" | "Đang thực hiện" | "Hoàn thành";
+};
+
+const samplePaidServices: PaidServiceItem[] = [
+  {
+    id: "svc-1",
+    orderId: "ELX-SVC-993821",
+    serviceName: "Vệ sinh máy giặt sấy từ 10kg tại nhà",
+    sku: "23675",
+    price: 930000,
+    imageUrl: "/dichvubaoduong.jpg",
+    productType: "Máy giặt sấy",
+    purchasedAt: "05/08/2026",
+    paymentStatus: "paid",
+    status: "Đã xác nhận",
+  },
+  {
+    id: "svc-2",
+    orderId: "ELX-SVC-774619",
+    serviceName: "Dịch vụ vệ sinh máy hút ẩm",
+    sku: "HA-0101-KD",
+    price: 300000,
+    imageUrl: "/dichvubaoduong.jpg",
+    productType: "Máy hút ẩm",
+    purchasedAt: "20/07/2026",
+    paymentStatus: "paid",
+    status: "Hoàn thành",
+  },
+];
 
 export default function ServiceHistoryClient() {
+  const [services, setServices] = useState<PaidServiceItem[]>(samplePaidServices);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("electrolux_paid_services");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setServices([...parsed, ...samplePaidServices]);
+        }
+      }
+    } catch (e) {
+      console.error("Error reading paid services from localStorage:", e);
+    }
+  }, []);
+
   return (
     <>
       <Header navItems={navItems} />
@@ -18,40 +77,101 @@ export default function ServiceHistoryClient() {
           <AccountSidebar activeHref="/account/service-history" />
 
           <div className="account-content">
-            <div style={{ marginBottom: "20px" }}>
-              <span style={{ fontSize: "0.95rem", fontWeight: 600, color: "#0b2545" }}>
-                0 Đặt hẹn
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <span style={{ fontSize: "1rem", fontWeight: 700, color: "#001e50" }}>
+                {services.length} Dịch vụ đã thanh toán
               </span>
-            </div>
-
-            <div style={{ marginBottom: "16px" }}>
               <Link
-                href="/support"
+                href="/services"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: "8px",
-                  padding: "10px 24px",
-                  border: "1.5px solid #0b2545",
-                  borderRadius: "2px",
-                  color: "#0b2545",
-                  fontWeight: 600,
+                  gap: "6px",
+                  padding: "10px 20px",
+                  background: "#001e50",
+                  color: "#fff",
+                  fontWeight: 700,
                   fontSize: "0.85rem",
-                  letterSpacing: "0.5px",
+                  borderRadius: "4px",
                   textDecoration: "none",
-                  transition: "all 0.2s ease",
+                  letterSpacing: "0.5px",
                 }}
               >
-                <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>+</span> ĐẶT LỊCH HẸN BẢO HÀNH
+                + MUA DỊCH VỤ MỚI
               </Link>
             </div>
 
-            <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "36px" }}>
-              Để dời hoặc hủy lịch hẹn, vui lòng{" "}
-              <Link href="/support" style={{ color: "#0b2545", textDecoration: "underline", fontWeight: 500 }}>
+            <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "28px" }}>
+              Danh sách các gói dịch vụ bảo dưỡng, vệ sinh thiết bị chính hãng bạn đã thanh toán. Để dời hoặc hủy lịch hẹn, vui lòng{" "}
+              <Link href="/support#lien-he" style={{ color: "#001e50", textDecoration: "underline", fontWeight: 600 }}>
                 liên hệ bộ phận Chăm sóc khách hàng.
               </Link>
             </p>
+
+            {/* List of Paid Services */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "40px" }}>
+              {services.map((svc) => (
+                <div
+                  key={svc.id}
+                  style={{
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "8px",
+                    background: "#ffffff",
+                    padding: "20px",
+                    display: "flex",
+                    gap: "20px",
+                    alignItems: "center",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+                  }}
+                >
+                  <div style={{ width: 90, height: 90, borderRadius: 6, overflow: "hidden", background: "#f8fafc", flexShrink: 0, border: "1px solid #e2e8f0" }}>
+                    <Image
+                      src={svc.imageUrl}
+                      alt={svc.serviceName}
+                      width={90}
+                      height={90}
+                      style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                    />
+                  </div>
+
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                      <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#001e50", margin: 0 }}>
+                        {svc.serviceName}
+                      </h3>
+                      <span
+                        style={{
+                          background: "#dcfce7",
+                          color: "#15803d",
+                          padding: "4px 12px",
+                          borderRadius: "20px",
+                          fontSize: "0.78rem",
+                          fontWeight: 700,
+                        }}
+                      >
+                        ✓ Đã thanh toán
+                      </span>
+                    </div>
+
+                    <p style={{ fontSize: "0.85rem", color: "#64748b", margin: "0 0 6px" }}>
+                      Mã đơn dịch vụ: <strong>{svc.orderId}</strong> | SKU: <strong>{svc.sku}</strong>
+                    </p>
+                    <p style={{ fontSize: "0.85rem", color: "#64748b", margin: "0 0 12px" }}>
+                      Ngày đặt mua: {svc.purchasedAt}
+                    </p>
+
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 10, borderTop: "1px dashed #e2e8f0" }}>
+                      <span style={{ fontSize: "0.88rem", color: "#334155", fontWeight: 600 }}>
+                        Trạng thái: <span style={{ color: "#0284c7" }}>{svc.status}</span>
+                      </span>
+                      <strong style={{ fontSize: "1.1rem", color: "#e3000b", fontWeight: 700 }}>
+                        {formatPrice(svc.price)}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
 
             {/* Trade-In Banner */}
             <div

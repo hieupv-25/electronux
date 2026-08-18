@@ -17,14 +17,10 @@ export async function GET(req: NextRequest) {
     let whereClause: any = {
       userId: session.user.id,
       deletedAt: null,
+      paymentStatus: "paid",
     };
 
-    if (type === "preorder") {
-      // Ví dụ đơn pre-order hoặc giả định status pending
-      whereClause.status = "pending";
-    } else if (type === "unpaid") {
-      whereClause.paymentStatus = "unpaid";
-    } else if (type === "current") {
+    if (type === "current") {
       whereClause.status = { in: ["pending", "processing", "shipping"] };
     } else if (type === "past") {
       whereClause.status = { in: ["completed", "cancelled"] };

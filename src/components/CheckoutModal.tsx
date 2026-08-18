@@ -263,6 +263,13 @@ export default function CheckoutModal({
       const data = await res.json();
       if (res.ok && data.success) {
         setOrderResult(data.order);
+        try {
+          const existing = JSON.parse(localStorage.getItem("electrolux_user_orders") || "[]");
+          const updated = [data.order, ...existing.filter((o: any) => o.id !== data.order.id)];
+          localStorage.setItem("electrolux_user_orders", JSON.stringify(updated));
+        } catch (e) {
+          console.error("Failed to save order to localStorage:", e);
+        }
         setStep("success");
         onSuccess();
       } else {

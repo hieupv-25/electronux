@@ -5472,8 +5472,22 @@ img {
   margin-bottom: 20px;
 }
 
+.pdp-v2__stock--low {
+  color: #d97706;
+}
+
+.pdp-v2__stock--out {
+  color: #dc2626;
+}
+
 .pdp-v2__stock-dot {
   font-size: 12px;
+}
+
+.pdp-v2__stock-count {
+  font-weight: normal;
+  color: #4b5563;
+  margin-left: 4px;
 }
 
 /* Add to Cart CTA */

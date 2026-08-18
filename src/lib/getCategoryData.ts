@@ -40,3 +40,34 @@ export function getProductBySlug(
   if (!product) return null;
   return { category, product };
 }
+
+export function findProductByIdOrVariant(idOrVariantId: string): CategoryProduct | undefined {
+  for (const cat of ALL_CATEGORIES) {
+    const prod = cat.products.find(
+      (p) => p.id === idOrVariantId || p.variantId === idOrVariantId || p.sku === idOrVariantId
+    );
+    if (prod) return prod;
+  }
+  return undefined;
+}
+
+export function decrementProductStock(idOrVariantId: string, quantity = 1): number {
+  const prod = findProductByIdOrVariant(idOrVariantId);
+  if (prod) {
+    const current = prod.stockQuantity ?? 10;
+    prod.stockQuantity = Math.max(0, current - quantity);
+    return prod.stockQuantity;
+  }
+  return 0;
+}
+
+export function incrementProductStock(idOrVariantId: string, quantity = 1): number {
+  const prod = findProductByIdOrVariant(idOrVariantId);
+  if (prod) {
+    const current = prod.stockQuantity ?? 10;
+    prod.stockQuantity = current + quantity;
+    return prod.stockQuantity;
+  }
+  return 0;
+}
+
