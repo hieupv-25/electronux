@@ -28,8 +28,9 @@ export default function ProductCard({ product, categorySlug }: ProductCardProps)
   const { addToCart, adding } = useCart();
   const { isSaved, toggleWishlist } = useWishlist();
 
-  const isAddingThis = adding === product.variantId;
-  const canAddToCart = Boolean(product.variantId);
+  const targetVariantId = product.variantId ?? product.id;
+  const isAddingThis = adding === targetVariantId;
+  const canAddToCart = Boolean(targetVariantId);
   const saved = isSaved(product.id);
 
   const handleWishlistClick = () => {
@@ -121,9 +122,9 @@ export default function ProductCard({ product, categorySlug }: ProductCardProps)
         <div className="plp-card__actions">
           <button
             type="button"
-            onClick={() => product.variantId && addToCart(product.variantId)}
+            onClick={() => targetVariantId && addToCart(targetVariantId)}
             disabled={isAddingThis || !canAddToCart}
-            title={canAddToCart ? undefined : "Sản phẩm này chưa có variantId, chưa thể thêm vào giỏ"}
+            title={canAddToCart ? undefined : "Sản phẩm này chưa thể thêm vào giỏ"}
             className="cta-btn plp-card__add-btn"
             style={{
               cursor: isAddingThis || !canAddToCart ? "not-allowed" : "pointer",

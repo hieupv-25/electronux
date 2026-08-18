@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { maintenanceServiceFallback } from "@/data/maintenanceServices";
+import { ALL_CATEGORIES } from "@/lib/getCategoryData";
 
 export type CartVariantSnapshot = {
   id: string;
@@ -139,6 +140,40 @@ for (const service of maintenanceServiceFallback) {
       installment0Percent: false,
     },
   };
+}
+
+for (const category of ALL_CATEGORIES) {
+  for (const prod of category.products) {
+    const priceNum = prod.price;
+    const origPrice = prod.oldPrice || prod.price;
+    const discount =
+      origPrice > priceNum
+        ? Math.round(((origPrice - priceNum) / origPrice) * 100)
+        : 0;
+    const snapshot: CartVariantSnapshot = {
+      id: prod.variantId || prod.id,
+      productId: prod.id,
+      sku: prod.sku,
+      variantName: prod.color ? `Màu ${prod.color}` : "Mặc định",
+      price: priceNum,
+      originalPrice: origPrice,
+      discountPercentage: discount,
+      stockQuantity: 100,
+      product: {
+        id: prod.id,
+        name: prod.name,
+        slug: prod.slug,
+        images: [{ id: `img-${prod.sku}`, url: prod.img }],
+        freeShipping: prod.freeShipping ?? true,
+        freeInstallation: prod.freeInstallation ?? false,
+        installment0Percent: prod.installment0Percent ?? false,
+      },
+    };
+    DEMO_PRODUCTS[prod.id] = snapshot;
+    if (prod.variantId) {
+      DEMO_PRODUCTS[prod.variantId] = snapshot;
+    }
+  }
 }
 
 // Global in-memory store attached to globalThis for shared access across Next.js API routes
