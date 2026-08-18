@@ -38,14 +38,14 @@ export async function POST(req: NextRequest) {
           trackingNumber: { contains: orderNumber },
           paymentStatus: "unpaid",
         },
-        select: { id: true, userId: true, totalAmount: true },
+        select: { id: true, userId: true, totalAmount: true, couponId: true, paymentStatus: true },
       });
     }
 
     if (!order && body.orderId) {
       order = await prisma.order.findUnique({
         where: { id: String(body.orderId) },
-        select: { id: true, userId: true, totalAmount: true },
+        select: { id: true, userId: true, totalAmount: true, couponId: true, paymentStatus: true },
       });
     }
 
@@ -56,21 +56,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Update order status
-    await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        status: "processing",
-        paymentStatus: "paid",
-        payment: {
-          update: {
-            status: "paid",
-            transactionId: body.id ? String(body.id) : "AUTO-WEBHOOK-" + Date.now(),
-            paidAt: new Date(),
+    if (order.paymentStatus !== "paid") {
+      await prisma.$transaction([
+        prisma.order.update({
+          where: { id: order.id },
+          data: {
+            status: "processing",
+            paymentStatus: "paid",
+            payment: {
+              update: {
+                status: "paid",
+                transactionId: body.id ? String(body.id) : "AUTO-WEBHOOK-" + Date.now(),
+                paidAt: new Date(),
+              },
+            },
           },
-        },
-      },
-    });
+        }),
+        ...(order.couponId
+          ? [
+              prisma.coupon.update({
+                where: { id: order.couponId },
+                data: { usedCount: { increment: 1 } },
+              }),
+            ]
+          : []),
+      ]);
+    }
 
     // Clear cart if user exists
     if (order.userId) {

@@ -14,7 +14,14 @@ export async function POST(req: NextRequest) {
 
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      select: { id: true, userId: true, totalAmount: true, trackingNumber: true },
+      select: {
+        id: true,
+        userId: true,
+        totalAmount: true,
+        trackingNumber: true,
+        paymentStatus: true,
+        couponId: true,
+      },
     });
 
     if (!order) {
@@ -24,21 +31,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Update order to paid & processing
-    await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        status: "processing",
-        paymentStatus: "paid",
-        payment: {
-          update: {
-            status: "paid",
-            transactionId: "VQR-" + Date.now(),
-            paidAt: new Date(),
+    if (order.paymentStatus !== "paid") {
+      await prisma.$transaction([
+        prisma.order.update({
+          where: { id: orderId },
+          data: {
+            status: "processing",
+            paymentStatus: "paid",
+            payment: {
+              update: {
+                status: "paid",
+                transactionId: "VQR-" + Date.now(),
+                paidAt: new Date(),
+              },
+            },
           },
-        },
-      },
-    });
+        }),
+        ...(order.couponId
+          ? [
+              prisma.coupon.update({
+                where: { id: order.couponId },
+                data: { usedCount: { increment: 1 } },
+              }),
+            ]
+          : []),
+      ]);
+    }
 
     // Clear cart in DB
     if (order.userId) {

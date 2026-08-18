@@ -13,26 +13,48 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const order = await prisma.order.update({
+    const order = await prisma.order.findUnique({
       where: { id: orderId },
-      data: {
-        status: "processing",
-        paymentStatus: "paid",
-        payment: {
-          update: {
-            status: "paid",
-            transactionId: "SANDBOX-SIM-" + Date.now(),
-            paidAt: new Date(),
-          },
-        },
-      },
       select: {
         id: true,
         trackingNumber: true,
         totalAmount: true,
         userId: true,
+        paymentStatus: true,
+        couponId: true,
       },
     });
+
+    if (!order) {
+      return NextResponse.json({ success: false, message: "Order not found" }, { status: 404 });
+    }
+
+    if (order.paymentStatus !== "paid") {
+      await prisma.$transaction([
+        prisma.order.update({
+          where: { id: orderId },
+          data: {
+            status: "processing",
+            paymentStatus: "paid",
+            payment: {
+              update: {
+                status: "paid",
+                transactionId: "SANDBOX-SIM-" + Date.now(),
+                paidAt: new Date(),
+              },
+            },
+          },
+        }),
+        ...(order.couponId
+          ? [
+              prisma.coupon.update({
+                where: { id: order.couponId },
+                data: { usedCount: { increment: 1 } },
+              }),
+            ]
+          : []),
+      ]);
+    }
 
     // Clear cart
     if (order.userId) {

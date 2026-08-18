@@ -68,6 +68,13 @@ function parseSpecifications(value: string) {
   }
 }
 
+function parseLines(value: string) {
+  return value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
 async function uniqueCategorySlug(
   name: string,
   requestedSlug: string,
@@ -99,6 +106,22 @@ async function uniqueProductSlug(name: string, requestedSlug: string, excludeId?
 
   while (true) {
     const existing = await prisma.product.findUnique({ where: { slug }, select: { id: true } });
+    if (!existing || existing.id === excludeId) return slug;
+    slug = `${baseSlug}-${suffix}`;
+    suffix += 1;
+  }
+}
+
+async function uniquePromotionSlug(title: string, requestedSlug: string, excludeId?: string) {
+  const baseSlug = slugify(requestedSlug || title) || `chien-dich-${Date.now()}`;
+  let slug = baseSlug;
+  let suffix = 2;
+
+  while (true) {
+    const existing = await prisma.promotion.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
     if (!existing || existing.id === excludeId) return slug;
     slug = `${baseSlug}-${suffix}`;
     suffix += 1;
@@ -662,16 +685,83 @@ export async function createPromotion(formData: FormData) {
 
   await prisma.promotion.create({
     data: {
+      slug: await uniquePromotionSlug(title, getFormString(formData, "slug")),
       title,
       discountPercentage: Math.min(
         Math.max(getFormNumber(formData, "discountPercentage"), 0),
         100
       ),
+      description: getFormOptionalString(formData, "description"),
+      highlights: parseLines(getFormString(formData, "highlights")),
+      terms: parseLines(getFormString(formData, "terms")),
       startDate: getFormDate(formData, "startDate"),
       endDate: getFormDate(formData, "endDate"),
       bannerImageUrl: getFormOptionalString(formData, "bannerImageUrl"),
+      linkUrl: getFormOptionalString(formData, "linkUrl"),
+      isActive: getFormBoolean(formData, "isActive"),
     },
   });
 
   revalidatePath("/admin/promotions");
+  revalidatePath("/khuyen-mai");
+}
+
+export async function updatePromotion(formData: FormData) {
+  await requireAdminSession();
+
+  const id = getFormString(formData, "id");
+  const title = getFormString(formData, "title");
+  if (!id || !title) return;
+
+  await prisma.promotion.update({
+    where: { id },
+    data: {
+      slug: await uniquePromotionSlug(title, getFormString(formData, "slug"), id),
+      title,
+      discountPercentage: Math.min(
+        Math.max(getFormNumber(formData, "discountPercentage"), 0),
+        100
+      ),
+      description: getFormOptionalString(formData, "description"),
+      highlights: parseLines(getFormString(formData, "highlights")),
+      terms: parseLines(getFormString(formData, "terms")),
+      startDate: getFormDate(formData, "startDate"),
+      endDate: getFormDate(formData, "endDate"),
+      bannerImageUrl: getFormOptionalString(formData, "bannerImageUrl"),
+      linkUrl: getFormOptionalString(formData, "linkUrl"),
+      isActive: getFormBoolean(formData, "isActive"),
+    },
+  });
+
+  revalidatePath("/admin/promotions");
+  revalidatePath("/khuyen-mai");
+}
+
+export async function togglePromotionActive(formData: FormData) {
+  await requireAdminSession();
+
+  const id = getFormString(formData, "id");
+  if (!id) return;
+
+  const currentValue = getFormString(formData, "currentValue") === "true";
+
+  await prisma.promotion.update({
+    where: { id },
+    data: { isActive: !currentValue },
+  });
+
+  revalidatePath("/admin/promotions");
+  revalidatePath("/khuyen-mai");
+}
+
+export async function deletePromotion(formData: FormData) {
+  await requireAdminSession();
+
+  const id = getFormString(formData, "id");
+  if (!id) return;
+
+  await prisma.promotion.delete({ where: { id } });
+
+  revalidatePath("/admin/promotions");
+  revalidatePath("/khuyen-mai");
 }

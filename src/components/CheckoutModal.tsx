@@ -9,6 +9,8 @@ type CheckoutModalProps = {
   onClose: () => void;
   items: CartItem[];
   totalAmount: number;
+  couponCode?: string | null;
+  couponBaseAmount?: number;
   onSuccess: () => void;
 };
 
@@ -57,6 +59,8 @@ export default function CheckoutModal({
   onClose,
   items,
   totalAmount,
+  couponCode,
+  couponBaseAmount,
   onSuccess,
 }: CheckoutModalProps) {
   const [step, setStep] = useState<"form" | "processing" | "vnpay_qr" | "vietqr" | "success">("form");
@@ -146,12 +150,18 @@ export default function CheckoutModal({
   useEffect(() => {
     if (!isOpen) {
       stopPolling();
-      setStep("form");
-      setVnpayData(null);
-      setVietqrData(null);
-      setQrTimeLeft(QR_TIMEOUT);
-      setPollingStatus("waiting");
-      setCopiedKey(null);
+      const resetTimer = window.setTimeout(() => {
+        setStep("form");
+        setVnpayData(null);
+        setVietqrData(null);
+        setQrTimeLeft(QR_TIMEOUT);
+        setPollingStatus("waiting");
+        setCopiedKey(null);
+      }, 0);
+      return () => {
+        window.clearTimeout(resetTimer);
+        stopPolling();
+      };
     }
     return () => stopPolling();
   }, [isOpen, stopPolling]);
@@ -179,6 +189,8 @@ export default function CheckoutModal({
             phone,
             shippingAddress: address,
             totalAmount,
+            couponCode,
+            couponBaseAmount,
             items,
           }),
         });
@@ -209,6 +221,8 @@ export default function CheckoutModal({
             paymentMethod,
             items,
             totalAmount,
+            couponCode,
+            couponBaseAmount,
           }),
         });
 
@@ -257,6 +271,8 @@ export default function CheckoutModal({
           paymentMethod,
           items,
           totalAmount,
+          couponCode,
+          couponBaseAmount,
         }),
       });
 

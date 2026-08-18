@@ -19,27 +19,47 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const currentOrder = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { userId: true, paymentStatus: true, couponId: true },
+    });
+
+    if (!currentOrder) {
+      return NextResponse.redirect(`${frontendReturnUrl}?status=failed&orderId=${orderId}&message=OrderNotFound`);
+    }
+
     if (isValid && responseCode === "00") {
       // Automatic confirmation - update order status to paid & processing
-      const order = await prisma.order.update({
-        where: { id: orderId },
-        data: {
-          status: "processing",
-          paymentStatus: "paid",
-          payment: {
-            update: {
-              status: "paid",
-              transactionId: transactionNo,
-              paidAt: new Date(),
+      if (currentOrder.paymentStatus !== "paid") {
+        await prisma.$transaction([
+          prisma.order.update({
+            where: { id: orderId },
+            data: {
+              status: "processing",
+              paymentStatus: "paid",
+              payment: {
+                update: {
+                  status: "paid",
+                  transactionId: transactionNo,
+                  paidAt: new Date(),
+                },
+              },
             },
-          },
-        },
-        select: { userId: true },
-      });
+          }),
+          ...(currentOrder.couponId
+            ? [
+                prisma.coupon.update({
+                  where: { id: currentOrder.couponId },
+                  data: { usedCount: { increment: 1 } },
+                }),
+              ]
+            : []),
+        ]);
+      }
 
       // Clear cart for the user in DB if order belonged to user
-      if (order?.userId) {
-        const userCart = await prisma.cart.findFirst({ where: { userId: order.userId } });
+      if (currentOrder.userId) {
+        const userCart = await prisma.cart.findFirst({ where: { userId: currentOrder.userId } });
         if (userCart) {
           await prisma.cartItem.deleteMany({ where: { cartId: userCart.id } });
         }

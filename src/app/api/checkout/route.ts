@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { PaymentMethod, type PaymentMethod as PaymentMethodValue } from "@/generated/prisma/enums";
 import { memoryCarts } from "../cart/route";
+import { validateCouponCode } from "@/lib/coupons";
 
 function getSessionKey(userId?: string | null, sessionId?: string | null): string {
   return userId || sessionId || "default-session";
@@ -22,6 +23,8 @@ export async function POST(req: NextRequest) {
       paymentMethod?: string;
       items?: unknown[];
       totalAmount?: number | string;
+      couponCode?: string | null;
+      couponBaseAmount?: number | string;
     };
     const {
       recipientName = "Khách hàng",
@@ -30,6 +33,8 @@ export async function POST(req: NextRequest) {
       paymentMethod = "cod",
       items = [],
       totalAmount = 0,
+      couponCode,
+      couponBaseAmount,
     } = body;
     const paymentMethodValue: PaymentMethodValue = Object.values(PaymentMethod).includes(
       paymentMethod as PaymentMethodValue
@@ -39,6 +44,24 @@ export async function POST(req: NextRequest) {
 
     // Simulate backend processing delay (600ms)
     await new Promise((resolve) => setTimeout(resolve, 600));
+
+    const baseAmount = Math.max(0, Number(couponBaseAmount ?? totalAmount) || 0);
+    const couponValidation = await validateCouponCode({
+      code: couponCode,
+      subtotal: baseAmount,
+      userId,
+    });
+
+    if (!couponValidation.valid) {
+      return NextResponse.json(
+        { success: false, message: couponValidation.message },
+        { status: 400 }
+      );
+    }
+
+    const payableAmount = couponValidation.code
+      ? couponValidation.finalAmount
+      : Math.max(0, Number(totalAmount) || 0);
 
     const trackingNumber = "ELX-2026-" + Math.floor(100000 + Math.random() * 900000);
     const orderId = "order-" + Date.now();
@@ -67,31 +90,42 @@ export async function POST(req: NextRequest) {
     // Try DB insertion for Order record
     try {
       if (userId) {
-        await prisma.order.create({
-          data: {
-            userId,
-            shippingAddress,
-            phone,
-            totalAmount: Number(totalAmount),
-            status: "processing",
-            paymentStatus: "paid",
-            trackingNumber,
-            payment: {
-              create: {
-                method: paymentMethodValue,
-                amount: Number(totalAmount),
-                status: "paid",
-                paidAt: new Date(),
+        await prisma.$transaction(async (tx) => {
+          await tx.order.create({
+            data: {
+              userId,
+              couponId: couponValidation.couponId,
+              discountAmount: couponValidation.discountAmount || null,
+              shippingAddress,
+              phone,
+              totalAmount: payableAmount,
+              status: "processing",
+              paymentStatus: "paid",
+              trackingNumber,
+              payment: {
+                create: {
+                  method: paymentMethodValue,
+                  amount: payableAmount,
+                  status: "paid",
+                  paidAt: new Date(),
+                },
               },
             },
-          },
-        });
+          });
 
-        // Clear cart in DB
-        const userCart = await prisma.cart.findFirst({ where: { userId } });
-        if (userCart) {
-          await prisma.cartItem.deleteMany({ where: { cartId: userCart.id } });
-        }
+          if (couponValidation.couponId) {
+            await tx.coupon.update({
+              where: { id: couponValidation.couponId },
+              data: { usedCount: { increment: 1 } },
+            });
+          }
+
+          // Clear cart in DB
+          const userCart = await tx.cart.findFirst({ where: { userId } });
+          if (userCart) {
+            await tx.cartItem.deleteMany({ where: { cartId: userCart.id } });
+          }
+        });
       }
     } catch (e) {
       console.warn("DB checkout record creation warning, using simulated response:", e);
@@ -113,7 +147,9 @@ export async function POST(req: NextRequest) {
         paymentMethod: paymentMethod.toUpperCase(),
         paymentStatus: "PAID",
         orderStatus: "PROCESSING",
-        totalAmount: Number(totalAmount),
+        totalAmount: payableAmount,
+        couponCode: couponValidation.code,
+        discountAmount: couponValidation.discountAmount,
         items,
         createdAt: new Date().toISOString(),
       },
