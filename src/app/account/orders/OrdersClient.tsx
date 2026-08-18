@@ -36,103 +36,14 @@ export default function OrdersClient() {
   const { data: session } = useSession();
 
   const user = session?.user;
-  const firstName = user?.firstName || "viv";
-  const lastName = user?.lastName || "vietttishnl";
+  const firstName = user?.firstName || "";
+  const lastName = user?.lastName || "";
 
   // Tab Selection: "unpaid" | "current" | "past"
   const [activeTab, setActiveTab] = useState<"unpaid" | "current" | "past">("unpaid");
   const [searchQuery, setSearchQuery] = useState("");
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
-
-  // Sample mock data if DB empty for nice demo experience
-  const sampleOrders: Record<string, Order[]> = {
-    preorder: [],
-    unpaid: [
-      {
-        id: "ELX-8829104",
-        totalAmount: 11490000,
-        status: "pending",
-        paymentStatus: "unpaid",
-        createdAt: "2026-08-01T10:00:00Z",
-        items: [
-          {
-            id: "item-1",
-            quantity: 1,
-            price: 11490000,
-            variant: {
-              sku: "EDV904S3SC",
-              product: {
-                name: "Máy sấy quần áo Electrolux thông hơi 9kg UltimateCare 300 xám",
-                slug: "edv904s3sc",
-                images: [
-                  {
-                    url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/may-say/EDV904S3SC.avif",
-                  },
-                ],
-              },
-            },
-          },
-        ],
-      },
-    ],
-    current: [
-      {
-        id: "ELX-9938210",
-        totalAmount: 17990000,
-        status: "shipping",
-        paymentStatus: "paid",
-        createdAt: "2026-08-05T14:30:00Z",
-        items: [
-          {
-            id: "item-2",
-            quantity: 1,
-            price: 17990000,
-            variant: {
-              sku: "EHI8278BF",
-              product: {
-                name: "Bếp từ âm Electrolux 80cm 2 vùng nấu S500",
-                slug: "ehi8278bf",
-                images: [
-                  {
-                    url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/EHI8278BF.jpg",
-                  },
-                ],
-              },
-            },
-          },
-        ],
-      },
-    ],
-    past: [
-      {
-        id: "ELX-7746192",
-        totalAmount: 1890000,
-        status: "completed",
-        paymentStatus: "paid",
-        createdAt: "2026-07-15T09:15:00Z",
-        items: [
-          {
-            id: "item-3",
-            quantity: 1,
-            price: 1890000,
-            variant: {
-              sku: "ERC2020W",
-              product: {
-                name: "Nồi cơm điện Electrolux 1.8L ERC2020W",
-                slug: "erc2020w",
-                images: [
-                  {
-                    url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/rice-cooker/product-rice-cooker-1.png",
-                  },
-                ],
-              },
-            },
-          },
-        ],
-      },
-    ],
-  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -141,28 +52,13 @@ export default function OrdersClient() {
         const res = await fetch(`/api/account/orders?type=${activeTab}&search=${encodeURIComponent(searchQuery)}`);
         if (res.ok) {
           const data = await res.json();
-          if (data.orders && data.orders.length > 0) {
-            setOrders(data.orders);
-          } else {
-            // Fallback to sample data for visual match if DB is empty
-            const samples = sampleOrders[activeTab] || [];
-            if (searchQuery) {
-              setOrders(
-                samples.filter(
-                  (o) =>
-                    o.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    o.items.some((i) =>
-                      i.variant.product.name.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                )
-              );
-            } else {
-              setOrders(samples);
-            }
-          }
+          setOrders(data.orders || []);
+        } else {
+          setOrders([]);
         }
       } catch (err) {
         console.error("Failed to load orders", err);
+        setOrders([]);
       } finally {
         setLoading(false);
       }

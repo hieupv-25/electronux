@@ -54,8 +54,9 @@ export default function ProductDetailClient({ product, category }: Props) {
   };
 
   const handleAddToCart = async () => {
-    if (!product.variantId) return;
-    await addToCart(product.variantId, qty);
+    const targetId = product.variantId || product.id;
+    if (!targetId) return;
+    await addToCart(targetId, qty);
   };
 
   return (
@@ -244,7 +245,7 @@ export default function ProductDetailClient({ product, category }: Props) {
                 id="pdp-add-to-cart-btn"
                 className="pdp-v2__add-cart-btn"
                 onClick={handleAddToCart}
-                disabled={!product.variantId || cartLoading}
+                disabled={(!product.variantId && !product.id) || cartLoading}
               >
                 {cartLoading ? (
                   <span className="pdp-v2__spinner" />
