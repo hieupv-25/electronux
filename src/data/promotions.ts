@@ -9,6 +9,7 @@ export type Promotion = {
   description: string;
   highlights: string[];
   terms?: string[];
+  categoryHref?: string;
 };
 
 export const promotionsData: Promotion[] = [
@@ -20,6 +21,7 @@ export const promotionsData: Promotion[] = [
     startDate: "2026-08-01",
     endDate: "2026-08-31",
     image: "/promotions/promo1_hd.png",
+    categoryHref: "/thiet-bi/may-giat",
     description:
       "Mừng tháng sinh nhật Electrolux, giảm giá cực sốc lên đến 40% cho các dòng sản phẩm máy giặt, máy sấy, tủ lạnh và máy hút bụi. Trợ giá đổi mới thêm 5%, miễn phí giao hàng & lắp đặt tận nơi cùng chương trình MUA 1 TẶNG 1 siêu giá trị.",
     highlights: [
@@ -42,6 +44,7 @@ export const promotionsData: Promotion[] = [
     startDate: "2026-04-01",
     endDate: "2026-12-31",
     image: "/promotions/promo2_hd.png",
+    categoryHref: "/thiet-bi/bep-nau",
     description:
       "Nâng cấp căn bếp sang trọng với dòng Bếp Từ Electrolux cao cấp. Khách hàng khi mua sản phẩm bếp từ Electrolux sẽ nhận ngay gói quà tặng miễn phí khảo sát, hỗ trợ cắt đá mặt bếp chuẩn kích thước và 100% phí lắp đặt bởi đội ngũ kỹ thuật viên chuyên nghiệp.",
     highlights: [

@@ -1,11 +1,83 @@
 "use client";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useRef, useMemo, type ReactNode } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { footerSections, navItems } from "@/data/siteData";
+
+export interface SupportProduct {
+    id: string;
+    sku: string;
+    pnc: string;
+    name: string;
+    img: string;
+    category: string;
+}
+
+const deviceCategories = [
+    { label: "Bình nước nóng trực tiếp", icon: "/icon-water-heater.svg" },
+    { label: "Bình nước nóng gián tiếp", icon: "/icon-water-heater.svg" },
+    { label: "Máy giặt", icon: "/icon-washing-machine.svg" },
+    { label: "Máy sấy", icon: "/icon-dryer.svg" },
+    { label: "Tủ lạnh", icon: "/icon-fridge.svg" },
+    { label: "Bếp âm", icon: "/icon-hob.svg" },
+    { label: "Lò nướng", icon: "/icon-hob.svg" },
+    { label: "Máy lọc không khí", icon: "/icon-air-purifier.svg" },
+];
+
+function buildSupportProducts(): SupportProduct[] {
+    return [
+        {
+            id: "sp-1",
+            sku: "EWE361KX-DWB6",
+            pnc: "947701389",
+            name: "Bình nước nóng trực tiếp ComfortFlow 500 có bơm trợ lực 3.6kW",
+            img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg",
+            category: "Bình nước nóng trực tiếp",
+        },
+        {
+            id: "sp-2",
+            sku: "EWE451KX-DWB6",
+            pnc: "947701390",
+            name: "Bình nước nóng trực tiếp UltimateHome 500 có bơm 4.5kW",
+            img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg",
+            category: "Bình nước nóng trực tiếp",
+        },
+        {
+            id: "sp-3",
+            sku: "EWF1023P5WC",
+            pnc: "914916801",
+            name: "Máy giặt cửa trước 10kg UltimateCare 300",
+            img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-1.jpg",
+            category: "Máy giặt",
+        },
+        {
+            id: "sp-4",
+            sku: "EWF9023P5WC",
+            pnc: "914916802",
+            name: "Máy giặt cửa trước 9kg UltimateCare 500",
+            img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-2.jpg",
+            category: "Máy giặt",
+        },
+        {
+            id: "sp-5",
+            sku: "EDV804H3WC",
+            pnc: "916099101",
+            name: "Máy sấy cửa trước 8kg UltimateCare 300",
+            img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-4.jpg",
+            category: "Máy sấy",
+        },
+        {
+            id: "sp-6",
+            sku: "EQE6000A-B",
+            pnc: "924045601",
+            name: "Tủ lạnh MultiDoor UltimateTaste 700 541L",
+            img: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-3.jpg",
+            category: "Tủ lạnh",
+        },
+    ];
+}
 
 function QuickIcon({ type }: { type: "tool" | "bag" | "doc" | "shield" | "calendar" | "recycle" }) {
     const paths: Record<string, ReactNode> = {
@@ -130,6 +202,24 @@ const channels = [
 export default function SupportPage() {
     const [openFaq, setOpenFaq] = useState<number | null>(null);
     const [modelQuery, setModelQuery] = useState("");
+
+    // Handle smooth scrolling to #lien-he if hash present or changed
+    useEffect(() => {
+        const handleHashScroll = () => {
+            if (typeof window !== "undefined" && (window.location.hash === "#lien-he" || window.location.hash === "#contact")) {
+                const el = document.getElementById("lien-he");
+                if (el) {
+                    setTimeout(() => {
+                        el.scrollIntoView({ behavior: "smooth" });
+                    }, 150);
+                }
+            }
+        };
+
+        handleHashScroll();
+        window.addEventListener("hashchange", handleHashScroll);
+        return () => window.removeEventListener("hashchange", handleHashScroll);
+    }, []);
 
     // Build real products list from DB
     const supportProductsData = useMemo(() => buildSupportProducts(), []);
@@ -945,7 +1035,7 @@ export default function SupportPage() {
             </section>
 
             {/* ── Chúng tôi sẵn sàng hỗ trợ bạn ── */}
-            <section style={{ background: "#eef2f7", padding: "0 30px" }}>
+            <section id="lien-he" style={{ background: "#eef2f7", padding: "0 30px", scrollMarginTop: 80 }}>
                 {/* Header band */}
                 <div style={{ textAlign: "center", padding: "40px 0 32px" }}>
                     <h2 style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--elx-navy)", margin: "0 0 8px" }}>

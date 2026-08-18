@@ -322,7 +322,7 @@ export default function KhuyenMaiPage() {
                   Đóng
                 </button>
                 <Link
-                  href="/thiet-bi/may-giat"
+                  href={selectedPromo.categoryHref || "/thiet-bi/bep-nau"}
                   style={{
                     padding: "10px 24px",
                     background: "var(--elx-navy, #011e41)",

@@ -16,7 +16,7 @@ const TABS = ["Thông số kỹ thuật", "Mô tả sản phẩm", "Đánh giá"
 type Tab = (typeof TABS)[number];
 
 export default function ProductDetailClient({ product, category }: Props) {
-  const { addToCart, adding } = useCart();
+  const { addToCart, adding, cart } = useCart();
   const { isSaved, toggleWishlist, togglingId } = useWishlist();
 
   const [activeTab, setActiveTab] = useState<Tab>("Thông số kỹ thuật");
@@ -25,7 +25,17 @@ export default function ProductDetailClient({ product, category }: Props) {
   const [imgError, setImgError] = useState(false);
 
   const saved = isSaved(product.id);
-  const cartLoading = adding === (product.variantId ?? product.id);
+  const targetVariantId = product.variantId || product.id;
+
+  // Reactively calculate available stock from cart state
+  const cartItem = cart?.items.find(
+    (i) => i.variantId === targetVariantId || i.id === targetVariantId || i.variant?.product?.id === product.id
+  );
+  const inCartQty = cartItem ? cartItem.quantity : 0;
+  const baseStock = product.stockQuantity ?? 10;
+  const stockQty = Math.max(0, baseStock - inCartQty);
+
+  const cartLoading = adding === targetVariantId;
   const wishLoading = togglingId === product.id;
 
   const discount =
@@ -33,7 +43,6 @@ export default function ProductDetailClient({ product, category }: Props) {
       ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
       : 0;
 
-  const stockQty = product.stockQuantity ?? 100;
   const savingsAmount = product.oldPrice > product.price ? product.oldPrice - product.price : 0;
   const installmentPerMonth = Math.round(product.price / 6);
 
@@ -55,8 +64,8 @@ export default function ProductDetailClient({ product, category }: Props) {
   };
 
   const handleAddToCart = async () => {
-    if (!product.variantId) return;
-    await addToCart(product.variantId, qty);
+    if (!targetVariantId) return;
+    await addToCart(targetVariantId, qty);
   };
 
   return (
@@ -253,7 +262,7 @@ export default function ProductDetailClient({ product, category }: Props) {
                 id="pdp-add-to-cart-btn"
                 className="pdp-v2__add-cart-btn"
                 onClick={handleAddToCart}
-                disabled={!product.variantId || cartLoading || stockQty <= 0}
+                disabled={cartLoading || stockQty <= 0}
               >
                 {cartLoading ? (
                   <span className="pdp-v2__spinner" />
