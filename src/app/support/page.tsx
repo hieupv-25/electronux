@@ -1103,16 +1103,6 @@ export default function SupportPage() {
                 <div style={{ height: 40 }} />
             </section>
 
-            {/* ── Floating Help Button ── */}
-            <div style={{ position: "fixed", bottom: 32, right: 32, zIndex: 100 }}>
-                <button style={{ background: "#fff", border: "1px solid var(--elx-border)", borderRadius: 24, padding: "10px 18px", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 4px 16px rgba(0,0,0,0.12)", cursor: "pointer", color: "var(--elx-navy)", fontWeight: 600, fontSize: "0.95rem" }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-                    </svg>
-                    Cần trợ giúp?
-                </button>
-            </div>
-
             <Footer footerSections={footerSections} />
         </>
     );

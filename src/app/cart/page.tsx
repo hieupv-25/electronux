@@ -563,30 +563,6 @@ export default function CartPage() {
         </div>
       </main>
 
-      {/* Floating help widget at bottom right */}
-      <button
-        style={{
-          position: "fixed",
-          bottom: 24,
-          right: 24,
-          background: "#fff",
-          color: "#111827",
-          border: "1px solid #d1d5db",
-          borderRadius: 24,
-          padding: "10px 18px",
-          fontWeight: 600,
-          fontSize: "0.88rem",
-          boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          zIndex: 100,
-        }}
-      >
-        💬 Cần trợ giúp?
-      </button>
-
       {/* Checkout Modal */}
       <CheckoutModal
         isOpen={isCheckoutOpen}

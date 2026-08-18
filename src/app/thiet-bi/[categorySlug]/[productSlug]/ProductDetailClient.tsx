@@ -347,13 +347,6 @@ export default function ProductDetailClient({ product, category }: Props) {
         </section>
       </div>
 
-      {/* Floating Sticky Help Widget */}
-      <div className="pdp-v2__sticky-help">
-        <button className="pdp-v2__help-btn">
-          <span className="pdp-v2__help-icon">💬</span>
-          <span>Cần trợ giúp?</span>
-        </button>
-      </div>
     </div>
   );
 }
