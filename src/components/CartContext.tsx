@@ -78,8 +78,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState<string | null>(null);
 
-  const refreshCart = useCallback(async () => {
-    setLoading(true);
+  const refreshCart = useCallback(async (showLoading = false) => {
+    if (!session?.user?.id) {
+      setCart({
+        id: "cart-guest",
+        items: [],
+        subtotal: 0,
+        savings: 0,
+        total: 0,
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (showLoading) {
+      setLoading(true);
+    }
     try {
       const res = await fetch("/api/cart");
       if (res.ok) {
@@ -89,13 +103,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       console.error("Failed to fetch cart:", e);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
-  }, []);
+  }, [session?.user?.id]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      void refreshCart();
+      void refreshCart(true);
     }, 0);
 
     return () => {
@@ -116,7 +132,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const data = await res.json();
         if (res.ok && data.success) {
           showToast(data.message || "Đã thêm vào giỏ hàng ✓", "success");
-          await refreshCart();
+          await refreshCart(false);
         } else {
           showToast(data.message || "Không thể thêm sản phẩm", "error");
         }
@@ -162,7 +178,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         await refreshCart();
       } catch {
         showToast("Không thể cập nhật số lượng", "error");
-        refreshCart();
+        refreshCart(false);
       }
     },
     [showToast, refreshCart]
@@ -192,7 +208,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         showToast("Đã xóa sản phẩm khỏi giỏ hàng", "info");
       } catch {
         showToast("Không thể xóa sản phẩm", "error");
-        refreshCart();
+        refreshCart(false);
       }
     },
     [showToast, refreshCart]
@@ -207,7 +223,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       await refreshCart();
     } catch {
       showToast("Lỗi xóa giỏ hàng", "error");
-      refreshCart();
+      refreshCart(false);
     }
   }, [showToast, refreshCart]);
 
