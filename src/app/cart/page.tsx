@@ -11,10 +11,22 @@ function fmt(n: number) {
   return new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " ₫";
 }
 
+type AppliedCoupon = {
+  code: string;
+  discountAmount: number;
+  finalAmount: number;
+  baseAmount: number;
+  message: string;
+};
+
 export default function CartPage() {
   const { data: session } = useSession();
-  const { cart, updateQty, removeItem, addToCart, clearCart, loading } = useCart();
+  const { cart, updateQty, removeItem, clearCart, loading } = useCart();
   const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
+  const [couponMessage, setCouponMessage] = useState("");
+  const [couponMessageType, setCouponMessageType] = useState<"success" | "error" | "info">("info");
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [showExtraServices, setShowExtraServices] = useState(true);
   const [warrantyYears, setWarrantyYears] = useState("2");
   const [addedWarranty, setAddedWarranty] = useState(false);
@@ -45,8 +57,56 @@ export default function CartPage() {
       : 0;
 
   const subtotal = (cart?.subtotal ?? 0) + extraCosts;
-  const savings = cart?.savings ?? 0;
-  const total = (cart?.total ?? 0) + extraCosts;
+  const baseTotal = (cart?.total ?? 0) + extraCosts;
+  const isCouponStale = Boolean(appliedCoupon && appliedCoupon.baseAmount !== baseTotal);
+  const activeCoupon = isCouponStale ? null : appliedCoupon;
+  const couponDiscount = activeCoupon?.discountAmount ?? 0;
+  const savings = (cart?.savings ?? 0) + couponDiscount;
+  const total = Math.max(0, baseTotal - couponDiscount);
+
+  const handleApplyCoupon = async () => {
+    const code = couponCode.trim();
+    if (!code) {
+      setAppliedCoupon(null);
+      setCouponMessage("Vui lòng nhập mã giảm giá.");
+      setCouponMessageType("error");
+      return;
+    }
+
+    setIsApplyingCoupon(true);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotal: baseTotal }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.valid) {
+        setAppliedCoupon(null);
+        setCouponMessage(data.message || "Không thể áp dụng mã giảm giá.");
+        setCouponMessageType("error");
+        return;
+      }
+
+      setAppliedCoupon({
+        code: data.code,
+        discountAmount: Number(data.discountAmount) || 0,
+        finalAmount: Number(data.finalAmount) || baseTotal,
+        baseAmount: baseTotal,
+        message: data.message,
+      });
+      setCouponCode(data.code);
+      setCouponMessage(data.message || "Đã áp dụng mã giảm giá.");
+      setCouponMessageType("success");
+    } catch {
+      setAppliedCoupon(null);
+      setCouponMessage("Lỗi kết nối khi kiểm tra mã giảm giá.");
+      setCouponMessageType("error");
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: "#fff", fontFamily: "var(--font-geist-sans), sans-serif", color: "#111827" }}>
@@ -488,6 +548,13 @@ export default function CartPage() {
               <span style={{ fontWeight: 600 }}>- {fmt(savings)}</span>
             </div>
 
+            {activeCoupon && (
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.95rem", color: "#047857" }}>
+                <span>Mã {activeCoupon.code}</span>
+                <span style={{ fontWeight: 700 }}>- {fmt(activeCoupon.discountAmount)}</span>
+              </div>
+            )}
+
             <div style={{ borderTop: "1px solid #d1d5db", paddingTop: 16, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <span style={{ fontSize: "1.3rem", fontWeight: 700, color: "#111827" }}>Tổng cộng</span>
               <span style={{ fontSize: "1.8rem", fontWeight: 800, color: "#001e38" }}>{fmt(total)}</span>
@@ -545,6 +612,9 @@ export default function CartPage() {
                 }}
               />
               <button
+                type="button"
+                onClick={handleApplyCoupon}
+                disabled={isApplyingCoupon || items.length === 0}
                 style={{
                   background: "#001e38",
                   color: "#fff",
@@ -553,39 +623,56 @@ export default function CartPage() {
                   padding: "0 18px",
                   fontWeight: 700,
                   fontSize: "0.82rem",
-                  cursor: "pointer",
+                  cursor: isApplyingCoupon || items.length === 0 ? "not-allowed" : "pointer",
+                  opacity: isApplyingCoupon || items.length === 0 ? 0.6 : 1,
                 }}
               >
-                ÁP DỤNG
+                {isApplyingCoupon ? "ĐANG..." : "ÁP DỤNG"}
               </button>
             </div>
+            {(couponMessage || isCouponStale) && (
+              <p
+                style={{
+                  marginTop: 10,
+                  fontSize: "0.82rem",
+                  color:
+                    isCouponStale
+                      ? "#4b5563"
+                      : couponMessageType === "success"
+                      ? "#047857"
+                      : couponMessageType === "error"
+                      ? "#dc2626"
+                      : "#4b5563",
+                }}
+              >
+                {isCouponStale ? "Giỏ hàng đã thay đổi, vui lòng áp dụng lại mã giảm giá." : couponMessage}
+              </p>
+            )}
+            {activeCoupon && (
+              <button
+                type="button"
+                onClick={() => {
+                  setAppliedCoupon(null);
+                  setCouponMessage("Đã bỏ mã giảm giá.");
+                  setCouponMessageType("info");
+                }}
+                style={{
+                  marginTop: 8,
+                  background: "none",
+                  border: "none",
+                  color: "#4b5563",
+                  cursor: "pointer",
+                  fontSize: "0.82rem",
+                  textDecoration: "underline",
+                  padding: 0,
+                }}
+              >
+                Bỏ mã giảm giá
+              </button>
+            )}
           </div>
         </div>
       </main>
-
-      {/* Floating help widget at bottom right */}
-      <button
-        style={{
-          position: "fixed",
-          bottom: 24,
-          right: 24,
-          background: "#fff",
-          color: "#111827",
-          border: "1px solid #d1d5db",
-          borderRadius: 24,
-          padding: "10px 18px",
-          fontWeight: 600,
-          fontSize: "0.88rem",
-          boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          zIndex: 100,
-        }}
-      >
-        💬 Cần trợ giúp?
-      </button>
 
       {/* Checkout Modal */}
       <CheckoutModal
@@ -593,6 +680,8 @@ export default function CartPage() {
         onClose={() => setIsCheckoutOpen(false)}
         items={items}
         totalAmount={total}
+        couponCode={activeCoupon?.code ?? null}
+        couponBaseAmount={baseTotal}
         onSuccess={() => {
           clearCart();
         }}

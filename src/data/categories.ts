@@ -772,6 +772,8 @@ export type CategoryProduct = {
   installment0Percent?: boolean;
   /** Real CartVariant.id from the database — required for "Thêm vào giỏ" to work. */
   variantId?: string;
+  /** Stock quantity for detail page display */
+  stockQuantity?: number;
 };
 
 export type CategoryPageData = {

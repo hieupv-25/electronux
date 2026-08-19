@@ -5472,8 +5472,22 @@ img {
   margin-bottom: 20px;
 }
 
+.pdp-v2__stock--low {
+  color: #d97706;
+}
+
+.pdp-v2__stock--out {
+  color: #dc2626;
+}
+
 .pdp-v2__stock-dot {
   font-size: 12px;
+}
+
+.pdp-v2__stock-count {
+  font-weight: normal;
+  color: #4b5563;
+  margin-left: 4px;
 }
 
 /* Add to Cart CTA */
@@ -5655,34 +5669,4 @@ img {
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-}
-
-/* Sticky Help Widget */
-.pdp-v2__sticky-help {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 99;
-}
-
-.pdp-v2__help-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-  border-radius: 999px;
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #0f172a;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.pdp-v2__help-btn:hover {
-  background: #f8fafc;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
-  transform: translateY(-2px);
 }

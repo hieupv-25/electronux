@@ -1,7 +1,10 @@
 import {
   createCoupon,
   createPromotion,
+  deletePromotion,
   toggleCouponActive,
+  togglePromotionActive,
+  updatePromotion,
 } from "@/app/admin/actions";
 import { AdminPageHeader, EmptyTable, StatusBadge } from "@/components/admin/AdminUi";
 import {
@@ -38,6 +41,20 @@ async function getPromotionsData() {
     prisma.promotion.findMany({
       orderBy: { startDate: "desc" },
       take: 60,
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        discountPercentage: true,
+        description: true,
+        highlights: true,
+        terms: true,
+        startDate: true,
+        endDate: true,
+        bannerImageUrl: true,
+        linkUrl: true,
+        isActive: true,
+      },
     }),
   ]);
 
@@ -48,6 +65,10 @@ function discountLabel(type: string, value: unknown) {
   if (type === "percentage") return `${Number(value)}%`;
   if (type === "free_shipping") return "Miễn phí vận chuyển";
   return formatCurrency(value);
+}
+
+function jsonListToText(value: unknown) {
+  return Array.isArray(value) ? value.filter((item) => typeof item === "string").join("\n") : "";
 }
 
 export default async function AdminPromotionsPage() {
@@ -129,8 +150,24 @@ export default async function AdminPromotionsPage() {
               <input name="title" required placeholder="Sale lớn giữa năm" />
             </label>
             <label>
+              Slug
+              <input name="slug" placeholder="sale-lon-giua-nam" />
+            </label>
+            <label>
               Giảm giá %
               <input name="discountPercentage" type="number" min="0" max="100" defaultValue="10" />
+            </label>
+            <label>
+              Mô tả
+              <textarea name="description" rows={4} placeholder="Nội dung chi tiết của chiến dịch" />
+            </label>
+            <label>
+              Đặc quyền
+              <textarea name="highlights" rows={4} placeholder="Mỗi dòng là một đặc quyền" />
+            </label>
+            <label>
+              Điều khoản
+              <textarea name="terms" rows={4} placeholder="Mỗi dòng là một điều khoản" />
             </label>
             <label>
               Ngày bắt đầu
@@ -143,6 +180,14 @@ export default async function AdminPromotionsPage() {
             <label>
               Banner URL
               <input name="bannerImageUrl" placeholder="https://..." />
+            </label>
+            <label>
+              Link mua sắm
+              <input name="linkUrl" placeholder="/thiet-bi/may-giat" />
+            </label>
+            <label className="admin-checkbox-inline">
+              <input name="isActive" type="checkbox" defaultChecked />
+              Hiển thị trên web
             </label>
             <button className="admin-secondary-button" type="submit">
               Tạo chiến dịch
@@ -236,27 +281,107 @@ export default async function AdminPromotionsPage() {
           </div>
         </div>
         <div className="admin-table-wrap">
-          <table className="admin-table">
+          <table className="admin-table admin-table--wide">
             <thead>
               <tr>
-                <th>Tên chiến dịch</th>
-                <th>Giảm</th>
-                <th>Bắt đầu</th>
-                <th>Kết thúc</th>
-                <th>Banner</th>
+                <th>Nội dung chiến dịch</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {promotions.length === 0 ? (
-                <EmptyTable columns={5} label="Chưa có chiến dịch nào." />
+                <EmptyTable columns={3} label="Chưa có chiến dịch nào." />
               ) : (
                 promotions.map((promotion) => (
                   <tr key={promotion.id}>
-                    <td className="admin-table__strong">{promotion.title}</td>
-                    <td>{promotion.discountPercentage}%</td>
-                    <td>{toDateInputValue(promotion.startDate)}</td>
-                    <td>{toDateInputValue(promotion.endDate)}</td>
-                    <td>{promotion.bannerImageUrl ? "Có banner" : "Chưa có"}</td>
+                    <td>
+                      <form action={updatePromotion} className="admin-form-fields admin-form-fields--two">
+                        <input name="id" type="hidden" value={promotion.id} />
+                        <label>
+                          Tên chiến dịch
+                          <input name="title" required defaultValue={promotion.title} />
+                        </label>
+                        <label>
+                          Slug
+                          <input name="slug" defaultValue={promotion.slug} />
+                        </label>
+                        <label>
+                          Giảm %
+                          <input
+                            name="discountPercentage"
+                            type="number"
+                            min="0"
+                            max="100"
+                            defaultValue={promotion.discountPercentage}
+                          />
+                        </label>
+                        <label>
+                          Link mua sắm
+                          <input name="linkUrl" defaultValue={promotion.linkUrl ?? ""} />
+                        </label>
+                        <label>
+                          Ngày bắt đầu
+                          <input name="startDate" type="date" defaultValue={toDateInputValue(promotion.startDate)} />
+                        </label>
+                        <label>
+                          Ngày kết thúc
+                          <input name="endDate" type="date" defaultValue={toDateInputValue(promotion.endDate)} />
+                        </label>
+                        <label className="admin-field-span">
+                          Banner URL
+                          <input name="bannerImageUrl" defaultValue={promotion.bannerImageUrl ?? ""} />
+                        </label>
+                        <label className="admin-field-span">
+                          Mô tả
+                          <textarea name="description" rows={3} defaultValue={promotion.description ?? ""} />
+                        </label>
+                        <label>
+                          Đặc quyền
+                          <textarea name="highlights" rows={4} defaultValue={jsonListToText(promotion.highlights)} />
+                        </label>
+                        <label>
+                          Điều khoản
+                          <textarea name="terms" rows={4} defaultValue={jsonListToText(promotion.terms)} />
+                        </label>
+                        <label className="admin-checkbox-inline">
+                          <input name="isActive" type="checkbox" defaultChecked={promotion.isActive} />
+                          Hiển thị
+                        </label>
+                        <button className="admin-primary-button" type="submit">
+                          Lưu thay đổi
+                        </button>
+                      </form>
+                    </td>
+                    <td>
+                      <StatusBadge
+                        value={promotion.isActive ? "completed" : "cancelled"}
+                        labels={{
+                          completed: "Đang hiển thị",
+                          cancelled: "Đã ẩn",
+                        }}
+                      />
+                      <span className="admin-table__secondary">
+                        {formatDate(promotion.startDate)} - {formatDate(promotion.endDate)}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="admin-status-stack">
+                        <form action={togglePromotionActive}>
+                          <input name="id" type="hidden" value={promotion.id} />
+                          <input name="currentValue" type="hidden" value={String(promotion.isActive)} />
+                          <button className="admin-secondary-button" type="submit">
+                            {promotion.isActive ? "Ẩn" : "Hiện"}
+                          </button>
+                        </form>
+                        <form action={deletePromotion}>
+                          <input name="id" type="hidden" value={promotion.id} />
+                          <button className="admin-danger-button" type="submit">
+                            Xóa
+                          </button>
+                        </form>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}

@@ -160,73 +160,7 @@ export default function CartDrawer() {
 
         {/* ── Body ── */}
         <div style={{ flex: 1, overflowY: "auto", padding: "16px 0" }}>
-          {!session?.user ? (
-            /* Unauthenticated state */
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-                gap: 16,
-                padding: 32,
-                textAlign: "center",
-              }}
-            >
-              <svg
-                width="80"
-                height="80"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#d1d5db"
-                strokeWidth="1.5"
-              >
-                <circle cx="12" cy="7" r="4" />
-                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-              </svg>
-              <p
-                style={{
-                  color: "#111827",
-                  fontSize: "1.05rem",
-                  fontWeight: 600,
-                }}
-              >
-                Vui lòng đăng nhập
-              </p>
-              <p
-                style={{
-                  color: "#6b7280",
-                  fontSize: "0.9rem",
-                  margin: 0,
-                }}
-              >
-                Bạn cần đăng nhập để xem và quản lý giỏ hàng của mình.
-              </p>
-              <button
-                onClick={() => {
-                  closeCart();
-                  if (typeof window !== "undefined") {
-                    window.dispatchEvent(
-                      new CustomEvent("open-auth-modal", { detail: { view: "login" } })
-                    );
-                  }
-                }}
-                style={{
-                  background: "var(--elx-navy, #003057)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  padding: "12px 28px",
-                  fontWeight: 600,
-                  fontSize: "1rem",
-                  cursor: "pointer",
-                }}
-              >
-                Đăng nhập ngay
-              </button>
-            </div>
-          ) : items.length === 0 ? (
+          {items.length === 0 ? (
             /* Empty state */
             <div
               style={{

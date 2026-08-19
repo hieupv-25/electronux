@@ -16,7 +16,7 @@ const TABS = ["Thông số kỹ thuật", "Mô tả sản phẩm", "Đánh giá"
 type Tab = (typeof TABS)[number];
 
 export default function ProductDetailClient({ product, category }: Props) {
-  const { addToCart, adding } = useCart();
+  const { addToCart, adding, cart } = useCart();
   const { isSaved, toggleWishlist, togglingId } = useWishlist();
 
   const [activeTab, setActiveTab] = useState<Tab>("Thông số kỹ thuật");
@@ -25,15 +25,40 @@ export default function ProductDetailClient({ product, category }: Props) {
   const [imgError, setImgError] = useState(false);
 
   const saved = isSaved(product.id);
-  const cartLoading = adding === (product.variantId ?? product.id);
+
+  // Dùng variantId nếu sản phẩm có variant, nếu không dùng product.id
+  const targetVariantId = product.variantId || product.id;
+
+  // Reactively calculate available stock from cart state
+  const cartItem = cart?.items.find(
+    (i) =>
+      i.variantId === targetVariantId ||
+      i.id === targetVariantId ||
+      i.variant?.product?.id === product.id
+  );
+
+  const inCartQty = cartItem ? cartItem.quantity : 0;
+
+  const baseStock = product.stockQuantity ?? 10;
+
+  // Tồn kho thực tế còn lại = tồn kho gốc - số lượng đã có trong giỏ
+  const stockQty = Math.max(0, baseStock - inCartQty);
+
+  const cartLoading = adding === targetVariantId;
   const wishLoading = togglingId === product.id;
 
   const discount =
     product.oldPrice > product.price
-      ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
+      ? Math.round(
+          ((product.oldPrice - product.price) / product.oldPrice) * 100
+        )
       : 0;
 
-  const savingsAmount = product.oldPrice > product.price ? product.oldPrice - product.price : 0;
+  const savingsAmount =
+    product.oldPrice > product.price
+      ? product.oldPrice - product.price
+      : 0;
+
   const installmentPerMonth = Math.round(product.price / 6);
 
   // Gallery thumbnails
@@ -46,17 +71,27 @@ export default function ProductDetailClient({ product, category }: Props) {
   ];
 
   const handlePrevThumb = () => {
-    setActiveThumb((prev) => (prev === 0 ? thumbnails.length - 1 : prev - 1));
+    setActiveThumb((prev) =>
+      prev === 0 ? thumbnails.length - 1 : prev - 1
+    );
   };
 
   const handleNextThumb = () => {
-    setActiveThumb((prev) => (prev === thumbnails.length - 1 ? 0 : prev + 1));
+    setActiveThumb((prev) =>
+      prev === thumbnails.length - 1 ? 0 : prev + 1
+    );
   };
 
   const handleAddToCart = async () => {
-    const targetId = product.variantId || product.id;
-    if (!targetId) return;
-    await addToCart(targetId, qty);
+    if (!targetVariantId) return;
+
+    // Không cho thêm nếu hết hàng
+    if (stockQty <= 0) return;
+
+    // Không cho thêm quá số lượng tồn kho còn lại
+    const quantityToAdd = Math.min(qty, stockQty);
+
+    await addToCart(targetVariantId, quantityToAdd);
   };
 
   return (
@@ -75,7 +110,7 @@ export default function ProductDetailClient({ product, category }: Props) {
               >
                 ‹
               </button>
-              
+
               <div className="pdp-v2__img-wrapper">
                 {!imgError ? (
                   <Image
@@ -105,10 +140,15 @@ export default function ProductDetailClient({ product, category }: Props) {
               {/* Bottom Image Badges */}
               <div className="pdp-v2__img-badges">
                 <div className="pdp-v2__badge-item pdp-v2__badge-item--warranty">
-                  <span>BẢO HÀNH <strong>2 NĂM</strong></span>
+                  <span>
+                    BẢO HÀNH <strong>2 NĂM</strong>
+                  </span>
                 </div>
+
                 <div className="pdp-v2__badge-item pdp-v2__badge-item--promo">
-                  <span>Phụ kiện mua kèm <strong>giảm thêm 5%</strong></span>
+                  <span>
+                    Phụ kiện mua kèm <strong>giảm thêm 5%</strong>
+                  </span>
                 </div>
               </div>
             </div>
@@ -118,7 +158,11 @@ export default function ProductDetailClient({ product, category }: Props) {
               {thumbnails.map((thumb, idx) => (
                 <button
                   key={idx}
-                  className={`pdp-v2__thumb${idx === activeThumb ? " pdp-v2__thumb--active" : ""}`}
+                  className={`pdp-v2__thumb${
+                    idx === activeThumb
+                      ? " pdp-v2__thumb--active"
+                      : ""
+                  }`}
                   onClick={() => setActiveThumb(idx)}
                 >
                   <Image
@@ -138,16 +182,27 @@ export default function ProductDetailClient({ product, category }: Props) {
             {/* Top Badges & Wishlist Button */}
             <div className="pdp-v2__header-row">
               <div className="pdp-v2__tags">
-                <span className="pdp-v2__tag pdp-v2__tag--discount">GIẢM GIÁ</span>
-                <span className="pdp-v2__tag pdp-v2__tag--new">MỚI</span>
+                <span className="pdp-v2__tag pdp-v2__tag--discount">
+                  GIẢM GIÁ
+                </span>
+
+                <span className="pdp-v2__tag pdp-v2__tag--new">
+                  MỚI
+                </span>
               </div>
-              
+
               <button
                 id="pdp-wishlist-btn"
-                className={`pdp-v2__heart-btn${saved ? " pdp-v2__heart-btn--saved" : ""}`}
+                className={`pdp-v2__heart-btn${
+                  saved ? " pdp-v2__heart-btn--saved" : ""
+                }`}
                 onClick={() => toggleWishlist(product.id)}
                 disabled={wishLoading}
-                title={saved ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm yêu thích"}
+                title={
+                  saved
+                    ? "Bỏ lưu sản phẩm"
+                    : "Lưu sản phẩm yêu thích"
+                }
               >
                 <svg
                   width="24"
@@ -159,7 +214,7 @@ export default function ProductDetailClient({ product, category }: Props) {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
               </button>
             </div>
@@ -170,33 +225,61 @@ export default function ProductDetailClient({ product, category }: Props) {
             {/* SKU & Rating */}
             <div className="pdp-v2__meta-row">
               <span className="pdp-v2__sku">{product.sku}</span>
+
               <div className="pdp-v2__rating">
                 <span className="pdp-v2__stars">⭐⭐⭐⭐⭐</span>
                 <span className="pdp-v2__score">5.0</span>
-                <span className="pdp-v2__reviews-count">(9 đánh giá)</span>
-                <button className="pdp-v2__write-review">Viết đánh giá</button>
+                <span className="pdp-v2__reviews-count">
+                  (9 đánh giá)
+                </span>
+
+                <button className="pdp-v2__write-review">
+                  Viết đánh giá
+                </button>
               </div>
             </div>
 
             {/* Highlights List */}
             <ul className="pdp-v2__highlights">
-              <li>Tăng cường làm sạch và chăm sóc nhẹ nhàng.</li>
-              <li>Giặt sạch nhanh, đầy tải trong chỉ 45 phút</li>
-              <li>Chăn bông cỡ lớn* được hấp sấy chuyên dụng chỉ trong 60 phút</li>
-              <li>Sanitise loại bỏ 99,99% vi khuẩn và virus thông thường.*</li>
-              <li>DelicatesPlus nâng niu vải mỏng, tự tin giặt máy.</li>
-              <li>Hiệu quả và tiết kiệm năng lượng hơn</li>
+              <li>
+                Tăng cường làm sạch và chăm sóc nhẹ nhàng.
+              </li>
+              <li>
+                Giặt sạch nhanh, đầy tải trong chỉ 45 phút
+              </li>
+              <li>
+                Chăn bông cỡ lớn* được hấp sấy chuyên dụng chỉ trong 60
+                phút
+              </li>
+              <li>
+                Sanitise loại bỏ 99,99% vi khuẩn và virus thông thường.*
+              </li>
+              <li>
+                DelicatesPlus nâng niu vải mỏng, tự tin giặt máy.
+              </li>
+              <li>
+                Hiệu quả và tiết kiệm năng lượng hơn
+              </li>
             </ul>
 
             {/* Price Block */}
             <div className="pdp-v2__price-section">
               <div className="pdp-v2__price-row">
-                <span className="pdp-v2__price-main">{formatPrice(product.price)}</span>
+                <span className="pdp-v2__price-main">
+                  {formatPrice(product.price)}
+                </span>
+
                 {product.oldPrice > product.price && (
                   <>
-                    <span className="pdp-v2__price-old">{formatPrice(product.oldPrice)}</span>
+                    <span className="pdp-v2__price-old">
+                      {formatPrice(product.oldPrice)}
+                    </span>
+
                     <span className="pdp-v2__savings-pill">
-                      Tiết kiệm {formatPrice(savingsAmount)} <strong className="pdp-v2__discount-pct">-{discount}%</strong>
+                      Tiết kiệm {formatPrice(savingsAmount)}{" "}
+                      <strong className="pdp-v2__discount-pct">
+                        -{discount}%
+                      </strong>
                     </span>
                   </>
                 )}
@@ -204,9 +287,15 @@ export default function ProductDetailClient({ product, category }: Props) {
 
               {/* Installment Badge */}
               <div className="pdp-v2__installment">
-                <span className="pdp-v2__installment-tag">Lãi suất 0%</span>
+                <span className="pdp-v2__installment-tag">
+                  Lãi suất 0%
+                </span>
+
                 <span className="pdp-v2__installment-text">
-                  <strong>{formatPrice(installmentPerMonth)}/tháng</strong> trong 6 tháng
+                  <strong>
+                    {formatPrice(installmentPerMonth)}/tháng
+                  </strong>{" "}
+                  trong 6 tháng
                 </span>
               </div>
             </div>
@@ -216,11 +305,18 @@ export default function ProductDetailClient({ product, category }: Props) {
               <div className="pdp-v2__gift-header">
                 <span>QUÀ TẶNG khi mua thêm 6.000.000 ₫</span>
               </div>
+
               <div className="pdp-v2__gift-body">
                 <div className="pdp-v2__gift-info">
-                  <p className="pdp-v2__gift-title">Bóng sấy quần áo</p>
-                  <p className="pdp-v2__gift-value">(Trị giá 272.000 ₫)</p>
+                  <p className="pdp-v2__gift-title">
+                    Bóng sấy quần áo
+                  </p>
+
+                  <p className="pdp-v2__gift-value">
+                    (Trị giá 272.000 ₫)
+                  </p>
                 </div>
+
                 <div className="pdp-v2__gift-img-wrap">
                   <Image
                     src="https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/bep-nau/hero.png"
@@ -234,9 +330,29 @@ export default function ProductDetailClient({ product, category }: Props) {
             </div>
 
             {/* Stock Status */}
-            <div className="pdp-v2__stock">
+            <div
+              className={`pdp-v2__stock ${
+                stockQty <= 0
+                  ? "pdp-v2__stock--out"
+                  : stockQty <= 5
+                  ? "pdp-v2__stock--low"
+                  : ""
+              }`}
+            >
               <span className="pdp-v2__stock-dot">●</span>
-              <span className="pdp-v2__stock-text">Hàng có sẵn</span>
+
+              <span className="pdp-v2__stock-text">
+                {stockQty > 0 ? (
+                  <>
+                    Hàng có sẵn{" "}
+                    <span className="pdp-v2__stock-count">
+                      (Tồn kho: <strong>{stockQty}</strong> sản phẩm)
+                    </span>
+                  </>
+                ) : (
+                  "Tạm hết hàng"
+                )}
+              </span>
             </div>
 
             {/* Add to Cart Action */}
@@ -245,22 +361,41 @@ export default function ProductDetailClient({ product, category }: Props) {
                 id="pdp-add-to-cart-btn"
                 className="pdp-v2__add-cart-btn"
                 onClick={handleAddToCart}
-                disabled={(!product.variantId && !product.id) || cartLoading}
+                disabled={cartLoading || stockQty <= 0}
               >
                 {cartLoading ? (
                   <span className="pdp-v2__spinner" />
                 ) : (
                   <div className="pdp-v2__btn-content">
-                    <span className="pdp-v2__btn-title">🛒 THÊM VÀO GIỎ</span>
-                    <span className="pdp-v2__btn-sub">Miễn phí giao hàng</span>
+                    <span className="pdp-v2__btn-title">
+                      {stockQty > 0
+                        ? "🛒 THÊM VÀO GIỎ"
+                        : "❌ TẠM HẾT HÀNG"}
+                    </span>
+
+                    <span className="pdp-v2__btn-sub">
+                      {stockQty > 0
+                        ? "Miễn phí giao hàng"
+                        : "Vui lòng quay lại sau"}
+                    </span>
                   </div>
                 )}
               </button>
 
               <div className="pdp-v2__shipping-note">
                 <span className="pdp-v2__shipping-icon">🚚</span>
-                <span>Thời gian giao hàng dự kiến: <strong>3-5 ngày làm việc</strong></span>
-                <span className="pdp-v2__info-icon" title="Quy định giao hàng">ⓘ</span>
+
+                <span>
+                  Thời gian giao hàng dự kiến:{" "}
+                  <strong>3-5 ngày làm việc</strong>
+                </span>
+
+                <span
+                  className="pdp-v2__info-icon"
+                  title="Quy định giao hàng"
+                >
+                  ⓘ
+                </span>
               </div>
             </div>
           </div>
@@ -268,13 +403,20 @@ export default function ProductDetailClient({ product, category }: Props) {
 
         {/* ── Tabs Section: Specs, Description, Reviews ── */}
         <section className="pdp-v2__tabs-section">
-          <nav className="pdp-v2__tabs-nav" role="tablist">
+          <nav
+            className="pdp-v2__tabs-nav"
+            role="tablist"
+          >
             {TABS.map((tab) => (
               <button
                 key={tab}
                 role="tab"
                 aria-selected={activeTab === tab}
-                className={`pdp-v2__tab${activeTab === tab ? " pdp-v2__tab--active" : ""}`}
+                className={`pdp-v2__tab${
+                  activeTab === tab
+                    ? " pdp-v2__tab--active"
+                    : ""
+                }`}
                 onClick={() => setActiveTab(tab)}
               >
                 {tab}
@@ -283,6 +425,7 @@ export default function ProductDetailClient({ product, category }: Props) {
           </nav>
 
           <div className="pdp-v2__tab-content">
+            {/* Specifications */}
             {activeTab === "Thông số kỹ thuật" && (
               <div className="pdp-v2__specs-wrapper">
                 <table className="pdp-v2__specs-table">
@@ -291,21 +434,34 @@ export default function ProductDetailClient({ product, category }: Props) {
                       <th>Mã sản phẩm</th>
                       <td>{product.sku}</td>
                     </tr>
+
                     {product.color && (
                       <tr>
                         <th>Màu sắc</th>
-                        <td style={{ textTransform: "capitalize" }}>{product.color}</td>
+                        <td
+                          style={{
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {product.color}
+                        </td>
                       </tr>
                     )}
+
                     {product.capacity && (
                       <tr>
                         <th>Dung tích / Sức chứa</th>
-                        <td>{product.capacity} L / kg</td>
+                        <td>
+                          {product.capacity} L / kg
+                        </td>
                       </tr>
                     )}
+
                     {product.features.map((f, i) => (
                       <tr key={i}>
-                        <th>Tính năng nổi bật {i + 1}</th>
+                        <th>
+                          Tính năng nổi bật {i + 1}
+                        </th>
                         <td>{f}</td>
                       </tr>
                     ))}
@@ -314,13 +470,17 @@ export default function ProductDetailClient({ product, category }: Props) {
               </div>
             )}
 
+            {/* Description */}
             {activeTab === "Mô tả sản phẩm" && (
               <div className="pdp-v2__description">
                 <h2>{product.name}</h2>
+
                 <p>{category.description}</p>
+
                 {product.features.length > 0 && (
                   <div className="pdp-v2__desc-highlights">
                     <h3>Đặc điểm nổi bật</h3>
+
                     <ul>
                       {product.features.map((f, i) => (
                         <li key={i}>{f}</li>
@@ -331,28 +491,30 @@ export default function ProductDetailClient({ product, category }: Props) {
               </div>
             )}
 
+            {/* Reviews */}
             {activeTab === "Đánh giá" && (
               <div className="pdp-v2__reviews">
                 <div className="pdp-v2__review-summary">
                   <div className="pdp-v2__review-score-box">
-                    <span className="pdp-v2__review-big-score">5.0</span>
+                    <span className="pdp-v2__review-big-score">
+                      5.0
+                    </span>
+
                     <span>⭐⭐⭐⭐⭐</span>
-                    <span className="pdp-v2__review-total">Dựa trên 9 đánh giá</span>
+
+                    <span className="pdp-v2__review-total">
+                      Dựa trên 9 đánh giá
+                    </span>
                   </div>
-                  <button className="pdp-v2__write-review-btn">Viết đánh giá của bạn</button>
+
+                  <button className="pdp-v2__write-review-btn">
+                    Viết đánh giá của bạn
+                  </button>
                 </div>
               </div>
             )}
           </div>
         </section>
-      </div>
-
-      {/* Floating Sticky Help Widget */}
-      <div className="pdp-v2__sticky-help">
-        <button className="pdp-v2__help-btn">
-          <span className="pdp-v2__help-icon">💬</span>
-          <span>Cần trợ giúp?</span>
-        </button>
       </div>
     </div>
   );

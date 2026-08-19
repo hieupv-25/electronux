@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      select: { id: true, status: true, paymentStatus: true, userId: true },
+      select: { id: true, status: true, paymentStatus: true, userId: true, couponId: true },
     });
 
     if (!order) {
@@ -32,20 +32,30 @@ export async function GET(req: NextRequest) {
 
     if (responseCode === "00") {
       // Payment successful - auto confirm
-      await prisma.order.update({
-        where: { id: orderId },
-        data: {
-          status: "processing",
-          paymentStatus: "paid",
-          payment: {
-            update: {
-              status: "paid",
-              transactionId: transactionNo,
-              paidAt: new Date(),
+      await prisma.$transaction([
+        prisma.order.update({
+          where: { id: orderId },
+          data: {
+            status: "processing",
+            paymentStatus: "paid",
+            payment: {
+              update: {
+                status: "paid",
+                transactionId: transactionNo,
+                paidAt: new Date(),
+              },
             },
           },
-        },
-      });
+        }),
+        ...(order.couponId
+          ? [
+              prisma.coupon.update({
+                where: { id: order.couponId },
+                data: { usedCount: { increment: 1 } },
+              }),
+            ]
+          : []),
+      ]);
 
       if (order.userId) {
         const userCart = await prisma.cart.findFirst({ where: { userId: order.userId } });

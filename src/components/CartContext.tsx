@@ -121,16 +121,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addToCart = useCallback(
     async (variantId: string, quantity = 1) => {
-      if (!session?.user?.id) {
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent("open-auth-modal", { detail: { view: "login" } })
-          );
-        }
-        showToast("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.", "info");
-        return;
-      }
-
       setAdding(variantId);
       setIsOpen(true);
       try {
@@ -152,21 +142,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setAdding(null);
       }
     },
-    [session?.user?.id, showToast, refreshCart]
+    [showToast, refreshCart]
   );
 
   const updateQty = useCallback(
     async (itemId: string, quantity: number) => {
-      if (!session?.user?.id) {
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent("open-auth-modal", { detail: { view: "login" } })
-          );
-        }
-        showToast("Vui lòng đăng nhập để thao tác với giỏ hàng.", "info");
-        return;
-      }
-
       // Optimistically update React state immediately
       setCart((prev) => {
         if (!prev) return null;
@@ -195,26 +175,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ itemId, quantity }),
         });
+        await refreshCart();
       } catch {
         showToast("Không thể cập nhật số lượng", "error");
         refreshCart(false);
       }
     },
-    [session?.user?.id, showToast, refreshCart]
+    [showToast, refreshCart]
   );
 
   const removeItem = useCallback(
     async (itemId: string) => {
-      if (!session?.user?.id) {
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent("open-auth-modal", { detail: { view: "login" } })
-          );
-        }
-        showToast("Vui lòng đăng nhập để thao tác với giỏ hàng.", "info");
-        return;
-      }
-
       // Optimistically update React state immediately
       setCart((prev) => {
         if (!prev) return null;
@@ -233,35 +204,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       try {
         await fetch(`/api/cart/items?id=${itemId}`, { method: "DELETE" });
+        await refreshCart();
+        showToast("Đã xóa sản phẩm khỏi giỏ hàng", "info");
       } catch {
         showToast("Không thể xóa sản phẩm", "error");
         refreshCart(false);
       }
     },
-    [session?.user?.id, showToast, refreshCart]
+    [showToast, refreshCart]
   );
 
   const clearCart = useCallback(async () => {
-    if (!session?.user?.id) {
-      setCart(null);
-      return;
-    }
-
     // Optimistically update React state immediately
     setCart((prev) => (prev ? { ...prev, items: [], subtotal: 0, total: 0, savings: 0 } : null));
 
     try {
       await fetch("/api/cart", { method: "DELETE" });
+      await refreshCart();
     } catch {
       showToast("Lỗi xóa giỏ hàng", "error");
       refreshCart(false);
     }
-  }, [session?.user?.id, showToast, refreshCart]);
+  }, [showToast, refreshCart]);
 
-  const count =
-    session?.user?.id
-      ? cart?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0
-      : 0;
+  const count = cart?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
 
   return (
     <CartContext.Provider

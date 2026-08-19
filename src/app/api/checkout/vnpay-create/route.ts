@@ -3,6 +3,17 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { buildVNPayUrl } from "@/lib/vnpay";
 import { PaymentMethod } from "@/generated/prisma/enums";
+import { validateCouponCode } from "@/lib/coupons";
+
+type CheckoutItemPayload = {
+  variantId?: string;
+  variant?: {
+    id?: string;
+    price?: number | string;
+  };
+  quantity?: number | string;
+  price?: number | string;
+};
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,10 +33,28 @@ export async function POST(req: NextRequest) {
       phone = "0987654321",
       shippingAddress = "Hà Nội, Việt Nam",
       totalAmount = 0,
+      couponCode,
+      couponBaseAmount,
       items = [],
     } = body;
 
-    const amount = Number(totalAmount);
+    const baseAmount = Math.max(0, Number(couponBaseAmount ?? totalAmount) || 0);
+    const couponValidation = await validateCouponCode({
+      code: couponCode,
+      subtotal: baseAmount,
+      userId,
+    });
+
+    if (!couponValidation.valid) {
+      return NextResponse.json(
+        { success: false, message: couponValidation.message },
+        { status: 400 }
+      );
+    }
+
+    const amount = couponValidation.code
+      ? couponValidation.finalAmount
+      : Math.max(0, Number(totalAmount) || 0);
     if (!amount || amount <= 0) {
       return NextResponse.json(
         { success: false, message: "Số tiền thanh toán không hợp lệ" },
@@ -40,18 +69,27 @@ export async function POST(req: NextRequest) {
     const defaultVariantId = firstVariant?.id;
 
     // Prepare OrderItem data
-    const orderItemsData = Array.isArray(items) && items.length > 0
-      ? items.map((item: any) => ({
-          variantId: item.variantId || item.variant?.id || defaultVariantId,
+    const checkoutItems = Array.isArray(items) ? (items as CheckoutItemPayload[]) : [];
+    const orderItemsData = checkoutItems.reduce<{ variantId: string; quantity: number; price: number }[]>(
+      (acc, item) => {
+        const variantId = item.variantId || item.variant?.id || defaultVariantId;
+        if (!variantId) return acc;
+        acc.push({
+          variantId,
           quantity: Number(item.quantity) || 1,
           price: Number(item.price || item.variant?.price || firstVariant?.price || 1000000),
-        })).filter((i: any) => Boolean(i.variantId))
-      : [];
+        });
+        return acc;
+      },
+      []
+    );
 
     // Create Order in DB with status pending & paymentStatus unpaid
     const order = await prisma.order.create({
       data: {
         userId,
+        couponId: couponValidation.couponId,
+        discountAmount: couponValidation.discountAmount || null,
         shippingAddress: `${recipientName} - ${shippingAddress}`,
         phone,
         totalAmount: amount,
