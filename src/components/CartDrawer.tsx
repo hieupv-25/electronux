@@ -294,8 +294,6 @@ export default function CartDrawer() {
                       gap: 14,
                       padding: "14px 20px",
                       borderBottom: "1px solid #f3f4f6",
-                      opacity: loading ? 0.6 : 1,
-                      transition: "opacity 0.2s",
                     }}
                   >
                     {/* Image */}
@@ -410,7 +408,6 @@ export default function CartDrawer() {
                             onClick={() =>
                               updateQty(item.id, item.quantity - 1)
                             }
-                            disabled={loading}
                             style={{
                               width: 32,
                               height: 32,
@@ -442,7 +439,6 @@ export default function CartDrawer() {
                             onClick={() =>
                               updateQty(item.id, item.quantity + 1)
                             }
-                            disabled={loading}
                             style={{
                               width: 32,
                               height: 32,
@@ -463,7 +459,6 @@ export default function CartDrawer() {
 
                         <button
                           onClick={() => removeItem(item.id)}
-                          disabled={loading}
                           aria-label="Xóa sản phẩm"
                           style={{
                             background: "none",

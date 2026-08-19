@@ -60,9 +60,9 @@ export default function CheckoutModal({
   onSuccess,
 }: CheckoutModalProps) {
   const [step, setStep] = useState<"form" | "processing" | "vnpay_qr" | "vietqr" | "success">("form");
-  const [name, setName] = useState("Nguyễn Văn A");
-  const [phone, setPhone] = useState("0912345678");
-  const [address, setAddress] = useState("123 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("vietqr");
   const [orderResult, setOrderResult] = useState<OrderResult | null>(null);
 
@@ -422,6 +422,7 @@ export default function CheckoutModal({
                 <input
                   type="text"
                   required
+                  placeholder="Ví dụ: Nguyễn Văn A"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   style={{
@@ -442,6 +443,7 @@ export default function CheckoutModal({
                 <input
                   type="tel"
                   required
+                  placeholder="Ví dụ: 0912345678"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   style={{
@@ -462,6 +464,7 @@ export default function CheckoutModal({
                 <input
                   type="text"
                   required
+                  placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   style={{
@@ -484,24 +487,13 @@ export default function CheckoutModal({
               {[
                 {
                   id: "vietqr",
-                  label: "🔥 Chuyển khoản VietQR (Mọi Ngân Hàng / MoMo / Viettel Money)",
+                  label: "Chuyển khoản VietQR (Mọi Ngân Hàng / MoMo / Viettel Money)",
                   desc: "Quét mã QR tự động điền số tiền & nội dung, xác nhận chuyển khoản tức thì",
-                  badge: "Khuyên Dùng",
                 },
                 {
                   id: "vnpay",
                   label: "Cổng thanh toán VNPAY (Sandbox / Thật)",
                   desc: "Quét mã QR VNPAY hoặc thanh toán qua cổng điện tử",
-                },
-                {
-                  id: "card",
-                  label: "Thẻ Quốc Tế (VISA, Mastercard, JCB)",
-                  desc: "Giao dịch an toàn bảo mật tiêu chuẩn PCI DSS",
-                },
-                {
-                  id: "cod",
-                  label: "Thanh toán khi nhận hàng (COD)",
-                  desc: "Kiểm tra sản phẩm trước khi thanh toán tiền mặt",
                 },
               ].map((method) => (
                 <label
@@ -530,20 +522,6 @@ export default function CheckoutModal({
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontWeight: 600, fontSize: "0.95rem", color: "#111827" }}>{method.label}</span>
-                      {method.badge && (
-                        <span
-                          style={{
-                            background: "#2563eb",
-                            color: "#fff",
-                            fontSize: "0.7rem",
-                            fontWeight: 700,
-                            padding: "2px 8px",
-                            borderRadius: 12,
-                          }}
-                        >
-                          {method.badge}
-                        </span>
-                      )}
                     </div>
                     <div style={{ fontSize: "0.8rem", color: "#6b7280", marginTop: 2 }}>{method.desc}</div>
                   </div>
