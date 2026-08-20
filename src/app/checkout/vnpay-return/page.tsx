@@ -71,7 +71,7 @@ function VNPayReturnContent() {
             {orderId && (
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
                 <span style={{ color: "#64748b" }}>Mã đơn hàng:</span>
-                <span style={{ fontWeight: 600, color: "#0f172a" }}>{orderId}</span>
+                <span style={{ fontWeight: 700, color: "#0b2545" }}>{orderId}</span>
               </div>
             )}
             {txnNo && (
@@ -80,9 +80,17 @@ function VNPayReturnContent() {
                 <span style={{ fontWeight: 600, color: "#0f172a" }}>{txnNo}</span>
               </div>
             )}
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+              <span style={{ color: "#64748b" }}>Trạng thái đơn hàng:</span>
+              <span style={{ fontWeight: 700, color: "#2563eb", background: "#dbeafe", padding: "2px 8px", borderRadius: 4 }}>
+                📦 Đang chuẩn bị
+              </span>
+            </div>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "#64748b" }}>Trạng thái xác nhận:</span>
-              <span style={{ fontWeight: 600, color: "#16a34a" }}>Đã tự động xác thực (Code 00)</span>
+              <span style={{ color: "#64748b" }}>Trạng thái thanh toán:</span>
+              <span style={{ fontWeight: 700, color: "#16a34a", background: "#dcfce7", padding: "2px 8px", borderRadius: 4 }}>
+                ✅ Đã thanh toán (Code 00)
+              </span>
             </div>
           </div>
         </>
