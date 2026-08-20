@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 import Header from "@/components/Header";
 import HeroSlider from "@/components/HeroSlider";
 import ServiceBanner from "@/components/ServiceBanner";
@@ -29,14 +30,14 @@ type HomeProps = {
 };
 
 export default async function Home({ searchParams }: HomeProps) {
-  const params = await searchParams;
+  const [params, session] = await Promise.all([searchParams, auth()]);
   const shouldShowCustomerPage =
     params?.authRequired === "true" ||
     params?.adminForbidden === "true" ||
     params?.view === "customer" ||
     Boolean(params?.next);
 
-  if (!shouldShowCustomerPage) {
+  if (!shouldShowCustomerPage && session?.user.role === "admin") {
     redirect("/admin");
   }
 
