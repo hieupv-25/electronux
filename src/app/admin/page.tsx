@@ -7,6 +7,13 @@ import {
   paymentStatusLabels,
   requestStatusLabels,
 } from "@/lib/admin-format";
+import {
+  analyticsMetrics,
+  formatAnalyticsValue,
+  getDashboardMetricTrends,
+  type AnalyticsMetric,
+  type AnalyticsPoint,
+} from "@/lib/admin-analytics";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +31,7 @@ async function getAdminDashboardData() {
       serviceRequestCount,
       pendingServiceRequestCount,
       revenueAggregate,
+      metricTrends,
       recentOrders,
       lowStockVariants,
       recentServiceRequests,
@@ -40,6 +48,7 @@ async function getAdminDashboardData() {
         where: { deletedAt: null, paymentStatus: "paid" },
         _sum: { totalAmount: true },
       }),
+      getDashboardMetricTrends(),
       prisma.order.findMany({
         where: { deletedAt: null },
         orderBy: { createdAt: "desc" },
@@ -129,6 +138,7 @@ async function getAdminDashboardData() {
         pendingServiceRequestCount,
         paidRevenue: revenueAggregate._sum.totalAmount,
       },
+      metricTrends,
       recentOrders,
       lowStockVariants,
       recentServiceRequests,
@@ -148,6 +158,13 @@ async function getAdminDashboardData() {
         pendingServiceRequestCount: 0,
         paidRevenue: 0,
       },
+      metricTrends: {
+        revenue: [],
+        orders: [],
+        products: [],
+        customers: [],
+        services: [],
+      },
       recentOrders: [],
       lowStockVariants: [],
       recentServiceRequests: [],
@@ -157,33 +174,80 @@ async function getAdminDashboardData() {
   }
 }
 
-function MetricCards({ data }: { data: AdminDashboardData["metrics"] }) {
+function MiniTrend({
+  points,
+  metric,
+}: {
+  points: AnalyticsPoint[];
+  metric: AnalyticsMetric;
+}) {
+  const maxValue = Math.max(...points.map((point) => point.value), 0);
+  const unit = analyticsMetrics[metric].unit;
+
+  return (
+    <div className="admin-metric-trend" aria-label={`Xu hướng ${analyticsMetrics[metric].shortLabel} 6 tháng gần nhất`}>
+      {points.map((point) => {
+        const height = maxValue > 0 ? Math.max(12, Math.round((point.value / maxValue) * 100)) : 12;
+
+        return (
+          <span className="admin-metric-trend__bar" key={point.key}>
+            <i
+              style={{
+                height: `${height}%`,
+                backgroundColor: analyticsMetrics[metric].accent,
+              }}
+            />
+            <small>{point.label}</small>
+            <b>{formatAnalyticsValue(point.value, unit)}</b>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+function MetricCards({
+  data,
+  trends,
+}: {
+  data: AdminDashboardData["metrics"];
+  trends: AdminDashboardData["metricTrends"];
+}) {
+  const currentDate = new Date();
+  const analyticsHref = (metric: AnalyticsMetric) =>
+    `/admin/analytics?metric=${metric}&period=month&year=${currentDate.getFullYear()}&month=${currentDate.getMonth() + 1}`;
+
   const metrics = [
     {
+      key: "revenue" as const,
       label: "Doanh thu đã thanh toán",
       value: formatCurrency(data.paidRevenue),
       note: "Tổng giá trị đơn hàng paid",
       accent: "revenue",
     },
     {
+      key: "orders" as const,
       label: "Đơn hàng",
       value: data.orderCount.toLocaleString("vi-VN"),
       note: `${data.pendingOrderCount} đơn chờ xử lý`,
       accent: "orders",
     },
     {
+      key: "products" as const,
       label: "Sản phẩm đang bán",
       value: data.activeProductCount.toLocaleString("vi-VN"),
       note: `${data.productCount} sản phẩm trong hệ thống`,
       accent: "products",
     },
     {
+      key: "customers" as const,
       label: "Khách hàng",
       value: data.customerCount.toLocaleString("vi-VN"),
       note: "Tài khoản customer đang hoạt động",
       accent: "customers",
     },
     {
+      key: "services" as const,
       label: "Yêu cầu dịch vụ",
       value: data.serviceRequestCount.toLocaleString("vi-VN"),
       note: `${data.pendingServiceRequestCount} yêu cầu mới`,
@@ -194,14 +258,19 @@ function MetricCards({ data }: { data: AdminDashboardData["metrics"] }) {
   return (
     <section className="admin-metrics" aria-label="Tổng quan hệ thống">
       {metrics.map((metric) => (
-        <article
+        <Link
           className={`admin-metric admin-metric--${metric.accent}`}
           key={metric.label}
+          href={analyticsHref(metric.key)}
         >
-          <span className="admin-metric__label">{metric.label}</span>
-          <strong className="admin-metric__value">{metric.value}</strong>
-          <span className="admin-metric__note">{metric.note}</span>
-        </article>
+          <span>
+            <span className="admin-metric__label">{metric.label}</span>
+            <strong className="admin-metric__value">{metric.value}</strong>
+            <span className="admin-metric__note">{metric.note}</span>
+          </span>
+          <MiniTrend points={trends[metric.key]} metric={metric.key} />
+          <span className="admin-metric__cta">Xem biểu đồ</span>
+        </Link>
       ))}
     </section>
   );
@@ -433,7 +502,7 @@ export default async function AdminPage() {
         </div>
       )}
 
-      <MetricCards data={data.metrics} />
+      <MetricCards data={data.metrics} trends={data.metricTrends} />
 
       <section className="admin-actions" aria-label="Thao tác nhanh">
         {[
