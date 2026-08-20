@@ -8,11 +8,13 @@ import {
   updateVariant,
 } from "@/app/admin/actions";
 import { AdminPageHeader, EmptyBlock, StatusBadge } from "@/components/admin/AdminUi";
+import type { ProductWhereInput } from "@/generated/prisma/models/Product";
 import { formatDate } from "@/lib/admin-format";
 import { prisma } from "@/lib/prisma";
-import type { ProductWhereInput } from "@/generated/prisma/models/Product";
 
 export const dynamic = "force-dynamic";
+
+const productPageSize = 10;
 
 type ProductSearchParams = Promise<
   Record<string, string | string[] | undefined>
@@ -23,6 +25,7 @@ type ProductFilters = {
   categoryId: string;
   status: string;
   stock: string;
+  page: number;
 };
 
 function getParam(
@@ -34,35 +37,42 @@ function getParam(
   return value ?? "";
 }
 
+function normalizePage(value: string) {
+  const page = Number(value);
+  return Number.isInteger(page) && page > 0 ? page : 1;
+}
+
 function buildProductWhere(filters: ProductFilters): ProductWhereInput {
   const andFilters: ProductWhereInput[] = [{ deletedAt: null }];
 
   if (filters.q) {
+    const stringFilter = {
+      contains: filters.q,
+      mode: "insensitive" as const,
+    };
+
     andFilters.push({
       OR: [
-        { name: { contains: filters.q, mode: "insensitive" } },
-        { slug: { contains: filters.q, mode: "insensitive" } },
-        { description: { contains: filters.q, mode: "insensitive" } },
+        { name: stringFilter },
+        { slug: stringFilter },
+        { description: stringFilter },
         {
           category: {
-            name: { contains: filters.q, mode: "insensitive" },
+            name: stringFilter,
           },
         },
         {
           brand: {
-            name: { contains: filters.q, mode: "insensitive" },
+            name: stringFilter,
           },
         },
         {
           variants: {
             some: {
               OR: [
-                { sku: { contains: filters.q, mode: "insensitive" } },
+                { sku: stringFilter },
                 {
-                  variantName: {
-                    contains: filters.q,
-                    mode: "insensitive",
-                  },
+                  variantName: stringFilter,
                 },
               ],
             },
@@ -99,14 +109,31 @@ function buildProductWhere(filters: ProductFilters): ProductWhereInput {
   return andFilters.length === 1 ? andFilters[0] : { AND: andFilters };
 }
 
+function buildProductsHref(filters: ProductFilters, page: number) {
+  const params = new URLSearchParams();
+
+  if (filters.q) params.set("q", filters.q);
+  if (filters.categoryId) params.set("categoryId", filters.categoryId);
+  if (filters.status) params.set("status", filters.status);
+  if (filters.stock) params.set("stock", filters.stock);
+  if (page > 1) params.set("page", String(page));
+
+  const query = params.toString();
+  return query ? `/admin/products?${query}` : "/admin/products";
+}
+
 async function getProductsData(filters: ProductFilters) {
   const where = buildProductWhere(filters);
+  const totalProducts = await prisma.product.count({ where });
+  const totalPages = Math.max(1, Math.ceil(totalProducts / productPageSize));
+  const currentPage = Math.min(filters.page, totalPages);
 
-  const [products, totalProducts, categories, brands] = await Promise.all([
+  const [products, categories, brands, summary] = await Promise.all([
     prisma.product.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      take: 80,
+      skip: (currentPage - 1) * productPageSize,
+      take: productPageSize,
       include: {
         category: {
           select: { id: true, name: true },
@@ -136,7 +163,6 @@ async function getProductsData(filters: ProductFilters) {
         },
       },
     }),
-    prisma.product.count({ where }),
     prisma.category.findMany({
       where: { deletedAt: null },
       orderBy: [{ order: "asc" }, { name: "asc" }],
@@ -146,9 +172,176 @@ async function getProductsData(filters: ProductFilters) {
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
+    Promise.all([
+      prisma.product.count({ where: { deletedAt: null } }),
+      prisma.product.count({ where: { deletedAt: null, isActive: true } }),
+      prisma.product.count({ where: { deletedAt: null, isActive: false } }),
+      prisma.product.count({
+        where: {
+          deletedAt: null,
+          variants: { some: { stockQuantity: { lte: 5 } } },
+        },
+      }),
+      prisma.product.count({
+        where: {
+          deletedAt: null,
+          variants: { some: { stockQuantity: 0 } },
+        },
+      }),
+    ]),
   ]);
 
-  return { products, totalProducts, categories, brands };
+  return {
+    products,
+    totalProducts,
+    totalPages,
+    currentPage,
+    categories,
+    brands,
+    summary: {
+      all: summary[0],
+      active: summary[1],
+      hidden: summary[2],
+      lowStock: summary[3],
+      outStock: summary[4],
+    },
+  };
+}
+
+function ProductFilterBar({
+  filters,
+  categories,
+}: {
+  filters: ProductFilters;
+  categories: Awaited<ReturnType<typeof getProductsData>>["categories"];
+}) {
+  return (
+    <section className="admin-panel admin-section-gap">
+      <form className="admin-filter-bar" method="get">
+        <label>
+          Tìm kiếm
+          <input
+            name="q"
+            defaultValue={filters.q}
+            placeholder="Tên sản phẩm, SKU, biến thể, hãng, danh mục..."
+          />
+        </label>
+        <label>
+          Danh mục
+          <select name="categoryId" defaultValue={filters.categoryId}>
+            <option value="">Tất cả danh mục</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Trạng thái
+          <select name="status" defaultValue={filters.status}>
+            <option value="">Tất cả</option>
+            <option value="active">Đang bán</option>
+            <option value="hidden">Tạm ẩn</option>
+          </select>
+        </label>
+        <label>
+          Tồn kho
+          <select name="stock" defaultValue={filters.stock}>
+            <option value="">Tất cả</option>
+            <option value="low">Sắp hết hàng</option>
+            <option value="out">Hết hàng</option>
+          </select>
+        </label>
+        <button className="admin-primary-button" type="submit">
+          Tìm kiếm
+        </button>
+        <Link className="admin-secondary-button" href="/admin/products">
+          Đặt lại
+        </Link>
+      </form>
+    </section>
+  );
+}
+
+function ProductSummary({
+  totalProducts,
+  summary,
+}: {
+  totalProducts: number;
+  summary: Awaited<ReturnType<typeof getProductsData>>["summary"];
+}) {
+  return (
+    <section className="admin-management-summary" aria-label="Tóm tắt sản phẩm">
+      <article>
+        <span>Kết quả đang xem</span>
+        <strong>{totalProducts.toLocaleString("vi-VN")}</strong>
+      </article>
+      <article>
+        <span>Tổng sản phẩm</span>
+        <strong>{summary.all.toLocaleString("vi-VN")}</strong>
+      </article>
+      <article>
+        <span>Đang bán</span>
+        <strong>{summary.active.toLocaleString("vi-VN")}</strong>
+      </article>
+      <article>
+        <span>Tạm ẩn</span>
+        <strong>{summary.hidden.toLocaleString("vi-VN")}</strong>
+      </article>
+      <article>
+        <span>Sắp hết hàng</span>
+        <strong>{summary.lowStock.toLocaleString("vi-VN")}</strong>
+      </article>
+      <article>
+        <span>Hết hàng</span>
+        <strong>{summary.outStock.toLocaleString("vi-VN")}</strong>
+      </article>
+    </section>
+  );
+}
+
+function ProductsPagination({
+  filters,
+  currentPage,
+  totalPages,
+}: {
+  filters: ProductFilters;
+  currentPage: number;
+  totalPages: number;
+}) {
+  if (totalPages <= 1) return null;
+
+  return (
+    <nav className="admin-pagination" aria-label="Phân trang sản phẩm">
+      <Link
+        className={
+          currentPage <= 1
+            ? "admin-pagination__link admin-pagination__link--disabled"
+            : "admin-pagination__link"
+        }
+        href={buildProductsHref(filters, Math.max(1, currentPage - 1))}
+        aria-disabled={currentPage <= 1}
+      >
+        Trước
+      </Link>
+      <span>
+        Trang {currentPage.toLocaleString("vi-VN")} /{" "}
+        {totalPages.toLocaleString("vi-VN")}
+      </span>
+      <Link
+        className={
+          currentPage >= totalPages
+            ? "admin-pagination__link admin-pagination__link--disabled"
+            : "admin-pagination__link"
+        }
+        href={buildProductsHref(filters, Math.min(totalPages, currentPage + 1))}
+        aria-disabled={currentPage >= totalPages}
+      >
+        Sau
+      </Link>
+    </nav>
+  );
 }
 
 export default async function AdminProductsPage({
@@ -157,14 +350,22 @@ export default async function AdminProductsPage({
   searchParams?: ProductSearchParams;
 }) {
   const params = await searchParams;
-  const filters = {
+  const filters: ProductFilters = {
     q: getParam(params, "q").trim(),
     categoryId: getParam(params, "categoryId"),
     status: getParam(params, "status"),
     stock: getParam(params, "stock"),
+    page: normalizePage(getParam(params, "page")),
   };
-  const { products, totalProducts, categories, brands } =
-    await getProductsData(filters);
+  const {
+    products,
+    totalProducts,
+    totalPages,
+    currentPage,
+    categories,
+    brands,
+    summary,
+  } = await getProductsData(filters);
   const isFiltering =
     Boolean(filters.q) ||
     Boolean(filters.categoryId) ||
@@ -184,51 +385,8 @@ export default async function AdminProductsPage({
         }
       />
 
-      <section className="admin-panel admin-section-gap">
-        <form className="admin-filter-bar" method="get">
-          <label>
-            Tìm kiếm
-            <input
-              name="q"
-              defaultValue={filters.q}
-              placeholder="Tên sản phẩm, SKU, biến thể, hãng, danh mục..."
-            />
-          </label>
-          <label>
-            Danh mục
-            <select name="categoryId" defaultValue={filters.categoryId}>
-              <option value="">Tất cả danh mục</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Trạng thái
-            <select name="status" defaultValue={filters.status}>
-              <option value="">Tất cả</option>
-              <option value="active">Đang bán</option>
-              <option value="hidden">Tạm ẩn</option>
-            </select>
-          </label>
-          <label>
-            Tồn kho
-            <select name="stock" defaultValue={filters.stock}>
-              <option value="">Tất cả</option>
-              <option value="low">Sắp hết hàng</option>
-              <option value="out">Hết hàng</option>
-            </select>
-          </label>
-          <button className="admin-primary-button" type="submit">
-            Tìm / lọc
-          </button>
-          <Link className="admin-secondary-button" href="/admin/products">
-            Xóa lọc
-          </Link>
-        </form>
-      </section>
+      <ProductFilterBar filters={filters} categories={categories} />
+      <ProductSummary totalProducts={totalProducts} summary={summary} />
 
       <section className="admin-form-grid">
         <form action={createProduct} className="admin-form-card admin-form-card--wide">
@@ -357,14 +515,14 @@ export default async function AdminProductsPage({
         </form>
       </section>
 
-      <section className="admin-records">
+      <section className="admin-records admin-compact-list">
         <div className="admin-panel__header admin-panel__header--loose">
           <div>
             <p className="admin-eyebrow">Danh sách</p>
             <h2>
               {isFiltering
                 ? `${totalProducts} kết quả phù hợp`
-                : `${totalProducts} sản phẩm gần nhất`}
+                : `${totalProducts} sản phẩm đang quản lý`}
             </h2>
           </div>
         </div>
@@ -375,30 +533,52 @@ export default async function AdminProductsPage({
               : "Chưa có sản phẩm nào trong hệ thống."}
           </EmptyBlock>
         ) : (
-          products.map((product) => {
+          products.map((product, index) => {
             const stock = product.variants.reduce(
               (total, variant) => total + variant.stockQuantity,
               0
             );
+            const primarySku = product.variants[0]?.sku ?? "Chưa có SKU";
 
             return (
-              <article className="admin-record-card" key={product.id}>
-                <div className="admin-record-card__header">
-                  <div>
+              <details
+                className="admin-record-card admin-compact-row admin-product-row"
+                key={product.id}
+                open={products.length === 1 && index === 0}
+              >
+                <summary className="admin-compact-row__summary">
+                  <div className="admin-compact-row__main">
                     <p className="admin-eyebrow">
                       {product.category.name}
                       {product.brand ? ` - ${product.brand.name}` : ""}
                     </p>
                     <h3>{product.name}</h3>
+                    <span>Tạo ngày {formatDate(product.createdAt)} - {primarySku}</span>
+                  </div>
+                  <div className="admin-compact-row__meta">
                     <span>
-                      Tạo ngày {formatDate(product.createdAt)} - {product.variants.length} SKU - {stock} tồn kho
+                      <small>SKU</small>
+                      <strong>{product.variants.length}</strong>
+                    </span>
+                    <span>
+                      <small>Tồn kho</small>
+                      <strong>{stock}</strong>
+                    </span>
+                    <span>
+                      <small>Ảnh / đánh giá</small>
+                      <strong>
+                        {product.images.length} / {product._count.reviews}
+                      </strong>
                     </span>
                   </div>
-                  <StatusBadge
-                    value={product.isActive ? "completed" : "cancelled"}
-                    labels={{ completed: "Đang bán", cancelled: "Tạm ẩn" }}
-                  />
-                </div>
+                  <div className="admin-status-stack">
+                    <StatusBadge
+                      value={product.isActive ? "completed" : "cancelled"}
+                      labels={{ completed: "Đang bán", cancelled: "Tạm ẩn" }}
+                    />
+                    <span className="admin-compact-row__hint">Chi tiết</span>
+                  </div>
+                </summary>
 
                 <div className="admin-record-card__body">
                   <div className="admin-mini-stats">
@@ -508,11 +688,17 @@ export default async function AdminProductsPage({
                     </form>
                   </div>
                 </div>
-              </article>
+              </details>
             );
           })
         )}
       </section>
+
+      <ProductsPagination
+        filters={filters}
+        currentPage={currentPage}
+        totalPages={totalPages}
+      />
     </>
   );
 }
