@@ -233,30 +233,8 @@ export default function CheckoutModal({
           return;
         }
 
-        // Generate QR Code
-        const qrRes = await fetch("/api/checkout/vnpay-qr", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ paymentUrl: createData.paymentUrl }),
-        });
-
-        const qrJson = await qrRes.json();
-        if (!qrRes.ok || !qrJson.success || !qrJson.qrDataUrl) {
-          window.location.assign(createData.paymentUrl);
-          return;
-        }
-
-        const newQrData: VNPayQRData = {
-          orderId: createData.orderId,
-          trackingNumber: createData.trackingNumber,
-          paymentUrl: createData.paymentUrl,
-          qrDataUrl: qrJson.qrDataUrl,
-          amount: totalAmount,
-        };
-        setVnpayData(newQrData);
-        setPollingStatus("waiting");
-        setStep("vnpay_qr");
-        startPolling(createData.orderId, "/api/checkout/vnpay-status", "VNPAY");
+        // Chuyển hướng trực tiếp sang Cổng VNPAY chuẩn như các website thương mại điện tử thật
+        window.location.href = createData.paymentUrl;
         return;
       }
 
@@ -827,7 +805,7 @@ export default function CheckoutModal({
             </div>
 
             {/* Action Buttons */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <button
                 type="button"
                 onClick={handleCancelQR}
@@ -955,11 +933,11 @@ export default function CheckoutModal({
                 rel="noopener noreferrer"
                 style={{
                   display: "block",
-                  padding: "12px 16px",
+                  padding: "10px 16px",
                   background: "#f0f4f8",
                   color: "#001e38",
                   borderRadius: 8,
-                  fontSize: "0.9rem",
+                  fontSize: "0.85rem",
                   fontWeight: 600,
                   textDecoration: "none",
                   textAlign: "center",
@@ -1029,6 +1007,20 @@ export default function CheckoutModal({
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                 <span style={{ fontSize: "0.875rem", color: "#374151" }}>Mã đơn hàng:</span>
                 <strong style={{ fontSize: "0.95rem", color: "#065f46" }}>{orderResult.trackingNumber}</strong>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: "0.875rem", color: "#374151" }}>Trạng thái đơn hàng:</span>
+                <span style={{ fontSize: "0.875rem", fontWeight: 700, color: "#2563eb", background: "#dbeafe", padding: "2px 8px", borderRadius: 4 }}>
+                  📦 Đang chuẩn bị
+                </span>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: "0.875rem", color: "#374151" }}>Trạng thái thanh toán:</span>
+                <span style={{ fontSize: "0.875rem", fontWeight: 700, color: "#16a34a", background: "#dcfce7", padding: "2px 8px", borderRadius: 4 }}>
+                  ✅ Đã thanh toán
+                </span>
               </div>
 
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
