@@ -4,16 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { buildVNPayUrl } from "@/lib/vnpay";
 import { PaymentMethod } from "@/generated/prisma/enums";
 import { validateCouponCode } from "@/lib/coupons";
-
-type CheckoutItemPayload = {
-  variantId?: string;
-  variant?: {
-    id?: string;
-    price?: number | string;
-  };
-  quantity?: number | string;
-  price?: number | string;
-};
+import {
+  assertCheckoutItemsInStock,
+  CheckoutStockError,
+  getCheckoutItemsTotal,
+  getUserCartCheckoutItems,
+  toOrderItemsCreateData,
+} from "@/lib/checkoutStock";
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,10 +32,12 @@ export async function POST(req: NextRequest) {
       totalAmount = 0,
       couponCode,
       couponBaseAmount,
-      items = [],
     } = body;
 
-    const baseAmount = Math.max(0, Number(couponBaseAmount ?? totalAmount) || 0);
+    const checkoutItems = await getUserCartCheckoutItems(userId);
+    assertCheckoutItemsInStock(checkoutItems);
+    const cartAmount = getCheckoutItemsTotal(checkoutItems);
+    const baseAmount = Math.max(0, Number(couponBaseAmount ?? cartAmount) || cartAmount);
     const couponValidation = await validateCouponCode({
       code: couponCode,
       subtotal: baseAmount,
@@ -54,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     const amount = couponValidation.code
       ? couponValidation.finalAmount
-      : Math.max(0, Number(totalAmount) || 0);
+      : Math.max(0, Number(totalAmount) || cartAmount);
     if (!amount || amount <= 0) {
       return NextResponse.json(
         { success: false, message: "Số tiền thanh toán không hợp lệ" },
@@ -63,26 +62,6 @@ export async function POST(req: NextRequest) {
     }
 
     const trackingNumber = "ELX-VNP-" + Math.floor(100000 + Math.random() * 900000);
-
-    // Get a default variantId from DB if items missing valid variantId
-    const firstVariant = await prisma.productVariant.findFirst({ select: { id: true, price: true } });
-    const defaultVariantId = firstVariant?.id;
-
-    // Prepare OrderItem data
-    const checkoutItems = Array.isArray(items) ? (items as CheckoutItemPayload[]) : [];
-    const orderItemsData = checkoutItems.reduce<{ variantId: string; quantity: number; price: number }[]>(
-      (acc, item) => {
-        const variantId = item.variantId || item.variant?.id || defaultVariantId;
-        if (!variantId) return acc;
-        acc.push({
-          variantId,
-          quantity: Number(item.quantity) || 1,
-          price: Number(item.price || item.variant?.price || firstVariant?.price || 1000000),
-        });
-        return acc;
-      },
-      []
-    );
 
     // Create Order in DB with status pending & paymentStatus unpaid
     const order = await prisma.order.create({
@@ -103,15 +82,11 @@ export async function POST(req: NextRequest) {
             status: "unpaid",
           },
         },
-        ...(orderItemsData.length > 0
-          ? {
-              items: {
-                createMany: {
-                  data: orderItemsData,
-                },
-              },
-            }
-          : {}),
+        items: {
+          createMany: {
+            data: toOrderItemsCreateData(checkoutItems),
+          },
+        },
       },
       select: {
         id: true,
@@ -139,6 +114,13 @@ export async function POST(req: NextRequest) {
       trackingNumber: order.trackingNumber,
     });
   } catch (error) {
+    if (error instanceof CheckoutStockError) {
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: error.status }
+      );
+    }
+
     console.error("VNPay Create error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi khởi tạo thanh toán VNPay" },

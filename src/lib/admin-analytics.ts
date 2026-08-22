@@ -1,6 +1,12 @@
 import { prisma } from "@/lib/prisma";
 
-export type AnalyticsMetric = "revenue" | "orders" | "products" | "customers" | "services";
+export type AnalyticsMetric =
+  | "revenue"
+  | "orders"
+  | "products"
+  | "bestSellers"
+  | "customers"
+  | "services";
 export type AnalyticsPeriod = "month" | "year";
 export type AnalyticsUnit = "currency" | "count";
 
@@ -40,6 +46,13 @@ export const analyticsMetrics: Record<
     description: "Số sản phẩm được thêm vào hệ thống trong khoảng thời gian đã chọn.",
     unit: "count",
     accent: "#2563eb",
+  },
+  bestSellers: {
+    label: "Sản phẩm bán chạy",
+    shortLabel: "Bán chạy",
+    description: "Top sản phẩm có số lượng bán ra cao nhất trong khoảng thời gian đã chọn.",
+    unit: "count",
+    accent: "#0891b2",
   },
   customers: {
     label: "Khách hàng mới",
@@ -214,6 +227,10 @@ async function fillMetricPoints({
     return;
   }
 
+  if (metric === "bestSellers") {
+    return;
+  }
+
   const services = await prisma.warrantyAppointment.findMany({
     where: {
       createdAt: { gte: start, lt: end },
@@ -269,11 +286,77 @@ async function getMetricTotal(metric: AnalyticsMetric, start: Date, end: Date) {
     });
   }
 
+  if (metric === "bestSellers") {
+    const aggregate = await prisma.orderItem.aggregate({
+      where: {
+        order: {
+          deletedAt: null,
+          paymentStatus: "paid",
+          createdAt: { gte: start, lt: end },
+        },
+      },
+      _sum: { quantity: true },
+    });
+
+    return aggregate._sum.quantity ?? 0;
+  }
+
   return prisma.warrantyAppointment.count({
     where: {
       createdAt: { gte: start, lt: end },
     },
   });
+}
+
+async function getBestSellerPoints(start: Date, end: Date): Promise<AnalyticsPoint[]> {
+  const items = await prisma.orderItem.findMany({
+    where: {
+      order: {
+        deletedAt: null,
+        paymentStatus: "paid",
+        createdAt: { gte: start, lt: end },
+      },
+      variant: {
+        product: {
+          deletedAt: null,
+        },
+      },
+    },
+    select: {
+      quantity: true,
+      variantId: true,
+      variant: {
+        select: {
+          sku: true,
+          product: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const totals = new Map<string, AnalyticsPoint>();
+
+  for (const item of items) {
+    const label = `${item.variant.product.name} (${item.variant.sku})`;
+    const current =
+      totals.get(item.variantId) ??
+      ({
+        key: item.variantId,
+        label,
+        value: 0,
+      } satisfies AnalyticsPoint);
+
+    current.value += item.quantity;
+    totals.set(item.variantId, current);
+  }
+
+  return Array.from(totals.values())
+    .sort((left, right) => right.value - left.value || left.label.localeCompare(right.label, "vi"))
+    .slice(0, 10);
 }
 
 export async function getAdminAnalyticsData({
@@ -289,9 +372,15 @@ export async function getAdminAnalyticsData({
 }) {
   const { start, end } = getRange(period, year, month);
   const previous = getPreviousRange(period, year, month);
-  const points = createPoints(period, year, month);
+  const points =
+    metric === "bestSellers"
+      ? await getBestSellerPoints(start, end)
+      : createPoints(period, year, month);
 
-  await fillMetricPoints({ metric, period, start, end, points });
+  if (metric !== "bestSellers") {
+    await fillMetricPoints({ metric, period, start, end, points });
+  }
+
   const [total, previousTotal] = await Promise.all([
     getMetricTotal(metric, start, end),
     getMetricTotal(metric, previous.start, previous.end),
@@ -349,6 +438,7 @@ export async function getDashboardMetricTrends(length = 6) {
     revenue: createSeries(),
     orders: createSeries(),
     products: createSeries(),
+    bestSellers: createSeries(),
     customers: createSeries(),
     services: createSeries(),
   };
@@ -363,6 +453,7 @@ export async function getDashboardMetricTrends(length = 6) {
         createdAt: true,
         paymentStatus: true,
         totalAmount: true,
+        items: { select: { quantity: true } },
       },
     }),
     prisma.user.findMany({
@@ -397,6 +488,10 @@ export async function getDashboardMetricTrends(length = 6) {
     trends.orders[index].value += 1;
     if (order.paymentStatus === "paid") {
       trends.revenue[index].value += Number(order.totalAmount);
+      trends.bestSellers[index].value += order.items.reduce(
+        (total, item) => total + item.quantity,
+        0,
+      );
     }
   }
 

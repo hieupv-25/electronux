@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   try {
     // Map tab type to OrderStatus or PaymentStatus filters
-    let whereClause: any = {
+    const whereClause: Prisma.OrderWhereInput = {
       userId: session.user.id,
       deletedAt: null,
       paymentStatus: "paid",

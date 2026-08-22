@@ -12,6 +12,18 @@ export interface BankInfo {
   shortName: string;
 }
 
+type VietQRTemplate = NonNullable<VietQRConfig["template"]>;
+
+const vietQRTemplates = ["compact2", "compact", "qr_only", "print"] as const satisfies readonly VietQRTemplate[];
+
+function isVietQRTemplate(value?: string): value is VietQRTemplate {
+  return typeof value === "string" && (vietQRTemplates as readonly string[]).includes(value);
+}
+
+function getVietQRTemplate(value?: string): VietQRTemplate {
+  return isVietQRTemplate(value) ? value : "compact2";
+}
+
 export const POPULAR_BANKS: BankInfo[] = [
   { id: "MB", code: "MBBank", name: "Ngân hàng TMCP Quân Đội", shortName: "MB Bank" },
   { id: "VCB", code: "Vietcombank", name: "Ngân hàng TMCP Ngoại Thương Việt Nam", shortName: "Vietcombank" },
@@ -28,7 +40,7 @@ export function getVietQRConfig(): VietQRConfig {
     bankId: process.env.VIETQR_BANK_ID || "MB",
     accountNo: process.env.VIETQR_ACCOUNT_NO || "0388889999",
     accountName: process.env.VIETQR_ACCOUNT_NAME || "ELECTROLUX VIETNAM",
-    template: (process.env.VIETQR_TEMPLATE as any) || "compact2",
+    template: getVietQRTemplate(process.env.VIETQR_TEMPLATE),
   };
 }
 

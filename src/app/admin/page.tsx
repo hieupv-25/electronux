@@ -162,6 +162,7 @@ async function getAdminDashboardData() {
         revenue: [],
         orders: [],
         products: [],
+        bestSellers: [],
         customers: [],
         services: [],
       },

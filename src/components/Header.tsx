@@ -346,9 +346,7 @@ export default function Header({ navItems }: HeaderProps) {
       clearTimeout(leaveTimer.current);
     }
 
-    if (megaMenu[item]) {
-      setActiveNav(item);
-    }
+    setActiveNav(item);
   };
 
   const handleNavLeave = () => {
@@ -401,7 +399,7 @@ export default function Header({ navItems }: HeaderProps) {
         style={{
           background: "var(--elx-navy)",
           color: "#fff",
-          fontSize: "1.075rem",
+          fontSize: "0.95rem",
         }}
       >
         <div
@@ -412,7 +410,7 @@ export default function Header({ navItems }: HeaderProps) {
             display: "flex",
             alignItems: "center",
             justifyContent: "flex-end",
-            height: 40,
+            height: 32,
           }}
         >
           <a
@@ -456,7 +454,7 @@ export default function Header({ navItems }: HeaderProps) {
             alignItems: "center",
             justifyContent:
               "space-between",
-            height: 85,
+            height: 72,
           }}
         >
           {/* ==================================================
@@ -511,7 +509,7 @@ export default function Header({ navItems }: HeaderProps) {
             </button>
 
             <Link href="/" style={{ display: "flex", alignItems: "center" }}>
-              <Image src="/electrolux_logo.svg" alt="Electrolux Vietnam" width={156} height={38} style={{ height: "auto" }} priority />
+              <Image src="/electrolux_logo.svg" alt="Electrolux Vietnam" width={144} height={35} style={{ height: "auto" }} priority />
             </Link>
           </div>
 
@@ -530,7 +528,7 @@ export default function Header({ navItems }: HeaderProps) {
                 background: "#f4f6f8",
                 borderRadius: 8,
                 padding: "0 16px",
-                height: 48,
+                height: 44,
                 gap: 10,
                 margin: "0 16px",
               }}
@@ -572,7 +570,7 @@ export default function Header({ navItems }: HeaderProps) {
                   flex: 1,
                   border: "none",
                   outline: "none",
-                  fontSize: "1.2rem",
+                  fontSize: "1.05rem",
                   color:
                     "var(--elx-navy)",
                   background:
@@ -641,10 +639,10 @@ export default function Header({ navItems }: HeaderProps) {
                     }
                     style={{
                       padding:
-                        "24px 25px",
+                        "20px 18px",
                       fontWeight: 600,
                       fontSize:
-                        "1.18rem",
+                        "1.05rem",
                       color:
                         "var(--elx-navy)",
                       position:
@@ -675,7 +673,7 @@ export default function Header({ navItems }: HeaderProps) {
             className="header-icons"
             style={{
               display: "flex",
-              gap: 18,
+              gap: 14,
               alignItems: "center",
               flexShrink: 0,
             }}
@@ -714,8 +712,8 @@ export default function Header({ navItems }: HeaderProps) {
                 </svg>
               ) : (
                 <svg
-                  width="27"
-                  height="27"
+                  width="25"
+                  height="25"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="var(--elx-navy)"
@@ -745,8 +743,8 @@ export default function Header({ navItems }: HeaderProps) {
               }}
             >
               <svg
-                width="27"
-                height="27"
+                width="25"
+                height="25"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="var(--elx-navy)"
@@ -891,8 +889,8 @@ export default function Header({ navItems }: HeaderProps) {
                 }}
               >
                 <svg
-                  width="27"
-                  height="27"
+                  width="25"
+                  height="25"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="var(--elx-navy)"
@@ -914,7 +912,7 @@ export default function Header({ navItems }: HeaderProps) {
               onClick={openCart}
               style={{ background: "none", border: "none", cursor: "pointer", position: "relative" }}
             >
-              <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2">
+              <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="var(--elx-navy)" strokeWidth="2">
                 <circle cx="9" cy="21" r="1" />
                 <circle cx="20" cy="21" r="1" />
                 <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
@@ -955,7 +953,7 @@ export default function Header({ navItems }: HeaderProps) {
                 color:
                   "var(--elx-navy)",
                 fontWeight: 600,
-                fontSize: "1.15rem",
+                fontSize: "1.02rem",
                 borderLeft:
                   "1px solid var(--elx-border)",
                 paddingLeft: 16,

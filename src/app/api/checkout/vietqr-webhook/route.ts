@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { PaymentMethod } from "@/generated/prisma/enums";
+import { CheckoutStockError, markOrderPaidAndDecrementStock } from "@/lib/checkoutStock";
 
 /**
  * Universal Webhook for receiving bank transaction notifications (SePay, payOS, Casso, etc.)
@@ -56,40 +58,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (order.paymentStatus !== "paid") {
-      await prisma.$transaction([
-        prisma.order.update({
-          where: { id: order.id },
-          data: {
-            status: "processing",
-            paymentStatus: "paid",
-            payment: {
-              update: {
-                status: "paid",
-                transactionId: body.id ? String(body.id) : "AUTO-WEBHOOK-" + Date.now(),
-                paidAt: new Date(),
-              },
-            },
-          },
-        }),
-        ...(order.couponId
-          ? [
-              prisma.coupon.update({
-                where: { id: order.couponId },
-                data: { usedCount: { increment: 1 } },
-              }),
-            ]
-          : []),
-      ]);
+    if (amount > 0 && amount < Number(order.totalAmount)) {
+      return NextResponse.json(
+        { success: false, message: "Transfer amount is lower than order total" },
+        { status: 200 }
+      );
     }
 
-    // Clear cart if user exists
-    if (order.userId) {
-      const userCart = await prisma.cart.findFirst({ where: { userId: order.userId } });
-      if (userCart) {
-        await prisma.cartItem.deleteMany({ where: { cartId: userCart.id } });
-      }
-    }
+    await markOrderPaidAndDecrementStock({
+      orderId: order.id,
+      transactionId: body.id ? String(body.id) : "AUTO-WEBHOOK-" + Date.now(),
+      gatewayResponse: body,
+      paymentMethod: PaymentMethod.banking,
+    });
 
     return NextResponse.json({
       success: true,
@@ -97,6 +78,10 @@ export async function POST(req: NextRequest) {
       orderId: order.id,
     });
   } catch (error) {
+    if (error instanceof CheckoutStockError) {
+      return NextResponse.json({ success: false, message: error.message }, { status: 200 });
+    }
+
     console.error("VietQR Webhook error:", error);
     return NextResponse.json(
       { success: false, message: "Webhook processing error" },

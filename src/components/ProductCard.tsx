@@ -12,11 +12,13 @@ import { ALL_CATEGORIES } from "@/lib/getCategoryData";
 type ProductCardProps = {
   product: CategoryProduct;
   categorySlug?: string;
+  hideFeatures?: boolean;
 };
 
 export default function ProductCard({
   product,
   categorySlug,
+  hideFeatures = false,
 }: ProductCardProps) {
   // Infer the correct category slug if not passed or if default
   let resolvedCategorySlug = categorySlug;
@@ -39,7 +41,8 @@ export default function ProductCard({
   const targetVariantId = product.variantId ?? product.id;
 
   const isAddingThis = adding === targetVariantId;
-  const canAddToCart = Boolean(targetVariantId);
+  const inStock = product.stockQuantity === undefined || product.stockQuantity > 0;
+  const canAddToCart = Boolean(targetVariantId) && inStock;
   const saved = isSaved(product.id);
 
   const handleWishlistClick = () => {
@@ -89,10 +92,6 @@ export default function ProductCard({
             width={280}
             height={280}
             className="plp-card__img"
-            style={{
-              width: "100%",
-              height: "auto",
-            }}
           />
         </Link>
 
@@ -102,7 +101,7 @@ export default function ProductCard({
           <Link href={detailHref}>{product.name}</Link>
         </h2>
 
-        {product.features.length > 0 && (
+        {!hideFeatures && product.features.length > 0 && (
           <ul className="plp-card__features">
             {product.features.map((feature) => (
               <li key={feature}>{feature}</li>
@@ -168,7 +167,9 @@ export default function ProductCard({
             }
             disabled={isAddingThis || !canAddToCart}
             title={
-              canAddToCart
+              !inStock
+                ? "Sản phẩm đang tạm hết hàng"
+                : canAddToCart
                 ? undefined
                 : "Sản phẩm này chưa thể thêm vào giỏ"
             }
@@ -182,7 +183,7 @@ export default function ProductCard({
                 isAddingThis || !canAddToCart ? 0.7 : 1,
             }}
           >
-            {isAddingThis ? "Đang thêm..." : "Thêm vào giỏ"}
+            {isAddingThis ? "Đang thêm..." : inStock ? "Thêm vào giỏ" : "Tạm hết hàng"}
           </button>
 
           <Link

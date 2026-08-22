@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { promoBento } from "@/data/siteData";
 
 export default function PromoBentoGrid() {
@@ -9,7 +10,7 @@ export default function PromoBentoGrid() {
             {/* ── Hàng 1: ảnh + thẻ chữ nền tối, dính liền nhau, không gap ── */}
             <div className="promo-bento__row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
                 <div style={{ position: "relative", overflow: "hidden" }}>
-                    <a href="/thiet-bi/may-giat" style={{ display: "block" }}>
+                    <Link href="/thiet-bi/may-giat" style={{ display: "block" }}>
                         <Image
                             src={row1.image.img}
                             alt={row1.image.alt}
@@ -17,7 +18,7 @@ export default function PromoBentoGrid() {
                             height={680}
                             style={{ width: "100%", height: 340, objectFit: "cover", cursor: "pointer" }}
                         />
-                    </a>
+                    </Link>
                 </div>
                 <div className="promo-bento__dark-card">
                     <h3>{row1.dark.title}</h3>

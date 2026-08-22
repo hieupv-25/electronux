@@ -6,22 +6,18 @@ import Breadcrumb from "@/components/Breadcrumb";
 import CategoryHero from "@/components/CategoryHero";
 import CategoryListing from "@/components/category/CategoryListing";
 import Footer from "@/components/Footer";
-import { getCategoryBySlug, ALL_CATEGORIES } from "@/lib/getCategoryData";
+import { getCategoryPageData } from "@/lib/catalogDb";
 import { navItems, services, footerSections } from "@/data/siteData";
 
 interface PageProps {
   params: Promise<{ categorySlug: string }>;
 }
 
-export async function generateStaticParams() {
-  return ALL_CATEGORIES.map((cat) => ({
-    categorySlug: cat.slug,
-  }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { categorySlug } = await params;
-  const category = getCategoryBySlug(categorySlug);
+  const category = await getCategoryPageData(categorySlug);
   if (!category) return { title: "Danh mục không tồn tại | Electrolux Việt Nam" };
   return {
     title: `${category.title}`,
@@ -31,7 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function CategoryPage({ params }: PageProps) {
   const { categorySlug } = await params;
-  const category = getCategoryBySlug(categorySlug);
+  const category = await getCategoryPageData(categorySlug);
 
   if (!category) {
     notFound();

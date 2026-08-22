@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchCatalog } from "@/lib/catalogSearch";
+import { searchCatalogFromDatabase } from "@/lib/catalogDb";
 
 export async function GET(request: NextRequest) {
   const query = request.nextUrl.searchParams.get("q")?.trim() ?? "";
@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
 
   if (query.length < 2) return NextResponse.json({ query, results: [] });
 
-  const results = searchCatalog(query, limit).map(({ categorySlug, categoryName, product }) => ({
+  const results = (await searchCatalogFromDatabase(query, limit)).map(({ categorySlug, categoryName, product }) => ({
     id: product.id,
     name: product.name,
     sku: product.sku,

@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 
 type HeroSlide = {
@@ -37,22 +38,25 @@ export default function HeroSlider({ slides, intervalMs = 5000 }: HeroSliderProp
       >
         {slides.map((s, i) => (
           <div className="hero-slider__slide" key={i}>
+            <Link href={s.href} className="hero-slider__slide-link" aria-label={s.title} />
             <Image
               src={s.img}
               alt={s.title}
-              width={1920}
-              height={500}
-              style={{ width: "100%", objectFit: "cover" }}
+              fill
+              sizes="100vw"
+              quality={100}
+              className="hero-slider__image"
               priority={i === 0}
+              unoptimized
             />
             <div className="hero-slider__overlay" />
             <div className="hero-slider__content">
               <h1 style={{ whiteSpace: "pre-line" }}>{s.title}</h1>
               <p>{s.desc}</p>
               <div>
-                <a href={s.href} className="cta-btn cta-btn--white">
+                <Link href={s.href} className="cta-btn cta-btn--white">
                   {s.cta}
-                </a>
+                </Link>
               </div>
             </div>
           </div>

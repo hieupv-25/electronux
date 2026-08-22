@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { randomUUID } from "node:crypto";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { maintenanceServiceFallback } from "@/data/maintenanceServices";
-import {
-  ALL_CATEGORIES,
-  findProductByIdOrVariant,
-  decrementProductStock,
-  incrementProductStock,
-} from "@/lib/getCategoryData";
+import { ALL_CATEGORIES } from "@/lib/getCategoryData";
 
 export type CartVariantSnapshot = {
   id: string;
@@ -263,7 +257,7 @@ function getMemoryCart(key: string): MemoryCartItem[] {
 // GET CART
 // ============================================================
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await auth();
 
@@ -472,13 +466,18 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-
     const userId = session?.user?.id;
 
-    const cartKey = getSessionKey(
-      userId,
-      "guest-session"
-    );
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.",
+          authRequired: true,
+        },
+        { status: 401 }
+      );
+    }
 
     const body = (await req.json()) as {
       variantId?: string;
@@ -501,281 +500,75 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const qtyNum = Number(quantity) || 1;
+    const qtyNum = Math.max(1, Number(quantity) || 1);
 
-    // ========================================================
-    // Decrement stock in memory catalog
-    // ========================================================
+    const variant = await prisma.productVariant.findFirst({
+      where: {
+        OR: [{ id: variantId }, { productId: variantId }, { sku: variantId }],
+        isActive: true,
+        product: {
+          isActive: true,
+          deletedAt: null,
+        },
+      },
+      select: {
+        id: true,
+        stockQuantity: true,
+        product: { select: { name: true } },
+      },
+    });
 
-    const remainingStock =
-      decrementProductStock(
-        variantId,
-        qtyNum
-      );
-
-    // ========================================================
-    // Try DB update if logged in
-    // ========================================================
-
-    if (userId) {
-      try {
-        let cart =
-          await prisma.cart.findFirst({
-            where: {
-              userId,
-            },
-          });
-
-        if (!cart) {
-          cart =
-            await prisma.cart.create({
-              data: {
-                userId,
-              },
-            });
-        }
-
-        const existingItem =
-          await prisma.cartItem.findUnique({
-            where: {
-              cartId_variantId: {
-                cartId: cart.id,
-                variantId,
-              },
-            },
-          });
-
-        if (existingItem) {
-          await prisma.cartItem.update({
-            where: {
-              id: existingItem.id,
-            },
-
-            data: {
-              quantity:
-                existingItem.quantity +
-                qtyNum,
-            },
-          });
-        } else {
-          await prisma.cartItem.create({
-            data: {
-              cartId: cart.id,
-              variantId,
-              quantity: qtyNum,
-            },
-          });
-        }
-
-        // ====================================================
-        // Try DB stock decrement
-        // ====================================================
-
-        await prisma.productVariant
-          .updateMany({
-            where: {
-              OR: [
-                {
-                  id: variantId,
-                },
-                {
-                  productId: variantId,
-                },
-              ],
-            },
-
-            data: {
-              stockQuantity: {
-                decrement: qtyNum,
-              },
-            },
-          })
-          .catch(() => {});
-      } catch (e) {
-        console.warn(
-          "DB insert failed, using memory store for cart item:",
-          e
-        );
-      }
-    }
-
-    // ========================================================
-    // Dynamic lookup for DEMO_PRODUCTS
-    // ========================================================
-
-    if (!DEMO_PRODUCTS[variantId]) {
-      const catProd =
-        findProductByIdOrVariant(
-          variantId
-        );
-
-      if (catProd) {
-        const discountPct =
-          catProd.oldPrice > catProd.price
-            ? Math.round(
-                ((catProd.oldPrice -
-                  catProd.price) /
-                  catProd.oldPrice) *
-                  100
-              )
-            : 0;
-
-        DEMO_PRODUCTS[variantId] = {
-          id: variantId,
-
-          productId: catProd.id,
-
-          sku: catProd.sku,
-
-          variantName: catProd.sku,
-
-          price: catProd.price,
-
-          originalPrice:
-            catProd.oldPrice ||
-            catProd.price,
-
-          discountPercentage:
-            discountPct,
-
-          stockQuantity:
-            catProd.stockQuantity ??
-            10,
-
-          product: {
-            id: catProd.id,
-
-            name: catProd.name,
-
-            slug: catProd.slug,
-
-            images: [
-              {
-                id: "img-" + catProd.id,
-                url: catProd.img,
-              },
-            ],
-
-            freeShipping:
-              catProd.freeShipping ??
-              true,
-
-            freeInstallation:
-              catProd.freeInstallation ??
-              true,
-
-            installment0Percent:
-              catProd.installment0Percent ??
-              true,
-          },
-        };
-      }
-    }
-
-    // ========================================================
-    // Decrement stock in DEMO_PRODUCTS
-    // ========================================================
-
-    if (DEMO_PRODUCTS[variantId]) {
-      DEMO_PRODUCTS[
-        variantId
-      ].stockQuantity = Math.max(
-        0,
-        DEMO_PRODUCTS[variantId]
-          .stockQuantity - qtyNum
+    if (!variant) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Sản phẩm này chưa thể thêm vào giỏ hàng.",
+        },
+        { status: 404 }
       );
     }
 
-    // ========================================================
-    // Always update memory store
-    // ========================================================
+    let cart = await prisma.cart.findFirst({ where: { userId } });
 
-    const memCart =
-      getMemoryCart(cartKey);
+    if (!cart) {
+      cart = await prisma.cart.create({ data: { userId } });
+    }
 
-    const existingIndex =
-      memCart.findIndex(
-        (i) =>
-          i.variantId === variantId
+    const existingItem = await prisma.cartItem.findUnique({
+      where: {
+        cartId_variantId: {
+          cartId: cart.id,
+          variantId: variant.id,
+        },
+      },
+    });
+    const nextQuantity = (existingItem?.quantity ?? 0) + qtyNum;
+
+    if (variant.stockQuantity <= 0 || nextQuantity > variant.stockQuantity) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            variant.stockQuantity <= 0
+              ? `${variant.product.name} đang tạm hết hàng.`
+              : `${variant.product.name} chỉ còn ${variant.stockQuantity} sản phẩm trong kho.`,
+        },
+        { status: 409 }
       );
+    }
 
-    if (existingIndex > -1) {
-      memCart[
-        existingIndex
-      ].quantity += qtyNum;
+    if (existingItem) {
+      await prisma.cartItem.update({
+        where: { id: existingItem.id },
+        data: { quantity: nextQuantity },
+      });
     } else {
-      const variantObj: CartVariantSnapshot =
-        DEMO_PRODUCTS[variantId] || {
-          id: variantId,
-
-          productId:
-            "p-" + variantId,
-
-          sku:
-            "SKU-" + variantId,
-
-          variantName:
-            "Mặc định",
-
-          price: 9490000,
-
-          originalPrice: 12543000,
-
-          discountPercentage: 24,
-
-          stockQuantity:
-            Math.max(
-              0,
-              10 - qtyNum
-            ),
-
-          product: {
-            id:
-              "p-" + variantId,
-
-            name:
-              "Sản phẩm " +
-              variantId,
-
-            slug:
-              "san-pham-" +
-              variantId,
-
-            images: [
-              {
-                id: "img-def",
-
-                url: "https://ekgozxcqkjzzamrgiyal.supabase.co/storage/v1/object/public/products/items/product-2.jpg",
-              },
-            ],
-
-            freeShipping: true,
-
-            freeInstallation:
-              true,
-
-            installment0Percent:
-              true,
-          },
-        };
-
-      memCart.push({
-        id:
-          "item-" +
-          Date.now() +
-          "-" +
-          Math.random()
-            .toString(36)
-            .substring(2, 7),
-
-        cartId:
-          "cart-" + cartKey,
-
-        variantId,
-
-        quantity: qtyNum,
-
-        variant: variantObj,
+      await prisma.cartItem.create({
+        data: {
+          cartId: cart.id,
+          variantId: variant.id,
+          quantity: qtyNum,
+        },
       });
     }
 
@@ -785,7 +578,7 @@ export async function POST(req: NextRequest) {
       message:
         "Sản phẩm đã được thêm vào giỏ hàng",
 
-      remainingStock,
+      remainingStock: variant.stockQuantity - nextQuantity,
     });
   } catch (error) {
     console.error(
@@ -816,38 +609,6 @@ export async function DELETE() {
     const session = await auth();
 
     const userId = session?.user?.id;
-
-    const cartKey = getSessionKey(
-      userId,
-      "guest-session"
-    );
-
-    const memCart =
-      memoryCarts[cartKey] || [];
-
-    // ========================================================
-    // Restore stock
-    // ========================================================
-
-    for (const item of memCart) {
-      const restoredQty =
-        item.quantity || 1;
-
-      const vId =
-        item.variantId;
-
-      incrementProductStock(
-        vId,
-        restoredQty
-      );
-
-      if (DEMO_PRODUCTS[vId]) {
-        DEMO_PRODUCTS[
-          vId
-        ].stockQuantity +=
-          restoredQty;
-      }
-    }
 
     // ========================================================
     // Clear DB cart
@@ -881,6 +642,7 @@ export async function DELETE() {
     // Clear memory cart
     // ========================================================
 
+    const cartKey = getSessionKey(userId, "guest-session");
     memoryCarts[cartKey] = [];
 
     return NextResponse.json({

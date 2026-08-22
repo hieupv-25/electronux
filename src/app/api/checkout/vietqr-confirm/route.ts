@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { PaymentMethod } from "@/generated/prisma/enums";
+import { CheckoutStockError, markOrderPaidAndDecrementStock } from "@/lib/checkoutStock";
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,40 +33,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (order.paymentStatus !== "paid") {
-      await prisma.$transaction([
-        prisma.order.update({
-          where: { id: orderId },
-          data: {
-            status: "processing",
-            paymentStatus: "paid",
-            payment: {
-              update: {
-                status: "paid",
-                transactionId: "VQR-" + Date.now(),
-                paidAt: new Date(),
-              },
-            },
-          },
-        }),
-        ...(order.couponId
-          ? [
-              prisma.coupon.update({
-                where: { id: order.couponId },
-                data: { usedCount: { increment: 1 } },
-              }),
-            ]
-          : []),
-      ]);
-    }
-
-    // Clear cart in DB
-    if (order.userId) {
-      const userCart = await prisma.cart.findFirst({ where: { userId: order.userId } });
-      if (userCart) {
-        await prisma.cartItem.deleteMany({ where: { cartId: userCart.id } });
-      }
-    }
+    await markOrderPaidAndDecrementStock({
+      orderId,
+      transactionId: "VQR-" + Date.now(),
+      paymentMethod: PaymentMethod.banking,
+    });
 
     return NextResponse.json({
       success: true,
@@ -74,6 +47,10 @@ export async function POST(req: NextRequest) {
       totalAmount: order.totalAmount,
     });
   } catch (error) {
+    if (error instanceof CheckoutStockError) {
+      return NextResponse.json({ success: false, message: error.message }, { status: error.status });
+    }
+
     console.error("VietQR Confirm error:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi xác nhận thanh toán VietQR" },

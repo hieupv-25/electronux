@@ -5,9 +5,11 @@ import {
   createVariant,
   softDeleteProduct,
   toggleProductActive,
+  updateProduct,
   updateVariant,
 } from "@/app/admin/actions";
 import { AdminPageHeader, EmptyBlock, StatusBadge } from "@/components/admin/AdminUi";
+import AdminImageUploadInput from "@/components/admin/AdminImageUploadInput";
 import type { ProductWhereInput } from "@/generated/prisma/models/Product";
 import { formatDate } from "@/lib/admin-format";
 import { prisma } from "@/lib/prisma";
@@ -40,6 +42,16 @@ function getParam(
 function normalizePage(value: string) {
   const page = Number(value);
   return Number.isInteger(page) && page > 0 ? page : 1;
+}
+
+function stringifySpecifications(value: unknown) {
+  if (!value) return "";
+
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return "";
+  }
 }
 
 function buildProductWhere(filters: ProductFilters): ProductWhereInput {
@@ -461,10 +473,11 @@ export default async function AdminProductsPage({
                 Giảm giá %
                 <input name="discountPercentage" type="number" min="0" max="100" defaultValue="0" />
               </label>
-              <label>
-                Ảnh sản phẩm
-                <input name="imageUrl" placeholder="https://..." />
-              </label>
+              <AdminImageUploadInput
+                name="imageUrl"
+                label="Ảnh sản phẩm"
+                folder="items"
+              />
               <div className="admin-check-grid admin-field-span">
                 <label>
                   <input name="isActive" type="checkbox" defaultChecked />
@@ -579,6 +592,86 @@ export default async function AdminProductsPage({
                     <span className="admin-compact-row__hint">Chi tiết</span>
                   </div>
                 </summary>
+
+                <form action={updateProduct} className="admin-edit-grid admin-product-edit-form">
+                  <input name="id" type="hidden" value={product.id} />
+                  <label>
+                    Tên sản phẩm
+                    <input name="name" required defaultValue={product.name} />
+                  </label>
+                  <label>
+                    Slug
+                    <input name="slug" defaultValue={product.slug} />
+                  </label>
+                  <label>
+                    Danh mục
+                    <select name="categoryId" defaultValue={product.category.id}>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Thương hiệu
+                    <select name="brandId" defaultValue={product.brand?.id ?? ""}>
+                      <option value="">Không chọn</option>
+                      {brands.map((brand) => (
+                        <option key={brand.id} value={brand.id}>
+                          {brand.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="admin-field-span">
+                    Mô tả
+                    <textarea name="description" rows={3} defaultValue={product.description ?? ""} />
+                  </label>
+                  <label className="admin-field-span">
+                    Thông số JSON
+                    <textarea
+                      name="specifications"
+                      rows={3}
+                      defaultValue={stringifySpecifications(product.specifications)}
+                    />
+                  </label>
+                  <AdminImageUploadInput
+                    name="imageUrl"
+                    label="Ảnh sản phẩm"
+                    defaultValue={product.images[0]?.url}
+                    folder={`items/${product.slug}`}
+                  />
+                  <div className="admin-check-grid admin-field-span">
+                    <label>
+                      <input name="isActive" type="checkbox" defaultChecked={product.isActive} />
+                      Đang bán
+                    </label>
+                    <label>
+                      <input name="isFeatured" type="checkbox" defaultChecked={product.isFeatured} />
+                      Nổi bật
+                    </label>
+                    <label>
+                      <input name="freeShipping" type="checkbox" defaultChecked={product.freeShipping} />
+                      Miễn phí vận chuyển
+                    </label>
+                    <label>
+                      <input name="freeInstallation" type="checkbox" defaultChecked={product.freeInstallation} />
+                      Miễn phí lắp đặt
+                    </label>
+                    <label>
+                      <input
+                        name="installment0Percent"
+                        type="checkbox"
+                        defaultChecked={product.installment0Percent}
+                      />
+                      Trả góp 0%
+                    </label>
+                  </div>
+                  <button className="admin-primary-button" type="submit">
+                    Lưu thông tin sản phẩm
+                  </button>
+                </form>
 
                 <div className="admin-record-card__body">
                   <div className="admin-mini-stats">

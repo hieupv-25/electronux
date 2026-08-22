@@ -49,7 +49,11 @@ function AnalyticsBars({
   const maxValue = Math.max(...points.map((point) => point.value), 0);
 
   return (
-    <div className="admin-chart" role="img" aria-label={`Biểu đồ ${meta.shortLabel}`}>
+    <div
+      className={`admin-chart${metric === "bestSellers" ? " admin-chart--ranked" : ""}`}
+      role="img"
+      aria-label={`Biểu đồ ${meta.shortLabel}`}
+    >
       <div className="admin-chart__plot">
         {points.map((point) => {
           const height = maxValue > 0 ? Math.max(4, Math.round((point.value / maxValue) * 100)) : 0;
@@ -141,7 +145,10 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
   const month = normalizeAnalyticsMonth(params?.month);
   const meta = analyticsMetrics[metric];
   const data = await getAdminAnalyticsData({ metric, period, year, month });
-  const activePointLabel = period === "year" ? "tháng" : "ngày";
+  const activePointLabel =
+    metric === "bestSellers" ? "sản phẩm" : period === "year" ? "tháng" : "ngày";
+  const pointColumnLabel =
+    metric === "bestSellers" ? "Sản phẩm" : period === "year" ? "Tháng" : "Ngày";
 
   return (
     <>
@@ -163,7 +170,7 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
           <div className="admin-panel__header">
             <div>
               <p className="admin-eyebrow">{data.rangeLabel}</p>
-              <h2>{meta.label}</h2>
+          <h2>{meta.label}</h2>
             </div>
             <span className="admin-analytics-change">{getPercentLabel(data.changePercent)}</span>
           </div>
@@ -185,7 +192,9 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
             <span>Cao nhất</span>
             <strong>{formatAnalyticsValue(data.peak.value, meta.unit)}</strong>
             <p>
-              {period === "year" ? "Tháng" : "Ngày"} {data.peak.label || "-"}
+              {metric === "bestSellers"
+                ? data.peak.label || "-"
+                : `${period === "year" ? "Tháng" : "Ngày"} ${data.peak.label || "-"}`}
             </p>
           </article>
           <article className="admin-panel admin-analytics-kpi">
@@ -207,7 +216,7 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
           <table className="admin-table">
             <thead>
               <tr>
-                <th>{period === "year" ? "Tháng" : "Ngày"}</th>
+                <th>{pointColumnLabel}</th>
                 <th>{meta.shortLabel}</th>
                 <th>Tỷ trọng</th>
               </tr>

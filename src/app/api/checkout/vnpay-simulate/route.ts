@@ -1,5 +1,7 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { PaymentMethod } from "@/generated/prisma/enums";
+import { CheckoutStockError, markOrderPaidAndDecrementStock } from "@/lib/checkoutStock";
 
 // ⚠️ CHỈ DÙNG TRONG SANDBOX / DEV - Mô phỏng VNPay callback
 export async function POST(req: NextRequest) {
@@ -29,40 +31,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: "Order not found" }, { status: 404 });
     }
 
-    if (order.paymentStatus !== "paid") {
-      await prisma.$transaction([
-        prisma.order.update({
-          where: { id: orderId },
-          data: {
-            status: "processing",
-            paymentStatus: "paid",
-            payment: {
-              update: {
-                status: "paid",
-                transactionId: "SANDBOX-SIM-" + Date.now(),
-                paidAt: new Date(),
-              },
-            },
-          },
-        }),
-        ...(order.couponId
-          ? [
-              prisma.coupon.update({
-                where: { id: order.couponId },
-                data: { usedCount: { increment: 1 } },
-              }),
-            ]
-          : []),
-      ]);
-    }
-
-    // Clear cart
-    if (order.userId) {
-      const cart = await prisma.cart.findFirst({ where: { userId: order.userId } });
-      if (cart) {
-        await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
-      }
-    }
+    await markOrderPaidAndDecrementStock({
+      orderId,
+      transactionId: "SANDBOX-SIM-" + Date.now(),
+      paymentMethod: PaymentMethod.vnpay,
+    });
 
     return NextResponse.json({
       success: true,
@@ -70,6 +43,10 @@ export async function POST(req: NextRequest) {
       totalAmount: order.totalAmount,
     });
   } catch (error) {
+    if (error instanceof CheckoutStockError) {
+      return NextResponse.json({ success: false, message: error.message }, { status: error.status });
+    }
+
     console.error("Simulate error:", error);
     return NextResponse.json({ success: false, message: "Order not found or already paid" }, { status: 500 });
   }

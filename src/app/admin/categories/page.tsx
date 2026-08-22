@@ -5,6 +5,7 @@ import {
   updateCategory,
 } from "@/app/admin/actions";
 import { AdminPageHeader, EmptyBlock, StatusBadge } from "@/components/admin/AdminUi";
+import AdminImageUploadInput from "@/components/admin/AdminImageUploadInput";
 import type { CategoryWhereInput } from "@/generated/prisma/models/Category";
 import { prisma } from "@/lib/prisma";
 
@@ -333,10 +334,12 @@ export default async function AdminCategoriesPage({
                 ))}
               </select>
             </label>
-            <label>
-              Icon URL
-              <input name="iconUrl" placeholder="/icon-washing-machine.svg" />
-            </label>
+            <AdminImageUploadInput
+              name="iconUrl"
+              label="Icon / ảnh danh mục"
+              folder="categories"
+              placeholder="/icon-washing-machine.svg hoặc chọn ảnh từ máy"
+            />
             <label>
               Thứ tự hiển thị
               <input name="order" type="number" defaultValue="0" />
@@ -464,10 +467,13 @@ export default async function AdminCategoriesPage({
                       ))}
                   </select>
                 </label>
-                <label>
-                  Icon URL
-                  <input name="iconUrl" defaultValue={category.iconUrl ?? ""} />
-                </label>
+                <AdminImageUploadInput
+                  name="iconUrl"
+                  label="Icon / ảnh danh mục"
+                  defaultValue={category.iconUrl}
+                  folder="categories"
+                  placeholder="/icon-washing-machine.svg hoặc chọn ảnh từ máy"
+                />
                 <label>
                   Thứ tự
                   <input name="order" type="number" defaultValue={category.order} />
