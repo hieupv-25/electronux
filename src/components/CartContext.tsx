@@ -71,7 +71,7 @@ export function useCart() {
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { showToast } = useToast();
   const [cart, setCart] = useState<CartData | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -121,8 +121,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addToCart = useCallback(
     async (variantId: string, quantity = 1) => {
+      if (status === "loading") {
+        showToast("Đang kiểm tra trạng thái đăng nhập, vui lòng thử lại.", "info");
+        return;
+      }
+
+      if (!session?.user?.id) {
+        showToast("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.", "info");
+        window.dispatchEvent(new CustomEvent("open-auth-modal", { detail: { view: "login" } }));
+        return;
+      }
+
       setAdding(variantId);
-      setIsOpen(true);
       try {
         const res = await fetch("/api/cart", {
           method: "POST",
@@ -131,8 +141,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         });
         const data = await res.json();
         if (res.ok && data.success) {
+          setIsOpen(true);
           showToast(data.message || "Đã thêm vào giỏ hàng ✓", "success");
           await refreshCart(false);
+        } else if (res.status === 401 || data.authRequired) {
+          showToast(data.message || "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.", "info");
+          window.dispatchEvent(new CustomEvent("open-auth-modal", { detail: { view: "login" } }));
         } else {
           showToast(data.message || "Không thể thêm sản phẩm", "error");
         }
@@ -142,7 +156,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setAdding(null);
       }
     },
-    [showToast, refreshCart]
+    [session?.user?.id, showToast, status, refreshCart]
   );
 
   const updateQty = useCallback(

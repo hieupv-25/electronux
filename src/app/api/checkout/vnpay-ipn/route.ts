@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyVNPayResponse } from "@/lib/vnpay";
 import { prisma } from "@/lib/prisma";
+import { PaymentMethod } from "@/generated/prisma/enums";
+import { CheckoutStockError, markOrderPaidAndDecrementStock } from "@/lib/checkoutStock";
 
 export async function GET(req: NextRequest) {
   try {
@@ -31,38 +33,12 @@ export async function GET(req: NextRequest) {
     }
 
     if (responseCode === "00") {
-      // Payment successful - auto confirm
-      await prisma.$transaction([
-        prisma.order.update({
-          where: { id: orderId },
-          data: {
-            status: "processing",
-            paymentStatus: "paid",
-            payment: {
-              update: {
-                status: "paid",
-                transactionId: transactionNo,
-                paidAt: new Date(),
-              },
-            },
-          },
-        }),
-        ...(order.couponId
-          ? [
-              prisma.coupon.update({
-                where: { id: order.couponId },
-                data: { usedCount: { increment: 1 } },
-              }),
-            ]
-          : []),
-      ]);
-
-      if (order.userId) {
-        const userCart = await prisma.cart.findFirst({ where: { userId: order.userId } });
-        if (userCart) {
-          await prisma.cartItem.deleteMany({ where: { cartId: userCart.id } });
-        }
-      }
+      await markOrderPaidAndDecrementStock({
+        orderId,
+        transactionId: transactionNo,
+        gatewayResponse: searchParamsObject,
+        paymentMethod: PaymentMethod.vnpay,
+      });
 
       return NextResponse.json({ RspCode: "00", Message: "Confirm Success" });
     } else {
@@ -83,6 +59,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ RspCode: "00", Message: "Confirm Success" });
     }
   } catch (error) {
+    if (error instanceof CheckoutStockError) {
+      return NextResponse.json({ RspCode: "51", Message: error.message });
+    }
+
     console.error("VNPay IPN error:", error);
     return NextResponse.json({ RspCode: "99", Message: "Unknown error" });
   }

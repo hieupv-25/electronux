@@ -555,7 +555,7 @@ export default function AccountClient() {
                     <span className="account-switch__handle" />
                   </button>
                   <p className="account-toggle-text">
-                    Đừng bỏ lỡ thông tin về sản phẩm mới, ưu đãi và khuyến mãi đặc biệt. Bằng cách chọn "Có", bạn đồng ý nhận những thông tin nói trên.
+                    Đừng bỏ lỡ thông tin về sản phẩm mới, ưu đãi và khuyến mãi đặc biệt. Bằng cách chọn &quot;Có&quot;, bạn đồng ý nhận những thông tin nói trên.
                   </p>
                 </div>
 

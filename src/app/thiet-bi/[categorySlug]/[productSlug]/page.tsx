@@ -5,7 +5,7 @@ import ServiceBanner from "@/components/ServiceBanner";
 import Breadcrumb from "@/components/Breadcrumb";
 import Footer from "@/components/Footer";
 import { navItems, services, footerSections } from "@/data/siteData";
-import { getProductBySlug, ALL_CATEGORIES } from "@/lib/getCategoryData";
+import { getProductPageData } from "@/lib/catalogDb";
 import { prisma } from "@/lib/prisma";
 import ProductDetailClient from "./ProductDetailClient";
 
@@ -13,19 +13,11 @@ interface PageProps {
   params: Promise<{ categorySlug: string; productSlug: string }>;
 }
 
-export async function generateStaticParams() {
-  const params: { categorySlug: string; productSlug: string }[] = [];
-  for (const cat of ALL_CATEGORIES) {
-    for (const prod of cat.products) {
-      params.push({ categorySlug: cat.slug, productSlug: prod.slug });
-    }
-  }
-  return params;
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { categorySlug, productSlug } = await params;
-  const result = getProductBySlug(categorySlug, productSlug);
+  const result = await getProductPageData(categorySlug, productSlug);
   if (!result) return { title: "Sản phẩm không tồn tại" };
   const { product, category } = result;
   return {
@@ -41,7 +33,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const { categorySlug, productSlug } = await params;
-  const result = getProductBySlug(categorySlug, productSlug);
+  const result = await getProductPageData(categorySlug, productSlug);
 
   if (!result) {
     notFound();

@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import ServiceBanner from "@/components/ServiceBanner";
 import ProductCard from "@/components/ProductCard";
 import { footerSections, navItems, services } from "@/data/siteData";
-import { searchCatalog } from "@/lib/catalogSearch";
+import { searchCatalogFromDatabase } from "@/lib/catalogDb";
 
 type SearchPageProps = {
   searchParams: Promise<{ q?: string }>;
@@ -17,7 +17,7 @@ export const metadata = {
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
-  const results = searchCatalog(query);
+  const results = await searchCatalogFromDatabase(query);
 
   return (
     <>

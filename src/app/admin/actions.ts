@@ -128,6 +128,22 @@ async function uniquePromotionSlug(title: string, requestedSlug: string, exclude
   }
 }
 
+function revalidateStorefrontCatalog(
+  categorySlug?: string | null,
+  productSlug?: string | null
+) {
+  revalidatePath("/");
+  revalidatePath("/search");
+
+  if (categorySlug) {
+    revalidatePath(`/thiet-bi/${categorySlug}`);
+  }
+
+  if (categorySlug && productSlug) {
+    revalidatePath(`/thiet-bi/${categorySlug}/${productSlug}`);
+  }
+}
+
 export async function createCategory(formData: FormData) {
   await requireAdminSession();
 
@@ -135,7 +151,7 @@ export async function createCategory(formData: FormData) {
   if (!name) return;
   const parentId = getFormString(formData, "parentId");
 
-  await prisma.category.create({
+  const category = await prisma.category.create({
     data: {
       name,
       slug: await uniqueCategorySlug(name, getFormString(formData, "slug")),
@@ -148,6 +164,7 @@ export async function createCategory(formData: FormData) {
   revalidatePath("/admin/categories");
   revalidatePath("/admin/products");
   revalidatePath("/admin");
+  revalidateStorefrontCatalog(category.slug);
 }
 
 export async function updateCategory(formData: FormData) {
@@ -167,7 +184,7 @@ export async function updateCategory(formData: FormData) {
   const nextSlug = slugify(requestedSlug || name);
   const parentId = getFormString(formData, "parentId");
 
-  await prisma.category.update({
+  const updatedCategory = await prisma.category.update({
     where: { id },
     data: {
       name,
@@ -184,6 +201,8 @@ export async function updateCategory(formData: FormData) {
   revalidatePath("/admin/categories");
   revalidatePath("/admin/products");
   revalidatePath("/admin");
+  revalidateStorefrontCatalog(currentCategory.slug);
+  revalidateStorefrontCatalog(updatedCategory.slug);
 }
 
 export async function toggleCategoryDeleted(formData: FormData) {
@@ -193,6 +212,10 @@ export async function toggleCategoryDeleted(formData: FormData) {
   if (!id) return;
 
   const restore = getFormString(formData, "mode") === "restore";
+  const category = await prisma.category.findUnique({
+    where: { id },
+    select: { slug: true },
+  });
 
   await prisma.category.update({
     where: { id },
@@ -204,6 +227,7 @@ export async function toggleCategoryDeleted(formData: FormData) {
   revalidatePath("/admin/categories");
   revalidatePath("/admin/products");
   revalidatePath("/admin");
+  revalidateStorefrontCatalog(category?.slug);
 }
 
 export async function createBrand(formData: FormData) {
@@ -240,7 +264,12 @@ export async function createProduct(formData: FormData) {
     getFormString(formData, "specifications")
   );
 
-  await prisma.product.create({
+  const category = await prisma.category.findUnique({
+    where: { id: categoryId },
+    select: { slug: true },
+  });
+
+  const product = await prisma.product.create({
     data: {
       categoryId,
       brandId: brandId || null,
@@ -278,6 +307,76 @@ export async function createProduct(formData: FormData) {
 
   revalidatePath("/admin/products");
   revalidatePath("/admin");
+  revalidateStorefrontCatalog(category?.slug, product.slug);
+}
+
+export async function updateProduct(formData: FormData) {
+  await requireAdminSession();
+
+  const id = getFormString(formData, "id");
+  const name = getFormString(formData, "name");
+  if (!id || !name) return;
+
+  const currentProduct = await prisma.product.findUnique({
+    where: { id },
+    select: {
+      slug: true,
+      categoryId: true,
+      category: { select: { slug: true } },
+    },
+  });
+  if (!currentProduct) return;
+
+  const categoryId = getFormString(formData, "categoryId") || currentProduct.categoryId;
+  const brandId = getFormString(formData, "brandId");
+  const requestedSlug = getFormString(formData, "slug");
+  const nextSlug = slugify(requestedSlug || name);
+  const rawSpecifications = getFormString(formData, "specifications");
+  const parsedSpecifications = rawSpecifications
+    ? parseSpecifications(rawSpecifications)
+    : null;
+  const imageUrl = getFormOptionalString(formData, "imageUrl");
+
+  const updatedProduct = await prisma.product.update({
+    where: { id },
+    data: {
+      categoryId,
+      brandId: brandId || null,
+      name,
+      slug:
+        nextSlug && nextSlug !== currentProduct.slug
+          ? await uniqueProductSlug(name, nextSlug, id)
+          : currentProduct.slug,
+      description: getFormOptionalString(formData, "description"),
+      ...(rawSpecifications && parsedSpecifications === undefined
+        ? {}
+        : { specifications: parsedSpecifications }),
+      isFeatured: getFormBoolean(formData, "isFeatured"),
+      isActive: getFormBoolean(formData, "isActive"),
+      freeShipping: getFormBoolean(formData, "freeShipping"),
+      freeInstallation: getFormBoolean(formData, "freeInstallation"),
+      installment0Percent: getFormBoolean(formData, "installment0Percent"),
+      images: imageUrl
+        ? {
+            deleteMany: {},
+            create: {
+              url: imageUrl,
+              order: 0,
+            },
+          }
+        : undefined,
+    },
+    include: {
+      category: {
+        select: { slug: true },
+      },
+    },
+  });
+
+  revalidatePath("/admin/products");
+  revalidatePath("/admin");
+  revalidateStorefrontCatalog(currentProduct.category.slug, currentProduct.slug);
+  revalidateStorefrontCatalog(updatedProduct.category.slug, updatedProduct.slug);
 }
 
 export async function toggleProductActive(formData: FormData) {
@@ -287,6 +386,13 @@ export async function toggleProductActive(formData: FormData) {
   if (!id) return;
 
   const currentValue = getFormString(formData, "currentValue") === "true";
+  const product = await prisma.product.findUnique({
+    where: { id },
+    select: {
+      slug: true,
+      category: { select: { slug: true } },
+    },
+  });
 
   await prisma.product.update({
     where: { id },
@@ -295,6 +401,7 @@ export async function toggleProductActive(formData: FormData) {
 
   revalidatePath("/admin/products");
   revalidatePath("/admin");
+  revalidateStorefrontCatalog(product?.category.slug, product?.slug);
 }
 
 export async function softDeleteProduct(formData: FormData) {
@@ -302,6 +409,13 @@ export async function softDeleteProduct(formData: FormData) {
 
   const id = getFormString(formData, "id");
   if (!id) return;
+  const product = await prisma.product.findUnique({
+    where: { id },
+    select: {
+      slug: true,
+      category: { select: { slug: true } },
+    },
+  });
 
   await prisma.product.update({
     where: { id },
@@ -313,6 +427,7 @@ export async function softDeleteProduct(formData: FormData) {
 
   revalidatePath("/admin/products");
   revalidatePath("/admin");
+  revalidateStorefrontCatalog(product?.category.slug, product?.slug);
 }
 
 export async function createVariant(formData: FormData) {
@@ -322,7 +437,7 @@ export async function createVariant(formData: FormData) {
   const sku = getFormString(formData, "sku");
   if (!productId || !sku) return;
 
-  await prisma.productVariant.create({
+  const variant = await prisma.productVariant.create({
     data: {
       productId,
       sku,
@@ -332,10 +447,19 @@ export async function createVariant(formData: FormData) {
       stockQuantity: getFormNumber(formData, "stockQuantity"),
       isActive: true,
     },
+    include: {
+      product: {
+        select: {
+          slug: true,
+          category: { select: { slug: true } },
+        },
+      },
+    },
   });
 
   revalidatePath("/admin/products");
   revalidatePath("/admin");
+  revalidateStorefrontCatalog(variant.product.category.slug, variant.product.slug);
 }
 
 export async function updateVariant(formData: FormData) {
@@ -344,7 +468,7 @@ export async function updateVariant(formData: FormData) {
   const id = getFormString(formData, "id");
   if (!id) return;
 
-  await prisma.productVariant.update({
+  const variant = await prisma.productVariant.update({
     where: { id },
     data: {
       price: getFormDecimal(formData, "price"),
@@ -352,10 +476,19 @@ export async function updateVariant(formData: FormData) {
       stockQuantity: getFormNumber(formData, "stockQuantity"),
       isActive: getFormBoolean(formData, "isActive"),
     },
+    include: {
+      product: {
+        select: {
+          slug: true,
+          category: { select: { slug: true } },
+        },
+      },
+    },
   });
 
   revalidatePath("/admin/products");
   revalidatePath("/admin");
+  revalidateStorefrontCatalog(variant.product.category.slug, variant.product.slug);
 }
 
 export async function updateOrderStatus(formData: FormData) {
