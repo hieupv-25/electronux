@@ -239,6 +239,13 @@ function ProductsPagination({
   );
 }
 
+type ConfirmActionState = {
+  type: "hide" | "show" | "delete";
+  productId: string;
+  productName: string;
+  currentActiveValue?: boolean;
+} | null;
+
 export default function AdminProductsClient({
   products,
   totalProducts,
@@ -251,6 +258,15 @@ export default function AdminProductsClient({
   isFiltering,
 }: AdminProductsClientProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<ConfirmActionState>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  function showToast(message: string, type: "success" | "error" = "success") {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast((current) => (current?.message === message ? null : current));
+    }, 4000);
+  }
 
   return (
     <>
@@ -274,7 +290,18 @@ export default function AdminProductsClient({
 
       {isFormOpen && (
         <section className="admin-form-grid">
-          <form action={createProduct} className="admin-form-card admin-form-card--wide">
+          <form
+            action={async (formData) => {
+              try {
+                await createProduct(formData);
+                showToast("Tạo sản phẩm mới thành công!");
+                setIsFormOpen(false);
+              } catch {
+                showToast("Tạo sản phẩm thất bại", "error");
+              }
+            }}
+            className="admin-form-card admin-form-card--wide"
+          >
             <div className="admin-form-card__header">
               <h3>Thêm sản phẩm</h3>
               <span>{categories.length} danh mục</span>
@@ -380,7 +407,17 @@ export default function AdminProductsClient({
             )}
           </form>
 
-          <form action={createBrand} className="admin-form-card">
+          <form
+            action={async (formData) => {
+              try {
+                await createBrand(formData);
+                showToast("Thêm thương hiệu thành công!");
+              } catch {
+                showToast("Thêm thương hiệu thất bại", "error");
+              }
+            }}
+            className="admin-form-card"
+          >
             <div className="admin-form-card__header">
               <h3>Thương hiệu</h3>
               <span>{brands.length}</span>
@@ -467,7 +504,17 @@ export default function AdminProductsClient({
                   </div>
                 </summary>
 
-                <form action={updateProduct} className="admin-edit-grid admin-product-edit-form">
+                <form
+                  action={async (formData) => {
+                    try {
+                      await updateProduct(formData);
+                      showToast(`Lưu thông tin sản phẩm "${product.name}" thành công!`);
+                    } catch {
+                      showToast("Lưu thông tin sản phẩm thất bại", "error");
+                    }
+                  }}
+                  className="admin-edit-grid admin-product-edit-form"
+                >
                   <input name="id" type="hidden" value={product.id} />
                   <label>
                     Tên sản phẩm
@@ -555,29 +602,46 @@ export default function AdminProductsClient({
                   </div>
 
                   <div className="admin-record-actions">
-                    <form action={toggleProductActive}>
-                      <input name="id" type="hidden" value={product.id} />
-                      <input
-                        name="currentValue"
-                        type="hidden"
-                        value={String(product.isActive)}
-                      />
-                      <button className="admin-secondary-button" type="submit">
-                        {product.isActive ? "Ẩn sản phẩm" : "Hiện sản phẩm"}
-                      </button>
-                    </form>
-                    <form action={softDeleteProduct}>
-                      <input name="id" type="hidden" value={product.id} />
-                      <button className="admin-danger-button" type="submit">
-                        Xóa mềm
-                      </button>
-                    </form>
+                    <button
+                      type="button"
+                      className="admin-secondary-button"
+                      onClick={() =>
+                        setConfirmAction({
+                          type: product.isActive ? "hide" : "show",
+                          productId: product.id,
+                          productName: product.name,
+                          currentActiveValue: product.isActive,
+                        })
+                      }
+                    >
+                      {product.isActive ? "Ẩn sản phẩm" : "Hiện sản phẩm"}
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-danger-button"
+                      onClick={() =>
+                        setConfirmAction({
+                          type: "delete",
+                          productId: product.id,
+                          productName: product.name,
+                        })
+                      }
+                    >
+                      Xóa mềm
+                    </button>
                   </div>
 
                   <div className="admin-variant-list">
                     {product.variants.map((variant) => (
                       <form
-                        action={updateVariant}
+                        action={async (formData) => {
+                          try {
+                            await updateVariant(formData);
+                            showToast(`Lưu SKU "${variant.sku}" thành công!`);
+                          } catch {
+                            showToast("Lưu SKU thất bại", "error");
+                          }
+                        }}
                         className="admin-variant-row"
                         key={variant.id}
                       >
@@ -627,7 +691,17 @@ export default function AdminProductsClient({
                       </form>
                     ))}
 
-                    <form action={createVariant} className="admin-variant-row admin-variant-row--new">
+                    <form
+                      action={async (formData) => {
+                        try {
+                          await createVariant(formData);
+                          showToast("Thêm SKU mới thành công!");
+                        } catch {
+                          showToast("Thêm SKU thất bại", "error");
+                        }
+                      }}
+                      className="admin-variant-row admin-variant-row--new"
+                    >
                       <input name="productId" type="hidden" value={product.id} />
                       <div>
                         <strong>Thêm SKU</strong>
@@ -666,6 +740,175 @@ export default function AdminProductsClient({
         currentPage={currentPage}
         totalPages={totalPages}
       />
+
+      {toast && (
+        <div
+          style={{
+            position: "fixed",
+            top: "24px",
+            right: "24px",
+            zIndex: 10000,
+            background: toast.type === "error" ? "#ef4444" : "#10b981",
+            color: "#ffffff",
+            padding: "14px 20px",
+            borderRadius: "8px",
+            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            fontSize: "0.95rem",
+            fontWeight: 600,
+          }}
+        >
+          <span>{toast.type === "error" ? "❌" : "✅"}</span>
+          <span>{toast.message}</span>
+          <button
+            type="button"
+            onClick={() => setToast(null)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#ffffff",
+              cursor: "pointer",
+              marginLeft: "10px",
+              fontSize: "1rem",
+              fontWeight: "700",
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {confirmAction && (
+        <div
+          className="auth-overlay"
+          style={{
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            className="admin-form-card"
+            style={{
+              maxWidth: "460px",
+              width: "90%",
+              boxShadow: "0 20px 45px rgba(0, 0, 0, 0.3)",
+              background: "#ffffff",
+              borderRadius: "8px",
+              padding: "24px",
+            }}
+          >
+            <div
+              className="admin-form-card__header"
+              style={{ marginBottom: "14px" }}
+            >
+              <h3 style={{ fontSize: "1.15rem", fontWeight: "700" }}>
+                {confirmAction.type === "delete"
+                  ? "Xác nhận xóa sản phẩm"
+                  : confirmAction.type === "hide"
+                  ? "Xác nhận ẩn sản phẩm"
+                  : "Xác nhận hiện sản phẩm"}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setConfirmAction(null)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "1.2rem",
+                  color: "#657584",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <p
+              style={{
+                fontSize: "0.95rem",
+                color: "#415464",
+                marginBottom: "24px",
+                lineHeight: "1.5",
+              }}
+            >
+              {confirmAction.type === "delete"
+                ? `Bạn có chắc chắn muốn xóa mềm sản phẩm "${confirmAction.productName}"? Sản phẩm sẽ bị chuyển vào danh sách đã xóa.`
+                : confirmAction.type === "hide"
+                ? `Bạn có chắc chắn muốn ẩn sản phẩm "${confirmAction.productName}" khỏi storefront? Khách hàng sẽ không nhìn thấy sản phẩm này nữa.`
+                : `Bạn có chắc chắn muốn cho hiển thị lại sản phẩm "${confirmAction.productName}" trên storefront?`}
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "12px",
+              }}
+            >
+              <button
+                type="button"
+                className="admin-secondary-button"
+                onClick={() => setConfirmAction(null)}
+              >
+                Hủy bỏ
+              </button>
+
+              {confirmAction.type === "delete" ? (
+                <form
+                  action={async (formData) => {
+                    try {
+                      await softDeleteProduct(formData);
+                      showToast(`Đã xóa sản phẩm "${confirmAction.productName}" thành công!`);
+                    } catch {
+                      showToast("Xóa sản phẩm thất bại", "error");
+                    } finally {
+                      setConfirmAction(null);
+                    }
+                  }}
+                >
+                  <input name="id" type="hidden" value={confirmAction.productId} />
+                  <button className="admin-danger-button" type="submit">
+                    Xác nhận xóa
+                  </button>
+                </form>
+              ) : (
+                <form
+                  action={async (formData) => {
+                    try {
+                      await toggleProductActive(formData);
+                      showToast(
+                        confirmAction.type === "hide"
+                          ? `Đã ẩn sản phẩm "${confirmAction.productName}" thành công!`
+                          : `Đã hiện sản phẩm "${confirmAction.productName}" thành công!`
+                      );
+                    } catch {
+                      showToast("Cập nhật trạng thái thất bại", "error");
+                    } finally {
+                      setConfirmAction(null);
+                    }
+                  }}
+                >
+                  <input name="id" type="hidden" value={confirmAction.productId} />
+                  <input
+                    name="currentValue"
+                    type="hidden"
+                    value={String(confirmAction.currentActiveValue)}
+                  />
+                  <button className="admin-primary-button" type="submit">
+                    {confirmAction.type === "hide"
+                      ? "Xác nhận ẩn"
+                      : "Xác nhận hiện"}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
