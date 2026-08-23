@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
     let whereClause: any = {
       userId: session.user.id,
       deletedAt: null,
-      paymentStatus: "paid",
     };
 
     if (type === "current") {

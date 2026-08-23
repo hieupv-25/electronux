@@ -11,15 +11,16 @@ import { navItems, footerSections } from "@/data/siteData";
 import { formatPrice } from "@/lib/formatPrice";
 
 type OrderItem = {
-  id: string;
+  id?: string;
   quantity: number;
-  price: number;
-  variant: {
-    sku: string;
-    product: {
-      name: string;
-      slug: string;
-      images: { url: string }[];
+  price?: number;
+  variant?: {
+    sku?: string;
+    price?: number;
+    product?: {
+      name?: string;
+      slug?: string;
+      images?: { url: string }[];
     };
   };
 };
@@ -252,7 +253,7 @@ export default function OrdersClient() {
                           alignItems: "center",
                         }}
                       >
-                        {order.paymentStatus === "paid" && (
+                        {order.paymentStatus === "paid" ? (
                           <span
                             style={{
                               background: "#dcfce7",
@@ -264,6 +265,19 @@ export default function OrdersClient() {
                             }}
                           >
                             ✓ Đã thanh toán
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              background: "#fef3c7",
+                              color: "#b45309",
+                              padding: "4px 10px",
+                              borderRadius: "16px",
+                              fontSize: "0.78rem",
+                              fontWeight: 700,
+                            }}
+                          >
+                            ⏳ Thanh toán khi nhận hàng
                           </span>
                         )}
 
@@ -277,40 +291,54 @@ export default function OrdersClient() {
                       style={{ cursor: "pointer" }}
                       onClick={() => setSelectedOrder(order)}
                     >
-                      {order.items.map((item) => (
-                        <div key={item.id} className="order-item">
-                          <div className="order-item__img">
-                            <Image
-                              src={
-                                item.variant.product.images[0]?.url ||
-                                "/images/product-placeholder.jpg"
-                              }
-                              alt={item.variant.product.name}
-                              width={80}
-                              height={80}
-                              style={{ objectFit: "contain" }}
-                            />
-                          </div>
+                      {order.items && order.items.length > 0 ? (
+                        order.items.map((item, idx) => {
+                          const itemPrice = item.price ?? item.variant?.price ?? 0;
+                          const itemQty = item.quantity || 1;
+                          const itemImg =
+                            item.variant?.product?.images?.[0]?.url ||
+                            "/images/product-placeholder.jpg";
+                          const itemName =
+                            item.variant?.product?.name || "Sản phẩm Electrolux";
+                          const itemSku = item.variant?.sku || "ELX-SKU";
 
-                          <div className="order-item__info">
-                            <h4 className="order-item__name">
-                              {item.variant.product.name}
-                            </h4>
+                          return (
+                            <div key={item.id || idx} className="order-item">
+                              <div className="order-item__img">
+                                <Image
+                                  src={itemImg}
+                                  alt={itemName}
+                                  width={80}
+                                  height={80}
+                                  style={{ objectFit: "contain" }}
+                                />
+                              </div>
 
-                            <p className="order-item__sku">
-                              SKU: {item.variant.sku}
-                            </p>
+                              <div className="order-item__info">
+                                <h4 className="order-item__name">
+                                  {itemName}
+                                </h4>
 
-                            <p className="order-item__qty">
-                              Số lượng: {item.quantity}
-                            </p>
-                          </div>
+                                <p className="order-item__sku">
+                                  SKU: {itemSku}
+                                </p>
 
-                          <div className="order-item__price">
-                            {formatPrice(item.price * item.quantity)}
-                          </div>
+                                <p className="order-item__qty">
+                                  Số lượng: {itemQty}
+                                </p>
+                              </div>
+
+                              <div className="order-item__price">
+                                {formatPrice(itemPrice * itemQty)}
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div style={{ padding: "14px 18px", color: "#64748b", fontSize: "0.9rem" }}>
+                          Đơn hàng gồm các sản phẩm đã được tiếp nhận.
                         </div>
-                      ))}
+                      )}
                     </div>
 
                     {/* ====== ORDER FOOTER ====== */}
@@ -643,7 +671,9 @@ export default function OrdersClient() {
                       color: "#1e293b",
                     }}
                   >
-                    {selectedOrder.paymentMethod || "Chưa cập nhật"}
+                    {selectedOrder.paymentMethod === "COD" || selectedOrder.paymentMethod === "cod"
+                      ? "Thanh toán khi nhận hàng trực tiếp (COD)"
+                      : selectedOrder.paymentMethod || "Chưa cập nhật"}
                   </p>
 
                   <p
@@ -653,13 +683,13 @@ export default function OrdersClient() {
                       color:
                         selectedOrder.paymentStatus === "paid"
                           ? "#15803d"
-                          : "#92400e",
+                          : "#b45309",
                       fontWeight: 600,
                     }}
                   >
                     {selectedOrder.paymentStatus === "paid"
                       ? "Thanh toán thành công"
-                      : "Chưa thanh toán"}
+                      : "Chờ thanh toán khi nhận hàng"}
                   </p>
                 </div>
               </div>
@@ -698,7 +728,7 @@ export default function OrdersClient() {
 
                     const itemQty = item.quantity || 1;
 
-                    const itemPrice = item.price || 0;
+                    const itemPrice = item.price ?? item.variant?.price ?? 0;
 
                     const itemSlug =
                       item.variant?.product?.slug || "";

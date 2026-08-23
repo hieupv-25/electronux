@@ -66,6 +66,10 @@ export async function POST(req: NextRequest) {
     const trackingNumber = "ELX-2026-" + Math.floor(100000 + Math.random() * 900000);
     const orderId = "order-" + Date.now();
 
+    const isCod = paymentMethodValue === PaymentMethod.cod;
+    const orderPaymentStatus = isCod ? "unpaid" : "paid";
+    const orderStatus = isCod ? "pending" : "processing";
+
     // Deduct stock in DB for checked-out variants
     const checkoutItems = (items as Array<{ variantId?: string; quantity?: number; variant?: { id?: string } }>) || [];
     for (const item of checkoutItems) {
@@ -99,15 +103,15 @@ export async function POST(req: NextRequest) {
               shippingAddress,
               phone,
               totalAmount: payableAmount,
-              status: "processing",
-              paymentStatus: "paid",
+              status: orderStatus,
+              paymentStatus: orderPaymentStatus,
               trackingNumber,
               payment: {
                 create: {
                   method: paymentMethodValue,
                   amount: payableAmount,
-                  status: "paid",
-                  paidAt: new Date(),
+                  status: orderPaymentStatus,
+                  paidAt: isCod ? null : new Date(),
                 },
               },
             },
@@ -137,16 +141,16 @@ export async function POST(req: NextRequest) {
     // Return successful payment response
     return NextResponse.json({
       success: true,
-      message: "Thanh toán thành công",
+      message: isCod ? "Đặt hàng COD thành công" : "Thanh toán thành công",
       order: {
         id: orderId,
         trackingNumber,
         recipientName,
         phone,
         shippingAddress,
-        paymentMethod: paymentMethod.toUpperCase(),
-        paymentStatus: "PAID",
-        orderStatus: "PROCESSING",
+        paymentMethod: isCod ? "COD" : paymentMethod.toUpperCase(),
+        paymentStatus: isCod ? "UNPAID" : "PAID",
+        orderStatus: orderStatus.toUpperCase(),
         totalAmount: payableAmount,
         couponCode: couponValidation.code,
         discountAmount: couponValidation.discountAmount,

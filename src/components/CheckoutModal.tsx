@@ -496,6 +496,11 @@ export default function CheckoutModal({
                   label: "Cổng thanh toán VNPAY (Sandbox / Thật)",
                   desc: "Quét mã QR VNPAY hoặc thanh toán qua cổng điện tử",
                 },
+                {
+                  id: "cod",
+                  label: "Thanh toán khi nhận hàng trực tiếp (COD)",
+                  desc: "Kiểm tra hàng và thanh toán tiền mặt trực tiếp cho nhân viên giao hàng khi nhận",
+                },
               ].map((method) => (
                 <label
                   key={method.id}
@@ -1018,14 +1023,44 @@ export default function CheckoutModal({
 
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                 <span style={{ fontSize: "0.875rem", color: "#374151" }}>Trạng thái thanh toán:</span>
-                <span style={{ fontSize: "0.875rem", fontWeight: 700, color: "#16a34a", background: "#dcfce7", padding: "2px 8px", borderRadius: 4 }}>
-                  ✅ Đã thanh toán
-                </span>
+                {orderResult.paymentMethod === "COD" ||
+                orderResult.paymentStatus === "UNPAID" ||
+                orderResult.paymentStatus === "unpaid" ? (
+                  <span
+                    style={{
+                      fontSize: "0.875rem",
+                      fontWeight: 700,
+                      color: "#b45309",
+                      background: "#fef3c7",
+                      padding: "2px 8px",
+                      borderRadius: 4,
+                    }}
+                  >
+                    ⏳ Thanh toán khi nhận hàng (COD)
+                  </span>
+                ) : (
+                  <span
+                    style={{
+                      fontSize: "0.875rem",
+                      fontWeight: 700,
+                      color: "#16a34a",
+                      background: "#dcfce7",
+                      padding: "2px 8px",
+                      borderRadius: 4,
+                    }}
+                  >
+                    ✅ Đã thanh toán
+                  </span>
+                )}
               </div>
 
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                 <span style={{ fontSize: "0.875rem", color: "#374151" }}>Phương thức:</span>
-                <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "#111827" }}>{orderResult.paymentMethod}</span>
+                <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "#111827" }}>
+                  {orderResult.paymentMethod === "COD" || orderResult.paymentMethod === "cod"
+                    ? "Thanh toán khi nhận hàng trực tiếp (COD)"
+                    : orderResult.paymentMethod}
+                </span>
               </div>
 
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
