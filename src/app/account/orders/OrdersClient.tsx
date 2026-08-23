@@ -106,8 +106,8 @@ export default function OrdersClient() {
             loadedOrders.filter(
               (o) =>
                 o.id.toLowerCase().includes(keyword) ||
-                o.items.some((i) =>
-                  i.variant.product.name.toLowerCase().includes(keyword)
+                o.items?.some((i) =>
+                  i.variant?.product?.name?.toLowerCase().includes(keyword)
                 )
             )
           );

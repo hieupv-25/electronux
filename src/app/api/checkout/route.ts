@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { PaymentMethod, type PaymentMethod as PaymentMethodValue } from "@/generated/prisma/enums";
 import { validateCouponCode } from "@/lib/coupons";
+import { prisma } from "@/lib/prisma";
 import {
   CheckoutStockError,
   createPaidOrderAndDecrementStock,
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
       phone?: string;
       shippingAddress?: string;
       paymentMethod?: string;
+      items?: Array<{ variantId?: string; quantity?: number; variant?: { id?: string } }>;
       totalAmount?: number | string;
       couponCode?: string | null;
       couponBaseAmount?: number | string;
@@ -35,6 +37,7 @@ export async function POST(req: NextRequest) {
       phone = "0987654321",
       shippingAddress = "Hà Nội, Việt Nam",
       paymentMethod = "cod",
+      items = [],
       totalAmount = 0,
       couponCode,
       couponBaseAmount,
@@ -48,7 +51,38 @@ export async function POST(req: NextRequest) {
     // Simulate backend processing delay (600ms)
     await new Promise((resolve) => setTimeout(resolve, 600));
 
-    const checkoutItems = await getUserCartCheckoutItems(userId);
+    let checkoutItems = await getUserCartCheckoutItems(userId);
+
+    // Fallback if DB cart is empty but client has items
+    if (checkoutItems.length === 0 && Array.isArray(items) && items.length > 0) {
+      const variantIds = items
+        .map((it) => it.variantId || it.variant?.id)
+        .filter(Boolean) as string[];
+
+      if (variantIds.length > 0) {
+        const variants = await prisma.productVariant.findMany({
+          where: { id: { in: variantIds }, isActive: true },
+          include: { product: true },
+        });
+        const variantMap = new Map(variants.map((v) => [v.id, v]));
+
+        checkoutItems = items
+          .map((item) => {
+            const vId = item.variantId || item.variant?.id;
+            const variant = vId ? variantMap.get(vId) : null;
+            if (!variant || !variant.product || variant.product.deletedAt) return null;
+            return {
+              variantId: variant.id,
+              sku: variant.sku,
+              productName: variant.product.name,
+              quantity: Math.max(1, item.quantity || 1),
+              price: Number(variant.price),
+              stockQuantity: variant.stockQuantity,
+            };
+          })
+          .filter(Boolean) as typeof checkoutItems;
+      }
+    }
     const cartAmount = getCheckoutItemsTotal(checkoutItems);
     const baseAmount = Math.max(0, Number(couponBaseAmount ?? cartAmount) || cartAmount);
     const couponValidation = await validateCouponCode({

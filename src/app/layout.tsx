@@ -31,6 +31,49 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                var clean = function() {
+                  document.querySelectorAll('[bis_skin_checked]').forEach(function(el) {
+                    el.removeAttribute('bis_skin_checked');
+                  });
+                };
+                clean();
+                document.addEventListener('DOMContentLoaded', clean);
+                new MutationObserver(function(mutations) {
+                  mutations.forEach(function(m) {
+                    if (m.type === 'attributes' && m.attributeName === 'bis_skin_checked') {
+                      m.target.removeAttribute('bis_skin_checked');
+                    }
+                    if (m.addedNodes) {
+                      m.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) {
+                          if (node.hasAttribute && node.hasAttribute('bis_skin_checked')) {
+                            node.removeAttribute('bis_skin_checked');
+                          }
+                          if (node.querySelectorAll) {
+                            node.querySelectorAll('[bis_skin_checked]').forEach(function(el) {
+                              el.removeAttribute('bis_skin_checked');
+                            });
+                          }
+                        }
+                      });
+                    }
+                  });
+                }).observe(document.documentElement, {
+                  attributes: true,
+                  attributeFilter: ['bis_skin_checked'],
+                  subtree: true,
+                  childList: true
+                });
+              })();
+            `,
+          }}
+        />
+      </head>
       <body suppressHydrationWarning>
         <AuthProvider>
           {children}
