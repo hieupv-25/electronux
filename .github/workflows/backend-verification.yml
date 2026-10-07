@@ -1,0 +1,33 @@
+name: Backend verification
+on: [push, pull_request]
+jobs:
+  payment-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test-only
+          POSTGRES_DB: electronux_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d electronux_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:test-only@localhost:5432/electronux_test
+      DIRECT_URL: postgresql://postgres:test-only@localhost:5432/electronux_test
+      TEST_DATABASE_URL: postgresql://postgres:test-only@localhost:5432/electronux_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma migrate deploy
+      - run: npx tsc --noEmit
+      - run: npx eslint src/lib/vnpay.ts src/lib/checkoutStock.ts src/app/api/checkout/vnpay-ipn/route.ts src/app/api/checkout/vnpay-return/route.ts
+      - run: node --test tests/vnpay.test.cjs tests/callbacks.test.cjs
+      - run: node --import ./tests/register.mjs --test tests/checkout.integration.mjs

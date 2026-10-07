@@ -232,6 +232,20 @@ export async function markOrderPaidAndDecrementStock({
       return { order, alreadyPaid: true };
     }
 
+    // Claim the pending order before touching stock. PostgreSQL rechecks this
+    // predicate after waiting for a concurrent callback's row lock.
+    const claimed = await tx.order.updateMany({
+      where: { id: orderId, status: "pending", paymentStatus: "unpaid" },
+      data: { status: "processing", paymentStatus: "paid" },
+    });
+    if (claimed.count !== 1) {
+      const current = await tx.order.findUnique({ where: { id: orderId } });
+      if (current?.paymentStatus === "paid") {
+        return { order: current, alreadyPaid: true };
+      }
+      throw new CheckoutStockError("Đơn hàng không còn chờ thanh toán.");
+    }
+
     const stockItems = order.items.map((item) => ({
       variantId: item.variantId,
       quantity: item.quantity,
@@ -287,5 +301,18 @@ export async function markOrderPaidAndDecrementStock({
 
     await clearUserCart(tx, order.userId);
     return { order: updatedOrder, alreadyPaid: false };
+  });
+}
+
+export async function cancelUnpaidOrder(orderId: string) {
+  return prisma.$transaction(async (tx) => {
+    const cancelled = await tx.order.updateMany({
+      where: { id: orderId, status: "pending", paymentStatus: "unpaid" },
+      data: { status: "cancelled" },
+    });
+    if (cancelled.count === 1) {
+      await tx.payment.updateMany({ where: { orderId, status: "unpaid" }, data: { status: "unpaid" } });
+    }
+    return cancelled.count === 1;
   });
 }

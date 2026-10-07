@@ -36,8 +36,9 @@ export function buildVNPayUrl({
   ipAddr = "127.0.0.1",
   returnUrl,
 }: BuildVNPayUrlParams): string {
-  const tmnCode = process.env.VNP_TMNCODE || "CGXZ858Z";
-  const secretKey = process.env.VNP_HASHSECRET || "RAHQAKRFRLFBVIZUQGGIYXZWKCYWWCZP";
+  const tmnCode = process.env.VNP_TMNCODE || "";
+  const secretKey = process.env.VNP_HASHSECRET || "";
+  if (!tmnCode || !secretKey) throw new Error("VNPay credentials are not configured.");
   const vnpUrl = process.env.VNP_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
   const defaultReturnUrl =
     returnUrl ||
@@ -90,7 +91,7 @@ export function verifyVNPayResponse(queryParams: Record<string, string | string[
   transactionNo: string;
   amount: number;
 } {
-  const secretKey = process.env.VNP_HASHSECRET || "RAHQAKRFRLFBVIZUQGGIYXZWKCYWWCZP";
+  const secretKey = process.env.VNP_HASHSECRET || "";
 
   const secureHash = typeof queryParams["vnp_SecureHash"] === "string" ? queryParams["vnp_SecureHash"] : "";
   const orderId = typeof queryParams["vnp_TxnRef"] === "string" ? queryParams["vnp_TxnRef"] : "";
@@ -115,7 +116,10 @@ export function verifyVNPayResponse(queryParams: Record<string, string | string[
   const hmac = crypto.createHmac("sha512", secretKey);
   const checkHash = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
 
-  const isValid = checkHash.toLowerCase() === secureHash.toLowerCase();
+  const validAmount = /^\d+$/.test(amountRaw) && Number.isSafeInteger(Number(amountRaw)) && Number(amountRaw) > 0;
+  const unambiguous = Object.entries(queryParams).every(([key, value]) => !key.startsWith("vnp_") || typeof value === "string");
+  const isValid = Boolean(secretKey) && validAmount && unambiguous && /^[a-fA-F0-9]{128}$/.test(secureHash) &&
+    crypto.timingSafeEqual(Buffer.from(checkHash, "hex"), Buffer.from(secureHash, "hex"));
   const amount = Number(amountRaw) / 100;
 
   return {
@@ -125,4 +129,14 @@ export function verifyVNPayResponse(queryParams: Record<string, string | string[
     transactionNo,
     amount,
   };
+}
+
+// Preserve duplicate parameters so signature verification rejects ambiguity.
+export function readVNPayParams(params: URLSearchParams): Record<string, string | string[]> {
+  const result: Record<string, string | string[]> = {};
+  for (const key of new Set(params.keys())) {
+    const values = params.getAll(key);
+    result[key] = values.length === 1 ? values[0] : values;
+  }
+  return result;
 }
