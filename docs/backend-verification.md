@@ -1,6 +1,6 @@
 # Backend verification and CV evidence
 
-Verified locally on 2026-10-07. This is development verification, not a claim
+Verified locally on 2026-10-21. This is development verification, not a claim
 about production traffic, payment volume, uptime or percentage coverage.
 
 - 31 Prisma models: count `model` declarations in `prisma/schema.prisma`.
@@ -8,7 +8,7 @@ about production traffic, payment volume, uptime or percentage coverage.
   All 7 applied successfully to a fresh local PostgreSQL database.
 - 2 supported OAuth providers: Google and Facebook in `src/auth.ts`, enabled
   when their credentials are configured.
-- 33 automated payment tests passed, with zero failures or skips: 28 isolated
+- 45 automated payment tests passed, with zero failures or skips: 40 isolated
   signing/callback tests and 5 tests using actual Prisma/PostgreSQL transactions.
 - TypeScript checking and ESLint on changed production files passed.
 
@@ -32,7 +32,7 @@ describes IPN as the authoritative payment notification for a live integration.
 Use Node 22 or newer. Install dependencies with `npm ci`, then `npx prisma generate`.
 
 ```powershell
-node --test tests/vnpay.test.cjs tests/callbacks.test.cjs
+node --test tests/vnpay.test.cjs tests/callbacks.test.cjs tests/pricing.test.cjs
 npx tsc --noEmit --incremental false
 npx eslint src/lib/vnpay.ts src/lib/checkoutStock.ts src/app/api/checkout/vnpay-ipn/route.ts src/app/api/checkout/vnpay-return/route.ts
 ```
@@ -53,3 +53,18 @@ stock, transaction rollback, cancelled/refunded orders, and simultaneous
 cancellation/settlement. GitHub Actions repeats the checks against PostgreSQL 16.
 The local Windows run used a disposable embedded PostgreSQL instance from the
 E_commerce test dependencies. Existing unrelated worktree changes were retained.
+
+## Server-owned checkout prices
+
+COD demo, VNPay creation and VietQR creation now share checkoutQuote.ts. The quote
+uses current stored cart quantities/prices and validates the coupon against that
+subtotal. Browser totalAmount is an expected quote only; a mismatch returns 409
+before creating any order or payment URL. Browser couponBaseAmount has no effect.
+The 12 new route tests check forged totals, coupon bases, omitted totals and
+anonymous requests across all three entry points. The artificial checkout delay
+was removed; no timing improvement is claimed.
+
+Extra warranty/add-on prices held only in browser state are not authoritative
+cart items. Until represented by persisted cart SKUs, these mismatched quotes
+are rejected rather than charged or silently discarded. This prototype still
+contains simulated payment flows; verification is not evidence of live settlement.

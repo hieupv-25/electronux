@@ -3,12 +3,9 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { buildVNPayUrl } from "@/lib/vnpay";
 import { PaymentMethod } from "@/generated/prisma/enums";
-import { validateCouponCode } from "@/lib/coupons";
+import { quoteCheckout } from "@/lib/checkoutQuote";
 import {
-  assertCheckoutItemsInStock,
   CheckoutStockError,
-  getCheckoutItemsTotal,
-  getUserCartCheckoutItems,
   toOrderItemsCreateData,
 } from "@/lib/checkoutStock";
 
@@ -29,37 +26,12 @@ export async function POST(req: NextRequest) {
       recipientName = "Khách hàng",
       phone = "0987654321",
       shippingAddress = "Hà Nội, Việt Nam",
-      totalAmount = 0,
+      totalAmount,
       couponCode,
-      couponBaseAmount,
     } = body;
 
-    const checkoutItems = await getUserCartCheckoutItems(userId);
-    assertCheckoutItemsInStock(checkoutItems);
-    const cartAmount = getCheckoutItemsTotal(checkoutItems);
-    const baseAmount = Math.max(0, Number(couponBaseAmount ?? cartAmount) || cartAmount);
-    const couponValidation = await validateCouponCode({
-      code: couponCode,
-      subtotal: baseAmount,
-      userId,
-    });
-
-    if (!couponValidation.valid) {
-      return NextResponse.json(
-        { success: false, message: couponValidation.message },
-        { status: 400 }
-      );
-    }
-
-    const amount = couponValidation.code
-      ? couponValidation.finalAmount
-      : Math.max(0, Number(totalAmount) || cartAmount);
-    if (!amount || amount <= 0) {
-      return NextResponse.json(
-        { success: false, message: "Số tiền thanh toán không hợp lệ" },
-        { status: 400 }
-      );
-    }
+    const { items: checkoutItems, amount, coupon: couponValidation } =
+      await quoteCheckout(userId, couponCode, totalAmount);
 
     const trackingNumber = "ELX-VNP-" + Math.floor(100000 + Math.random() * 900000);
 

@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { PaymentMethod, type PaymentMethod as PaymentMethodValue } from "@/generated/prisma/enums";
-import { validateCouponCode } from "@/lib/coupons";
+import { quoteCheckout } from "@/lib/checkoutQuote";
 import {
   CheckoutStockError,
   createPaidOrderAndDecrementStock,
-  getCheckoutItemsTotal,
-  getUserCartCheckoutItems,
 } from "@/lib/checkoutStock";
 
 export async function POST(req: NextRequest) {
@@ -35,9 +33,8 @@ export async function POST(req: NextRequest) {
       phone = "0987654321",
       shippingAddress = "Hà Nội, Việt Nam",
       paymentMethod = "cod",
-      totalAmount = 0,
+      totalAmount,
       couponCode,
-      couponBaseAmount,
     } = body;
     const paymentMethodValue: PaymentMethodValue = Object.values(PaymentMethod).includes(
       paymentMethod as PaymentMethodValue
@@ -45,28 +42,8 @@ export async function POST(req: NextRequest) {
       ? (paymentMethod as PaymentMethodValue)
       : PaymentMethod.cod;
 
-    // Simulate backend processing delay (600ms)
-    await new Promise((resolve) => setTimeout(resolve, 600));
-
-    const checkoutItems = await getUserCartCheckoutItems(userId);
-    const cartAmount = getCheckoutItemsTotal(checkoutItems);
-    const baseAmount = Math.max(0, Number(couponBaseAmount ?? cartAmount) || cartAmount);
-    const couponValidation = await validateCouponCode({
-      code: couponCode,
-      subtotal: baseAmount,
-      userId,
-    });
-
-    if (!couponValidation.valid) {
-      return NextResponse.json(
-        { success: false, message: couponValidation.message },
-        { status: 400 }
-      );
-    }
-
-    const payableAmount = couponValidation.code
-      ? couponValidation.finalAmount
-      : Math.max(0, Number(totalAmount) || cartAmount);
+    const { items: checkoutItems, amount: payableAmount, coupon: couponValidation } =
+      await quoteCheckout(userId, couponCode, totalAmount);
 
     const trackingNumber = "ELX-2026-" + Math.floor(100000 + Math.random() * 900000);
     const order = await createPaidOrderAndDecrementStock({

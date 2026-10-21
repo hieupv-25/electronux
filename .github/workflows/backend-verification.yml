@@ -28,6 +28,6 @@ jobs:
       - run: npx prisma generate
       - run: npx prisma migrate deploy
       - run: npx tsc --noEmit
-      - run: npx eslint src/lib/vnpay.ts src/lib/checkoutStock.ts src/app/api/checkout/vnpay-ipn/route.ts src/app/api/checkout/vnpay-return/route.ts
-      - run: node --test tests/vnpay.test.cjs tests/callbacks.test.cjs
+      - run: npx eslint src/lib/checkoutQuote.ts src/app/api/checkout/route.ts src/app/api/checkout/vnpay-create/route.ts src/app/api/checkout/vietqr-create/route.ts tests/pricing.test.cjs src/lib/vnpay.ts src/lib/checkoutStock.ts src/app/api/checkout/vnpay-ipn/route.ts src/app/api/checkout/vnpay-return/route.ts
+      - run: node --test tests/vnpay.test.cjs tests/callbacks.test.cjs tests/pricing.test.cjs
       - run: node --import ./tests/register.mjs --test tests/checkout.integration.mjs
